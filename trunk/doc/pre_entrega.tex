@@ -1,0 +1,326 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{verbatim}
+
+\usepackage{anysize}
+\marginsize{1.5cm}{1.5cm}{1cm}{1cm}
+
+%\usepackage{sectsty}
+%\sectionfont{\Large}
+
+\pdfinfo{%
+  /Title    (Pre-entrega Trabajo Práctico Especial)
+  /Author   ()
+  /Creator  ()
+  /Producer ()
+  /Subject  ()
+  /Keywords ()
+}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+ \huge \underline{\textbf{Pre-entrega Trabajo Práctico Especial}}\\[0.05cm]
+ \normalsize \textbf{Protocolos de Comunicación}\\[1cm]
+
+\large
+\begin{tabular}{c @{ - } l}
+ Andrés Mata Suarez & 50143 \\
+ Jimena Pose & 49015 \\
+ Pablo Ballesty & 49359 \\
+\end{tabular}\\[21.4cm]
+ 2011 - Segundo cuatrimestre
+\end{center}
+
+\end{titlepage}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+
+\newpage
+\section{Documentación relevante para el desarrollo}
+
+Para el análsis del trabajo práctico se utilizan los siguientes documentos
+\begin{itemize}
+ \item RFC 6120: Extensible Messaging and Presence Protocol (XMPP): Core
+ \item RFC 6121: Extensible Messaging and Presence Protocol (XMPP): Instant Messaging and Presence
+ \item RFC 6122: Extensible Messaging and Presence Protocol (XMPP): Address Format
+
+\end{itemize}
+
+\section{Protocolos a desarrollar}
+A continuación se presenta el RFC del protocolo \textit{configurotocol 1.0}, diseñado para manejar la configuración
+del servidor proxy.
+
+\verbatiminput{configurotocol.txt}
+
+\section{Potenciales problemas y dificultades}
+\subsection{Transparencia}
+El proxy XMPP a desarrollar debería actuar de manera completamente invisible frente a cada par de entidades (cliente y servidor) conectadas.
+En otras palabras, el flujo de información que envía una parte debería arribar sin ningún tipo de alteración al otro extremo
+de la conexión, siempre y cuando no estén activas ninguna de las funciones de transformación ofrecidas por la aplicación. Por su parte, el resto
+de los requerimientos funcionales no deberían modificar en lo más mínimo el \textit{stream} XML enviado entre pares.
+
+\subsection{Concurrencia}
+Frente a cantidades superlativas de conexiones, el proxy debería estar diseñado para trabajar de manera performante, optimizando el manejo de hilos de ejecución.
+Para tal fin, se opta por la implementación de un patrón de \textit{pool} de \textit{threads}. La creación atolondrada de \textit{threads} podría consumir demasiados recursos
+en un período relativamente corto de tiempo; por el contrario, la constante reutilización de hilos de ejecución para nuevas conexiones podría provocar un verdadero
+cuello de botella en la performance y el tiempo de ejecución de la aplicación. El objetivo de este inciso radica en encontrar el balance correcto entre la creación y reutilización de threads,
+de tal manera que el sistema funcione en condiciones óptimas.
+
+Por supuesto, la destrucción criteriosa de hilos inactivos es un factor tan importante como sendos anteriores. De más está decir que el consumo de recursos del sistema debería
+ser el mínimo posible.
+
+\subsection{Manejo de grandes \textit{streams} de información}
+Los \textit{streams} de información que se consideren de gran tamaño deben ser almacenados temporalmente en disco. Obviar esta política implicaría riesgo de agotación de la memoria y, en consecuencia,
+la pérdida de la estabilidad deseada en la aplicación. Debido a esto, es necesario implementar un módulo eficiente con la función de mantener ciertos \textit{streams}
+en disco e ir llevándolos a memoria a medida que sea necesario. La aplicación no debería dejar de funcionar (o comenzar a funcionar erráticamente) debido al tamaño de los
+\textit{streams} que se manejen.
+
+De nuevo, se espera que el manejo de recursos sea eficiente: no es deseable la creación excesiva de archivos en disco así como tampoco lo es la no eliminación de archivos que ya no están en uso
+por la aplicación.
+
+\subsection{Controles y aplicaciones externas}
+En caso de que algún control efectuado por la aplicación de proxy (por ej.: control de accesos) tenga efecto sobre cierta entidad en una conexión, el mensaje de error devuelto deberá tener
+la forma de un mensaje de error XMPP. Una aplicación externa que utilize el proxy no debería tener motivos para sospechar que un error del tipo mencionado no proviene del otro
+\textit{endpoint} de conexión.
+
+
+\section{Ambiente de desarrollo y testing}
+\section{Casos de prueba a realizar}
+Para cada caso de testeo, se consideran los siguientes usuarios:
+\begin{itemize}
+  \item \textbf{cthulhu}, contraseña \textbf{fhtagn}.\\
+	Usuario con permisos administrativos. Cada vez que se pide utilizar el protocolo \textit{configurotocol}
+	para realizar algún tipo de configuración, se asume que se está utilizando a este usuario.
+  \item \textbf{dagon}, contraseña \textbf{dagon}.
+  \item \textbf{shubniggurath}, contraseña \textbf{shubniggurath}.
+\end{itemize}
+
+\subsection{XXXXXXXXXXX CASOS DE TESTEO QUE FALTAN XXXXXXXXXXXXXX}
+\textbf{!!!!!ANOTO LOS QUE NO HICE, NO SE SI HAY QUE HACER PARA TODOS IGUALMENTE !!!!!!!!!!!!!}\\
+\textbf{!!!!! EN LOS CASOS DE TESTEO CORRESPONDIENTES A BLACKLIST, FALTAN METER VALORES NUMERICOS PARA LAS IP !!!!!!!!!}
+\begin{itemize}
+ \item Modo de uso
+ \item concurrencia
+ \item encadenamiento de proxis
+ \item logging
+ \item multiplexador de cuentas
+ \item transofrmaciones
+\end{itemize}
+
+\subsection{Controles}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por rango de horarios\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{dagon} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
+					dicho usuario en dicho rango horario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} inicia sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por rango de horarios\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{dagon} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
+					dicho usuario fuera de ese rango horario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} no tiene permitido el inicio de sesión en dicho
+					rango horario. Se devuelve mensaje de error acorde.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de logins exitosos por usuario y día\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{dagon} no haya iniciado sesión
+					anteriormente en el día.
+					Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{dagon} sólo pueda acceder al sistema un máximo de 1 (una) vez
+					por día. Iniciar sesión en el sistema como dicho usuario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} inicia sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de logins exitosos por usuario y día\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{dagon} no haya iniciado sesión
+					anteriormente en el día.
+					Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{dagon} sólo pueda acceder al sistema un máximo de 1 (una) vez
+					por día. Iniciar sesión en el sistema como dicho usuario. Cerrar sesión.
+					Iniciar sesión una vez más.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} ya cumplió su cuota diaria de accesos.
+					El segundo login no es aceptado. Se devuelve mensaje de error acorde.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (dirección IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes de la dirección XXX.XXX.XXX.XXX. Iniciar sesión como
+					\textbf{dagon} desde la dirección YYY.YYY.YYY.YYY.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} inicia sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (dirección IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes de la dirección XXX.XXX.XXX.XXX. Iniciar sesión como
+					\textbf{dagon} desde la dirección XXX.XXX.XXX.XXX.\\
+    \hline
+    \textbf{Resultado esperado}	&	La dirección XXX.XXX.XXX.XXX se encuentra en la lista negra. No se permite
+					el inicio de sesión. Se devuelve mensaje de error acorde.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (redes IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes del rango de direcciones XXX.XXX.XXX.XXX/ZZ. Iniciar sesión como
+					\textbf{dagon} desde la dirección YYY.YYY.YYY.YYY. Iniciar sesión como
+					\textbf{shubniggurath} desde la dirección VVV.VVV.VVV.VVV.\\
+    \hline
+    \textbf{Resultado esperado}	&	Ambos usuarios inician sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (redes IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes del rango de direcciones XXX.XXX.XXX.XXX/ZZ. Iniciar sesión como
+					\textbf{dagon} desde la dirección YYY.YYY.YYY.YYY. Iniciar sesión como
+					\textbf{shubniggurath} desde la dirección VVV.VVV.VVV.VVV.\\
+    \hline
+    \textbf{Resultado esperado}	&	No se permite ninguno de los dos inicios de sesión. Se devuelven mensajes
+					acordes para cada instancia de la aplicación.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de sesiones concurrentes\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para restringir la cantidad
+					máxima de sesiones concurrentes del usuario \textbf{dagon} a 3.
+					Iniciar sesión como dicho usuario desde 2 instancias de la aplicación
+					distintas.\\
+    \hline
+    \textbf{Resultado esperado}	&	Se permite el inicio de sesión en cada instancia del programa.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de sesiones concurrentes\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para restringir la cantidad
+					máxima de sesiones concurrentes del usuario \textbf{dagon} a 3.
+					Iniciar sesión como dicho usuario desde 3 instancias de la aplicación
+					distintas. Ejecutar una nueva instancia e iniciar sesión como el mismo
+					usuario una vez más.\\
+    \hline
+    \textbf{Resultado esperado}	&	Se permite el inicio de sesión en todas las instancias excepto en la última.
+					Se devuelve mensaje de error acorde en esta última.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por silenciamiento de usuarios\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para asegurarse de que el usuario
+					\textbf{dagon} no se encuentre silenciado. Iniciar sesión como dicho
+					usuario y empezar a ejecutar comandos XMPP.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} puede comunicarse sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por silenciamiento de usuarios\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para silenciar al usuario
+					\textbf{dagon}. Iniciar sesión como dicho usuario y empezar a ejecutar
+					comandos XMPP.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} se encuentra silenciado. Se devuelve mensaje
+					de error acorde.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\end{document}
