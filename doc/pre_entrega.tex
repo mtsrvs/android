@@ -3,6 +3,7 @@
 \usepackage[spanish]{babel}
 \usepackage[utf8x]{inputenc}
 \usepackage{verbatim}
+\usepackage{hyperref}
 
 \usepackage{anysize}
 \marginsize{1.5cm}{1.5cm}{1cm}{1cm}
@@ -59,6 +60,17 @@ del servidor proxy.
 \verbatiminput{configurotocol.txt}
 
 \section{Potenciales problemas y dificultades}
+
+\subsection{Comunicación encriptada}
+Como se especifica en el RFC 6120, cuando dos entidades quieren comunicarse, negocian qué método de encriptación utilizarán, el server manda sus \textit{features}
+y el cliente avisa cual utilizará. Luego comienzan nuevamente la sesión, utilizando el método escogido.
+\par Para el servidor proxy, esto va a resultar un problema, ya que luego de que ambas entidades escojan un protocolo de comunicación encriptado (los dos que se mencionan
+son TLS y SASL) los paquetes comenzarán a llegar encriptados y por ende, no podremos realizar algunos de los requerimientos que se piden (e.g filtro de l33t).
+\par Para evitar que pasen por el proxy paquetes encriptados, sin que se puedan decodificar, se decide que al momento en que las dos entidades hayan escogido el método
+a utilizar, sea el server proxy el que utilice ese método para ambos lados de la conexión. De esta manera, sabrá encriptar y desencriptar los mensajes de cada
+parte de la conexión. Por ejemplo, si quiere reenviar todo lo recibido del cliente al servidor, antes va a tener que desencriptarlo y luego encriptarlo para
+ enviarlo al servidor.
+
 \subsection{Transparencia}
 El proxy XMPP a desarrollar debería actuar de manera completamente invisible frente a cada par de entidades (cliente y servidor) conectadas.
 En otras palabras, el flujo de información que envía una parte debería arribar sin ningún tipo de alteración al otro extremo
@@ -91,6 +103,17 @@ la forma de un mensaje de error XMPP. Una aplicación externa que utilize el pro
 
 
 \section{Ambiente de desarrollo y testing}
+Como servidor de XMPP se utilizará \textbf{ejabberd} (\url{http://www.ejabberd.im/}), el cual puede instalarse en Ubuntu directamente desde los repositorios 
+ejecutando desde consola:
+\begin{verbatim}
+ sudo apt-get install ejabberd
+\end{verbatim}
+Como cliente se utilizará \textbf{Pidgin} (\url{http://www.pidgin.im/}), el cual peude instalarse en Ubuntu directamente de los respositorios ejecutando 
+desde consola:
+\begin{verbatim}
+ sudo apt-get install pidgin
+\end{verbatim}
+
 \section{Casos de prueba a realizar}
 Para cada caso de testeo, se consideran los siguientes usuarios:
 \begin{itemize}
