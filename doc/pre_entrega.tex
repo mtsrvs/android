@@ -437,6 +437,52 @@ Para la ejecución de los casos de prueba, se va a contar con los siguientes usu
   \end{tabular}
 \end{center}
 
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Encadenamiento de proxies\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Levantar una instancia del proxy en un host. Luego, levantar una nueva instancia en otro 
+					host, la misma debe estar configurada para usar la primera.\\
+    \hline
+    \textbf{Resultado esperado}	&	El proxy debe correr normalmente sin problema alguno.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Encadenamiento de proxies\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Levantar una instancia del proxy en un host. Luego, levantar una nueva instancia del proxy
+					del otro grupo en otro host, la misma debe estar configurada para usar la primera.\\
+    \hline
+    \textbf{Resultado esperado}	&	El proxy debe correr normalmente sin problema alguno.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Logging\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Conectar los usuarios \textbf{foo} y \textbf{bar}.
+					Desde el usuario \textbf{foo} enviar un mensaje al usuario \textbf{bar}.\\
+    \hline
+    \textbf{Resultado esperado}	&	Verificar que el proxy deje registro de los accesos en la consola y/o en un archivo
+					que permitan entender qué requests están pasando por el proxy.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
 \subsection{Testeos de requerimientos no funcionales}
 
 \begin{center}
@@ -467,5 +513,6 @@ Para la ejecución de los casos de prueba, se va a contar con los siguientes usu
     \hline   
   \end{tabular}
 \end{center}
+
 
 \end{document}
