@@ -62,14 +62,12 @@ del servidor proxy.
 \section{Potenciales problemas y dificultades}
 
 \subsection{Comunicación encriptada}
-Como se especifica en el RFC 6120, cuando dos entidades quieren comunicarse, negocian qué método de encriptación utilizarán, el server manda sus \textit{features}
-y el cliente avisa cual utilizará. Luego comienzan nuevamente la sesión, utilizando el método escogido.
-\par Para el servidor proxy, esto va a resultar un problema, ya que luego de que ambas entidades escojan un protocolo de comunicación encriptado (los dos que se mencionan
-son TLS y SASL) los paquetes comenzarán a llegar encriptados y por ende, no podremos realizar algunos de los requerimientos que se piden (e.g filtro de l33t).
-\par Para evitar que pasen por el proxy paquetes encriptados, sin que se puedan decodificar, se decide que al momento en que las dos entidades hayan escogido el método
-a utilizar, sea el server proxy el que utilice ese método para ambos lados de la conexión. De esta manera, sabrá encriptar y desencriptar los mensajes de cada
-parte de la conexión. Por ejemplo, si quiere reenviar todo lo recibido del cliente al servidor, antes va a tener que desencriptarlo y luego encriptarlo para
- enviarlo al servidor.
+Como se especifica en RFC 6120, cuando dos entidades quieren comunicarse, primero negocian qué método de encriptación utilizarán, es decir, el server manda sus \textit{features}
+y el cliente avisa cuál utilizará. Luego, comienzan nuevamente la sesión, utilizando el método escogido.
+\par Para el servidor proxy, esto es sin dudas un problema: luego de que ambas entidades escojan un protocolo de encriptación (los dos que se mencionan
+son TLS y SASL) los paquetes comienzan a viajar encriptados y por ende, se vuelve dificultosa la implementación de algunos de los requerimientos que se piden (en especial los de transformaciones de datos, como es el filtro de l33t).
+\par Para evitar la llegada de paquetes asegurados al proxy, se decide que una vez negociado el método a utilizar por las dos entidades, el server proxy abrirá dos endpoints de conexión, uno para cada extremo del intercambio, de manera tal que sepa encriptar y desencriptar los mensajes de cada
+parte de la conexión. Ejemplificando, si quiere reenviar todo lo recibido del cliente al servidor, previamente deberá desencriptarlo y luego volver a encriptarlo.
 
 \subsection{Transparencia}
 El proxy XMPP a desarrollar debería actuar de manera completamente invisible frente a cada par de entidades (cliente y servidor) conectadas.
@@ -103,19 +101,25 @@ la forma de un mensaje de error XMPP. Una aplicación externa que utilize el pro
 
 
 \section{Ambiente de desarrollo y testing}
-Como servidor de XMPP se utilizará \textbf{ejabberd} (\url{http://www.ejabberd.im/}), el cual puede instalarse en Ubuntu directamente desde los repositorios 
+La aplicación será desarrollada bajo entorno Unix/Linux.\\
+
+Para la realización de testeos de unidad, se utilizará el framework \textbf{JUnit} (\url{http://www.junit.org/}).\\
+
+Para testeos de carga (\textit{stress-testing}), se utilizará la aplicación \textbf{JMeter} (\url{http://jakarta.apache.org/jmeter/}).\\
+
+Como servidor de XMPP se utilizará \textbf{ejabberd} (\url{http://www.ejabberd.im/}); el mismo puede instalarse en Ubuntu directamente desde los repositorios 
 ejecutando desde consola:
 \begin{verbatim}
  sudo apt-get install ejabberd
 \end{verbatim}
-Como cliente se utilizará \textbf{Pidgin} (\url{http://www.pidgin.im/}), el cual peude instalarse en Ubuntu directamente de los respositorios ejecutando 
+Como cliente se utilizará \textbf{Pidgin} (\url{http://www.pidgin.im/}); el mismo puede instalarse en Ubuntu directamente de los respositorios ejecutando 
 desde consola:
 \begin{verbatim}
  sudo apt-get install pidgin
 \end{verbatim}
 
 \section{Casos de prueba a realizar}
-Para cada caso de testeo, se consideran los siguientes usuarios:
+Para cada caso de prueba, se consideran los siguientes usuarios:
 \begin{itemize}
   \item \textbf{cthulhu}, contraseña \textbf{fhtagn}.\\
 	Usuario con permisos administrativos. Cada vez que se pide utilizar el protocolo \textit{configurotocol}
