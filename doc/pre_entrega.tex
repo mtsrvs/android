@@ -50,8 +50,16 @@ Para el análsis del trabajo práctico se utilizan los siguientes documentos
  \item RFC 6120: Extensible Messaging and Presence Protocol (XMPP): Core
  \item RFC 6121: Extensible Messaging and Presence Protocol (XMPP): Instant Messaging and Presence
  \item RFC 6122: Extensible Messaging and Presence Protocol (XMPP): Address Format
-
+ \item XEP 0096: SI File Transfer
 \end{itemize}
+
+Posiblemente sean necesarios los siguientes
+\begin{itemize}
+ \item RFC 4854: A Uniform Resource Name (URN) namespace for use in XMPP extensions
+ \item RFC 5246:  The Transport Layer Security (TLS) Protocol Version 1.2
+ \item RFC 2222: Simple Authentication and Security Layer (SASL)
+\end{itemize}
+
 
 \section{Protocolos a desarrollar}
 A continuación se presenta el RFC del protocolo \textit{configurotocol 1.0}, diseñado para manejar la configuración
@@ -112,35 +120,22 @@ ejecutando desde consola:
 \begin{verbatim}
  sudo apt-get install ejabberd
 \end{verbatim}
-Como cliente se utilizará \textbf{Pidgin} (\url{http://www.pidgin.im/}); el mismo puede instalarse en Ubuntu directamente de los respositorios ejecutando 
+\par Como cliente se utilizará \textbf{Pidgin} (\url{http://www.pidgin.im/}); el mismo puede instalarse en Ubuntu directamente de los respositorios ejecutando 
 desde consola:
 \begin{verbatim}
  sudo apt-get install pidgin
 \end{verbatim}
 
 \section{Casos de prueba a realizar}
-Para cada caso de prueba, se consideran los siguientes usuarios:
+Para la ejecución de los casos de prueba, se va a contar con los siguientes usuarios:
 \begin{itemize}
-  \item \textbf{cthulhu}, contraseña \textbf{fhtagn}.\\
-	Usuario con permisos administrativos. Cada vez que se pide utilizar el protocolo \textit{configurotocol}
-	para realizar algún tipo de configuración, se asume que se está utilizando a este usuario.
-  \item \textbf{dagon}, contraseña \textbf{dagon}.
-  \item \textbf{shubniggurath}, contraseña \textbf{shubniggurath}.
+ \item \textbf{foo} con contraseña \textbf{123123123}
+ \item \textbf{bar} con contraseña \textbf{123123123}
+ \item \textbf{baz} con contraseña \textbf{123123123}
+ \item \textbf{foobar} con contraseña \textbf{123123123}
 \end{itemize}
 
-\subsection{XXXXXXXXXXX CASOS DE TESTEO QUE FALTAN XXXXXXXXXXXXXX}
-\textbf{!!!!!ANOTO LOS QUE NO HICE, NO SE SI HAY QUE HACER PARA TODOS IGUALMENTE !!!!!!!!!!!!!}\\
-\textbf{!!!!! EN LOS CASOS DE TESTEO CORRESPONDIENTES A BLACKLIST, FALTAN METER VALORES NUMERICOS PARA LAS IP !!!!!!!!!}
-\begin{itemize}
- \item Modo de uso
- \item concurrencia
- \item encadenamiento de proxis
- \item logging
- \item multiplexador de cuentas
- \item transofrmaciones
-\end{itemize}
-
-\subsection{Controles}
+\subsection{Testeos de requerimientos funcionales}
 
 \begin{center}
   \begin{tabular}{|r|p{12.5cm}|}
@@ -150,10 +145,10 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Positivo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
-					\textbf{dagon} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
+					\textbf{foo} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
 					dicho usuario en dicho rango horario.\\
     \hline
-    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} inicia sesión sin problemas.\\
+    \textbf{Resultado esperado}	&	El usuario \textbf{foo} inicia sesión sin problemas.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -166,11 +161,28 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Negativo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
-					\textbf{dagon} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
+					\textbf{foo} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
 					dicho usuario fuera de ese rango horario.\\
     \hline
-    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} no tiene permitido el inicio de sesión en dicho
-					rango horario. Se devuelve mensaje de error acorde.\\
+    \textbf{Resultado esperado}	&	El usuario \textbf{foo} no tiene permitido el inicio de sesión en dicho
+					rango horario. Se recibe un error acorde al protocolo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por rango de horarios\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{foo} sólo pueda acceder de 19:00 a 06:00 horas. Iniciar sesión con
+					dicho usuario dentro de ese rango horario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{foo} no tiene permitido el inicio de sesión en dicho
+					rango horario. Se recibe un error acorde al protocolo. Que el configurotocol permita este seteo.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -182,13 +194,13 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \hline
     \textbf{Tipo de test}	&	Positivo\\
     \hline
-    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{dagon} no haya iniciado sesión
+    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{bar} no haya iniciado sesión
 					anteriormente en el día.
 					Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
-					\textbf{dagon} sólo pueda acceder al sistema un máximo de 1 (una) vez
+					\textbf{bar} sólo pueda acceder al sistema un máximo de 1 (una) vez
 					por día. Iniciar sesión en el sistema como dicho usuario.\\
     \hline
-    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} inicia sesión sin problemas.\\
+    \textbf{Resultado esperado}	&	El usuario \textbf{bar} inicia sesión sin problemas.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -200,15 +212,15 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \hline
     \textbf{Tipo de test}	&	Negativo\\
     \hline
-    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{dagon} no haya iniciado sesión
+    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{bar} no haya iniciado sesión
 					anteriormente en el día.
 					Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
-					\textbf{dagon} sólo pueda acceder al sistema un máximo de 1 (una) vez
+					\textbf{bar} sólo pueda acceder al sistema un máximo de 1 (una) vez
 					por día. Iniciar sesión en el sistema como dicho usuario. Cerrar sesión.
 					Iniciar sesión una vez más.\\
     \hline
-    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} ya cumplió su cuota diaria de accesos.
-					El segundo login no es aceptado. Se devuelve mensaje de error acorde.\\
+    \textbf{Resultado esperado}	&	El usuario \textbf{bar} ya cumplió su cuota diaria de accesos.
+					El segundo login no es aceptado. Se devuelve mensaje de error acorde al protocolo.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -221,10 +233,10 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Positivo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
-					entrantes de la dirección XXX.XXX.XXX.XXX. Iniciar sesión como
-					\textbf{dagon} desde la dirección YYY.YYY.YYY.YYY.\\
+					entrantes de la dirección 192.168.1.50. Iniciar sesión como
+					\textbf{baz} desde la dirección 192.168.1.51.\\
     \hline
-    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} inicia sesión sin problemas.\\
+    \textbf{Resultado esperado}	&	El usuario \textbf{baz} inicia sesión sin problemas.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -237,11 +249,11 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Negativo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
-					entrantes de la dirección XXX.XXX.XXX.XXX. Iniciar sesión como
-					\textbf{dagon} desde la dirección XXX.XXX.XXX.XXX.\\
+					entrantes de la dirección 192.168.1.50. Iniciar sesión como
+					\textbf{dagon} desde la dirección 192.168.1.50.\\
     \hline
-    \textbf{Resultado esperado}	&	La dirección XXX.XXX.XXX.XXX se encuentra en la lista negra. No se permite
-					el inicio de sesión. Se devuelve mensaje de error acorde.\\
+    \textbf{Resultado esperado}	&	La dirección 192.168.1.50 se encuentra en la lista negra. No se permite
+					el inicio de sesión. Se devuelve mensaje de error acorde al protocolo.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -254,9 +266,9 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Positivo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
-					entrantes del rango de direcciones XXX.XXX.XXX.XXX/ZZ. Iniciar sesión como
-					\textbf{dagon} desde la dirección YYY.YYY.YYY.YYY. Iniciar sesión como
-					\textbf{shubniggurath} desde la dirección VVV.VVV.VVV.VVV.\\
+					entrantes del rango de direcciones 192.168.1.0/25. Iniciar sesión como
+					\textbf{foobar} desde la dirección 192.168.1.130. Iniciar sesión como
+					\textbf{baz} desde la dirección 192.168.1.254.\\
     \hline
     \textbf{Resultado esperado}	&	Ambos usuarios inician sesión sin problemas.\\
     \hline   
@@ -271,9 +283,9 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Negativo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
-					entrantes del rango de direcciones XXX.XXX.XXX.XXX/ZZ. Iniciar sesión como
-					\textbf{dagon} desde la dirección YYY.YYY.YYY.YYY. Iniciar sesión como
-					\textbf{shubniggurath} desde la dirección VVV.VVV.VVV.VVV.\\
+					entrantes del rango de direcciones 192.168.1.0/25. Iniciar sesión como
+					\textbf{foobar} desde la dirección 192.168.1.126. Iniciar sesión como
+					\textbf{bar} desde la dirección 192.168.1.10.\\
     \hline
     \textbf{Resultado esperado}	&	No se permite ninguno de los dos inicios de sesión. Se devuelven mensajes
 					acordes para cada instancia de la aplicación.\\
@@ -289,9 +301,8 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Positivo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para restringir la cantidad
-					máxima de sesiones concurrentes del usuario \textbf{dagon} a 3.
-					Iniciar sesión como dicho usuario desde 2 instancias de la aplicación
-					distintas.\\
+					máxima de sesiones concurrentes del usuario \textbf{baz} a 3.
+					Iniciar sesión como dicho usuario desde 2 clientes distintos.\\
     \hline
     \textbf{Resultado esperado}	&	Se permite el inicio de sesión en cada instancia del programa.\\
     \hline   
@@ -303,16 +314,15 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \hline
     \textbf{Funcionalidad}	&	Por cantidad de sesiones concurrentes\\
     \hline
-    \textbf{Tipo de test}	&	Negativo\\
+    \textbf{Tipo de test}	&	Positivo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para restringir la cantidad
-					máxima de sesiones concurrentes del usuario \textbf{dagon} a 3.
-					Iniciar sesión como dicho usuario desde 3 instancias de la aplicación
-					distintas. Ejecutar una nueva instancia e iniciar sesión como el mismo
-					usuario una vez más.\\
+					máxima de sesiones concurrentes del usuario \textbf{baz} a 3.
+					Iniciar sesión como dicho usuario desde 3 clientes
+					distintos. Utilizar un nuevo cliente e iniciar sesión nuevamente.\\
     \hline
-    \textbf{Resultado esperado}	&	Se permite el inicio de sesión en todas las instancias excepto en la última.
-					Se devuelve mensaje de error acorde en esta última.\\
+    \textbf{Resultado esperado}	&	Se permite el inicio de sesión en el último cliente, y el primer cliente
+					que se utilizó se desconecta recibiendo un error acorde al protocolo.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -325,10 +335,11 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Positivo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para asegurarse de que el usuario
-					\textbf{dagon} no se encuentre silenciado. Iniciar sesión como dicho
-					usuario y empezar a ejecutar comandos XMPP.\\
+					\textbf{foobar} no se encuentre silenciado. Iniciar sesión como dicho
+					usuario y emitir mensajes hacia el usuario \textbf{foo} que estará conectado.
+					Luego el usuario \textbf{foo} emite mensajes hacia \textbf{foobar}.\\
     \hline
-    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} puede comunicarse sin problemas.\\
+    \textbf{Resultado esperado}	&	Los usuarios se comunican sin problemas.\\
     \hline   
   \end{tabular}
 \end{center}
@@ -341,11 +352,118 @@ Para cada caso de prueba, se consideran los siguientes usuarios:
     \textbf{Tipo de test}	&	Negativo\\
     \hline
     \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para silenciar al usuario
-					\textbf{dagon}. Iniciar sesión como dicho usuario y empezar a ejecutar
-					comandos XMPP.\\
+					\textbf{foobar}. Iniciar sesión como dicho usuario y emitir mensajes hacia
+					el usuario \textbf{foo} que estará conectado.
+					Luego \textbf{foo} envía mensajes hacia \textbf{foobar} y hacia \textbf{bar}.\\
     \hline
-    \textbf{Resultado esperado}	&	El usuario \textbf{dagon} se encuentra silenciado. Se devuelve mensaje
-					de error acorde.\\
+    \textbf{Resultado esperado}	&	\textbf{foo} y \textbf{foobar} no pueden comunicarse, y \textbf{bar} recibe los mensajes de \textbf{foo}.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(L33t)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{L33t}. 
+					Emitir mensajes desde \textbf{foo} hacia \textbf{bar} que posean vocales.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe los mensajes en formato \textbf{L33t}.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(L33t)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{L33t}. 
+					Emitir mensajes desde \textbf{foo} hacia \textbf{bar} que posean vocales.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe los mensajes en formato \textbf{L33t}.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(Hash)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{Hash}. 
+					Enviar un archivo desde \textbf{foo} hacia \textbf{bar}. Asegurarse que 
+					se envía el hash correspondiente.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe el archivo \textbf{L33t} sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(Hash)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{Hash}. 
+					Enviar un archivo desde \textbf{foo} hacia \textbf{bar}. Quitar el hash del mensaje.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe el archivo sin problemas, con el hash generado.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(Hash)\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{Hash}. 
+					Enviar un archivo desde \textbf{foo} hacia \textbf{bar}. Alterar el hash.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} no recibe el archivo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\subsection{Testeos de requerimientos no funcionales}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Requerimiento no funcional}	& Envío de archivos\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Desde el usuario \textbf{foo} enviar un archivo a \textbf{bar} de un tamaño de 30Mb.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe el archivo sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Requerimiento no funcional}	& Concurrencia\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Configurar JMeter para que realice \textit{n} conexiones al servidor proxy y emita mensajes.
+					Ir aumentando \textit{n}.\\
+    \hline
+    \textbf{Resultado esperado}	&	No se rechazan conexiones y pueden emitirse los mensajes.\\
     \hline   
   \end{tabular}
 \end{center}
