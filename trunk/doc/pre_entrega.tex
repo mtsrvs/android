@@ -70,7 +70,7 @@ del servidor proxy.
 \section{Potenciales problemas y dificultades}
 
 \subsection{Comunicación encriptada}
-Como se especifica en RFC 6120, cuando dos entidades quieren comunicarse, primero negocian qué método de encriptación utilizarán, es decir, el server manda sus \textit{features}
+Como se especifica en el RFC 6120, cuando dos entidades quieren comunicarse, primero negocian qué método de encriptación utilizarán, es decir, el server manda sus \textit{features}
 y el cliente avisa cuál utilizará. Luego, comienzan nuevamente la sesión, utilizando el método escogido.
 \par Para el servidor proxy, esto es sin dudas un problema: luego de que ambas entidades escojan un protocolo de encriptación (los dos que se mencionan
 son TLS y SASL) los paquetes comienzan a viajar encriptados y por ende, se vuelve dificultosa la implementación de algunos de los requerimientos que se piden (en especial los de transformaciones de datos, como es el filtro de l33t).
@@ -84,14 +84,22 @@ de la conexión, siempre y cuando no estén activas ninguna de las funciones de 
 de los requerimientos funcionales no deberían modificar en lo más mínimo el \textit{stream} XML enviado entre pares.
 
 \subsection{Concurrencia}
-Frente a cantidades superlativas de conexiones, el proxy debería estar diseñado para trabajar de manera performante, optimizando el manejo de hilos de ejecución.
-Para tal fin, se opta por la implementación de un patrón de \textit{pool} de \textit{threads}. La creación atolondrada de \textit{threads} podría consumir demasiados recursos
-en un período relativamente corto de tiempo; por el contrario, la constante reutilización de hilos de ejecución para nuevas conexiones podría provocar un verdadero
-cuello de botella en la performance y el tiempo de ejecución de la aplicación. El objetivo de este inciso radica en encontrar el balance correcto entre la creación y reutilización de threads,
-de tal manera que el sistema funcione en condiciones óptimas.
+Uno de los problemas que deberá enfrentar el server proxy es una cantidad grande de conexiones, es decir, atender a grandes cantidades de clientes.
+Mas allá, que este problema se puede paliar planteando una arquitectura con varios servidores proxies, e ir balanceando la concurrencia, la idea es que 
+además cada servidor proxy maneje de manera performante la concurrencia, y pueda servir la mayor cantidad de clientes. Para esto, dentro de lo posible se
+intentará utilizar \textit{N} selectores cada uno corriendo en un \textit{Thread}, siendo \textit{N} la cantidad de procesadores que tenga el host donde se corra la aplicación, y se van a ir asignando
+sockets a cada selector mediante un algoritmo Round-Robin. Se ponen \textit{N} \textit{Threads} igual a la cantidad de procesadores, para que, en lo posible
+corran en paralelo realmente, y no perder tiempo de \textit{scheduling}.
 
-Por supuesto, la destrucción criteriosa de hilos inactivos es un factor tan importante como sendos anteriores. De más está decir que el consumo de recursos del sistema debería
-ser el mínimo posible.
+
+% Frente a cantidades superlativas de conexiones, el proxy debería estar diseñado para trabajar de manera performante, optimizando el manejo de hilos de ejecución.
+% Para tal fin, se opta por la implementación de un patrón de \textit{pool} de \textit{threads}. La creación atolondrada de \textit{threads} podría consumir demasiados recursos
+% en un período relativamente corto de tiempo; por el contrario, la constante reutilización de hilos de ejecución para nuevas conexiones podría provocar un verdadero
+% cuello de botella en la performance y el tiempo de ejecución de la aplicación. El objetivo de este inciso radica en encontrar el balance correcto entre la creación y reutilización de threads,
+% de tal manera que el sistema funcione en condiciones óptimas.
+% 
+% Por supuesto, la destrucción criteriosa de hilos inactivos es un factor tan importante como sendos anteriores. De más está decir que el consumo de recursos del sistema debería
+% ser el mínimo posible.
 
 \subsection{Manejo de grandes \textit{streams} de información}
 Los \textit{streams} de información que se consideren de gran tamaño deben ser almacenados temporalmente en disco. Obviar esta política implicaría riesgo de agotación de la memoria y, en consecuencia,
@@ -437,52 +445,6 @@ Para la ejecución de los casos de prueba, se va a contar con los siguientes usu
   \end{tabular}
 \end{center}
 
-\begin{center}
-  \begin{tabular}{|r|p{12.5cm}|}
-    \hline
-    \textbf{Funcionalidad}	&	Encadenamiento de proxies\\
-    \hline
-    \textbf{Tipo de test}	&	Positivo\\
-    \hline
-    \textbf{Descripción}	&	Levantar una instancia del proxy en un host. Luego, levantar una nueva instancia en otro 
-					host, la misma debe estar configurada para usar la primera.\\
-    \hline
-    \textbf{Resultado esperado}	&	El proxy debe correr normalmente sin problema alguno.\\
-    \hline   
-  \end{tabular}
-\end{center}
-
-\begin{center}
-  \begin{tabular}{|r|p{12.5cm}|}
-    \hline
-    \textbf{Funcionalidad}	&	Encadenamiento de proxies\\
-    \hline
-    \textbf{Tipo de test}	&	Positivo\\
-    \hline
-    \textbf{Descripción}	&	Levantar una instancia del proxy en un host. Luego, levantar una nueva instancia del proxy
-					del otro grupo en otro host, la misma debe estar configurada para usar la primera.\\
-    \hline
-    \textbf{Resultado esperado}	&	El proxy debe correr normalmente sin problema alguno.\\
-    \hline   
-  \end{tabular}
-\end{center}
-
-\begin{center}
-  \begin{tabular}{|r|p{12.5cm}|}
-    \hline
-    \textbf{Funcionalidad}	&	Logging\\
-    \hline
-    \textbf{Tipo de test}	&	Positivo\\
-    \hline
-    \textbf{Descripción}	&	Conectar los usuarios \textbf{foo} y \textbf{bar}.
-					Desde el usuario \textbf{foo} enviar un mensaje al usuario \textbf{bar}.\\
-    \hline
-    \textbf{Resultado esperado}	&	Verificar que el proxy deje registro de los accesos en la consola y/o en un archivo
-					que permitan entender qué requests están pasando por el proxy.\\
-    \hline   
-  \end{tabular}
-\end{center}
-
 \subsection{Testeos de requerimientos no funcionales}
 
 \begin{center}
@@ -509,10 +471,9 @@ Para la ejecución de los casos de prueba, se va a contar con los siguientes usu
     \textbf{Descripción}	&	Configurar JMeter para que realice \textit{n} conexiones al servidor proxy y emita mensajes.
 					Ir aumentando \textit{n}.\\
     \hline
-    \textbf{Resultado esperado}	&	No se rechazan conexiones y pueden emitirse los mensajes.\\
+    \textbf{Resultado esperado}	&	Para n aceptable (analizaremos durante el desarrollo cuanto sería un n aceptable) no se rechazan conexiones y pueden emitirse los mensajes.\\
     \hline   
   \end{tabular}
 \end{center}
-
 
 \end{document}

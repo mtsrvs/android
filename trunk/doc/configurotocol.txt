@@ -16,6 +16,7 @@ Instituto Teconológico de Buenos Aires (ITBA).
 
 Configurotocol es un protocolo sin estado que permite a una entidad cliente con-
 sultar y setear parámetros de configuración de la aplicación proxy Isecu.
+Se basa en el formato JSON (http://www.json.org).
 
 2. Descripción
 
@@ -34,7 +35,7 @@ Un objeto puede ser:
 
                                       ó
 
-          compuesto --> clave : ["valor1", "valor2", ... , "valorn"]
+          compuesto --> clave : {k1:"valor1",k2:"valor2", ... , kn:"valorn"}
 
 2.2 Comando
 
@@ -80,30 +81,30 @@ El objeto server debe ser de formato compuesto, y debe tener exactamente dos va-
 lores. El primero debe ser la dirección del servidor y el segundo el puerto.
 Ejemplo:
 	{ user:"foo", password:"foo", type:"assignation", 
-		server:["xmpp.example.com","5222"] }
+		server:{origin:"xmpp.example.com",port:"5222"}
 
 3.2.2 Blacklist
 El objeto blacklist debe ser de formato compuesto y de algún tipo de los siguientes:
 
 Tipo "range":
- blacklist:["range","user","from","to"]
+ blacklist:{type:"range",user:"user",from:"from",to:"to"}
 
 Tipo "logins":
- blacklist:["logins","user","qty"]
+ blacklist:{type:"logins",user:"user",qty:"qty"}
 
 Tipo "net":
- blacklist:["net","ip"]
- blacklist:["net","network","netmask"]
+ blacklist:{type:"net",ip:"ip"}
+ blacklist:{type:"net",network:"network",netmask:"netmask"}
 
 3.2.3 Acceso concurrente
 El objeto caccess debe ser de formato compuesto y debe respetar el siguiente 
 formato:
- caccess:["user","qty"]
+ caccess:{user:"user",qty:"qty"}
 
 3.2.4 Multiplexador de cuentas
 El objeto multiplex debe ser de formato compuesto y debe respetar el siguiente
 formato:
-  multiplex:["jid", "serverto"]
+  multiplex:{jid:"jid", serverto:"serverto"]
 
 3.2.5 Silenciar usuarios
 El objeto silence debe ser de formato simple y debe respetar el siguiente forma-
@@ -113,7 +114,7 @@ to:
 3.2.6 Filtros
 El objeto filter debe ser de formato compuesto y debe respetar el siguiente for-
 mato:
- filter["filtername","on/off"]
+ filter{name:"filtername",status:"on/off"}
 
 4. Respuestas
 Luego de la ejecución de un comando la aplicación enviará una respuesta.
