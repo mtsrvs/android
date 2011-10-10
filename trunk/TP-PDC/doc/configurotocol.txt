@@ -1,0 +1,126 @@
+
+                             Configurotocol 1.0
+
+
+Resumen
+Configurotocol es un protocolo desarrollado para poder configurar en tiempo real
+y de forma remota la aplicación proxy Isecu.
+
+Estado del documento
+Este protocolo forma parte de la entrega del Trabajo Práctico Especial para la
+materia de Protocolos de Comunicación, de la carrera Ingeniería Informática del
+Instituto Teconológico de Buenos Aires (ITBA).
+
+
+1. Introducción
+
+Configurotocol es un protocolo sin estado que permite a una entidad cliente con-
+sultar y setear parámetros de configuración de la aplicación proxy Isecu.
+Se basa en el formato JSON (http://www.json.org).
+
+2. Descripción
+
+El protocolo está diseñado para poder ejecutar comandos de configuración en tiem-
+po real y de forma remota. Un comando va a estar formado por instrucciones. A
+continuación se definen ambos conceptos y sus respectivos formatos.
+
+2.1 Objeto
+
+Un objeto es un conjunto de 2 elementos: clave y valor. Un objeto es igual a otro
+si ambos contienen la misma clave. La clave es case insensitive y el valor es
+key sensitive.
+Un objeto puede ser:
+                
+                       simple -->   clave : "valor"
+
+                                      ó
+
+          compuesto --> clave : {k1:"valor1",k2:"valor2", ... , kn:"valorn"}
+
+2.2 Comando
+
+Un comando es un conjunto de objetos dentro de llaves. Los objetos están separados
+por comas. Que un comando sea un conjunto, implica que no contiene elementos
+repetidos y que el orden en que se encuentran es irrelevante.
+Ejemplo de comando:
+	
+                {nombre : "Thulsa", apellido : "Doom"} 
+
+3. Comandos válidos
+
+Anteriormente se definió el formato de los comandos; en esta sección se especifican
+los comandos que soporta el protocolo.
+Un comando es considerado válido si cumple con las siguientes reglas:
+
+    A. Respeta el formato de comando especificado en 2.2.
+    B. Posee al menos tres objetos, "user", "password" y "type", siendo todos ellos
+de formato simple.
+    C. El objeto "type" debe tener como valor "query" o "assignation".
+    D. En caso de ser del tipo "query" debe cumplir con lo especificado en 3.1.
+    E. En caso de ser del tipo "assignation" debe cumplir con lo especificado en 3.2.
+
+3.1 Comandos de tipo "query"
+
+Un comando que cumple con las reglas A, B, C y es del tipo "query" se considera
+válido si además posee un objeto con clave "parameter", cuyo valor sea alguno de
+los siguientes:
+   - server
+   - blacklist
+   - caccess
+   - multiplex
+   - silence
+   - filter
+
+3.2 Comandos de tipo "assignation"
+
+Un comando que cumple con las reglas A, B, C y es del tipo "assignation" se consi-
+dera válido si posee al menos uno de los siguientes objetos, y son todos válidos:
+
+3.2.1 Server
+El objeto server debe ser de formato compuesto, y debe tener exactamente dos va-
+lores. El primero debe ser la dirección del servidor y el segundo el puerto.
+Ejemplo:
+	{ user:"foo", password:"foo", type:"assignation", 
+		server:{origin:"xmpp.example.com",port:"5222"}
+
+3.2.2 Blacklist
+El objeto blacklist debe ser de formato compuesto y de algún tipo de los siguientes:
+
+Tipo "range":
+ blacklist:{type:"range",user:"user",from:"from",to:"to"}
+
+Tipo "logins":
+ blacklist:{type:"logins",user:"user",qty:"qty"}
+
+Tipo "net":
+ blacklist:{type:"net",ip:"ip"}
+ blacklist:{type:"net",network:"network",netmask:"netmask"}
+
+3.2.3 Acceso concurrente
+El objeto caccess debe ser de formato compuesto y debe respetar el siguiente 
+formato:
+ caccess:{user:"user",qty:"qty"}
+
+3.2.4 Multiplexador de cuentas
+El objeto multiplex debe ser de formato compuesto y debe respetar el siguiente
+formato:
+  multiplex:{jid:"jid", serverto:"serverto"]
+
+3.2.5 Silenciar usuarios
+El objeto silence debe ser de formato simple y debe respetar el siguiente forma-
+to:
+ silence:"user"
+
+3.2.6 Filtros
+El objeto filter debe ser de formato compuesto y debe respetar el siguiente for-
+mato:
+ filter{name:"filtername",status:"on/off"}
+
+4. Respuestas
+Luego de la ejecución de un comando la aplicación enviará una respuesta.
+Toda respuesta va a contener el objeto status, con valor "OK" o "ERROR" corres-
+pondiente a una respuesta satisfactoria o no, respectivamente. Luego de cualquier
+comando de tipo "assignation" se va a responder con una respuesta conformada
+sólo con un objeto status. En caso de que el comando haya sido de tipo "query" 
+los resultados de esa query se enviarán en formato compuesto o simple, depen-
+diendo de la cantidad de resultados obtenidos, en el objeto "data".
