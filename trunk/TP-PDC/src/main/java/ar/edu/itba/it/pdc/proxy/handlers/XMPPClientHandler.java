@@ -1,22 +1,23 @@
 package ar.edu.itba.it.pdc.proxy.handlers;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-public class ProxyService implements SelectionHandler {
+public class XMPPClientHandler  {
 
 	private static final int READ = SelectionKey.OP_READ;
 	private static final int WRITE = SelectionKey.OP_WRITE;
 	
-	private String server;
+	private InetAddress server;
 	private int port;
 	private int bufferSize;
 	
-	public ProxyService(String server, int port, int bufferSize){
+	public XMPPClientHandler(InetAddress server, int port, int bufferSize){
 		this.server = server;
 		this.port = port;
 		this.bufferSize = bufferSize;

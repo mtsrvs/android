@@ -1,10 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>ar.edu.itba.it.pdc</groupId>
-  <artifactId>TP-PDC</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Isecu</name>
-  <description>Trabajo Práctico Especial - Protocolos de Comunicación - ITBA 2011/2 - Proxy XMPP en Java.</description>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ar.edu.itba.it.pdc</groupId>
+	<artifactId>TP-PDC</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>Isecu</name>
+	<description>Trabajo Práctico Especial - Protocolos de Comunicación - ITBA 2011/2 - Proxy XMPP en Java.</description>
 	<build>
 		<plugins>
 			<plugin>
@@ -12,7 +13,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.3.2</version>
 			</plugin>
-	
+
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>2.3.1</version>
@@ -24,9 +25,16 @@
 					</archive>
 				</configuration>
 			</plugin>
-	
-			
 		</plugins>
 	</build>
+	<dependencies>
+		<dependency>
+			<groupId>com.google.collections</groupId>
+			<artifactId>google-collections</artifactId>
+			<version>1.0</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
 
 </project>
