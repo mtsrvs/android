@@ -1,21 +1,23 @@
 package ar.edu.itba.it.pdc;
 
 import java.io.IOException;
+import java.net.InetAddress;
 
-import ar.edu.itba.it.pdc.proxy.XMPPProxy;
+import ar.edu.itba.it.pdc.proxy.IsecuServer;
 
 public class Isecu {
 	
-	//TODO CABLEADO PUERTO DEL PROXY Y CANTIDAD DE SELECTORES
-	private static final int PORT = 9999;
-	private static final int SELECTORS = 1;
-	
 	private Isecu instance;
-	private static final int cores = Runtime.getRuntime().availableProcessors();
-	
 	
 	public static void main(String[] args) throws IOException{
-		new XMPPProxy(PORT, SELECTORS).start();
+		byte[] ipProxy = {0,0,0,0};
+		int proxyPort = 9999;
+		int configPort = 9998;
+		int portServer = 5222;
+		InetAddress interfazProxy = InetAddress.getByAddress(ipProxy);
+		InetAddress interfazServer = InetAddress.getLocalHost();
+		IsecuFactory.init(interfazServer, portServer, interfazProxy, proxyPort, configPort);
+		new IsecuServer(interfazServer, portServer, interfazProxy, proxyPort, configPort).start();
 	}
 	
 	public Isecu getInstance(){
