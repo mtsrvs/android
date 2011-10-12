@@ -1,8 +1,6 @@
 package ar.edu.itba.it.pdc.proxy;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -10,9 +8,11 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import ar.edu.itba.it.pdc.IsecuFactory;
+import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 import ar.edu.itba.it.pdc.proxy.handlers.ProxyClientHandler;
 import ar.edu.itba.it.pdc.proxy.handlers.ProxyServerHandler;
 import ar.edu.itba.it.pdc.proxy.map.ConnectionMap;
@@ -30,6 +30,10 @@ public class IsecuServer {
 	private SocketAddress config;
 	private SocketAddress origin;
 	
+	private IsecuFactory factory;
+	
+	private ExecutorService pool;
+	
 	private ConnectionMap connMap = new ConnectionMap();;
 	
 	/**
@@ -38,11 +42,17 @@ public class IsecuServer {
 	 * @param originPort Puerto del servidor origin default.
 	 * @param proxy Interfaz donde se bindea el servidor proxy.
 	 * @param proxyPort Puerto donde se bindea el servidor proxy.
+	 * @throws ConfigurationFileException 
 	 */
-	public IsecuServer(InetAddress origin, int originPort, InetAddress proxy, int proxyPort, int configPort){
-		this.proxy = new InetSocketAddress(proxy, proxyPort);
-		this.config = new InetSocketAddress(proxy, configPort);
-		this.origin = new InetSocketAddress(origin, originPort);
+	public IsecuServer(SocketAddress proxy, SocketAddress config, SocketAddress origin) throws ConfigurationFileException{
+		this.proxy = proxy;
+		this.config = config;
+		this.origin = origin;
+		
+		this.factory = IsecuFactory.getInstance();
+		
+		this.pool = Executors.newFixedThreadPool(factory.getConfigLoader().getWorkersAmount());
+//		this.pool = Executors.newCachedThreadPool();
 	}
 	
 	
@@ -51,7 +61,6 @@ public class IsecuServer {
 	 * @throws IOException
 	 */
 	public void start() throws IOException {
-		//Falta largar el ServerSocket del servicio de configuración
 		Selector selector = Selector.open();
 		ServerSocketChannel serverChannel = ServerSocketChannel.open();
 		
@@ -59,6 +68,13 @@ public class IsecuServer {
 		serverChannel.socket().bind(proxy);
 		serverChannel.register(selector, ACCEPT);
 	
+		ServerSocketChannel configChannel = ServerSocketChannel.open();
+		configChannel.configureBlocking(false);
+		configChannel.socket().bind(config);
+		configChannel.register(selector, ACCEPT);
+		
+		System.out.println("Servidor proxy inicializado: " + proxy);
+		
 		while(true){
 			
 			//Esto lo hago porque los threads cambian las interestOps, por ende
@@ -96,7 +112,7 @@ public class IsecuServer {
 	 * @param key
 	 */
 	private void handleReadWrite(SelectionKey key, int action) {
-		Protocol p = IsecuFactory.getInstance().getProtocolUtils().expectedProtocol(key);
+		Protocol p = factory.getProtocolUtils().expectedProtocol(key);
 		
 		//Se desactiva la acción mientras se atiende
 		key.interestOps(key.interestOps() ^ action);
@@ -104,14 +120,16 @@ public class IsecuServer {
 		if(p == Protocol.CLIENT) {
 			SocketChannel endPoint = (action == READ) ? connMap.getServerChannel(key.channel()) : null;
 			//Usar pool de threds
-			new Thread(new ProxyClientHandler(key, endPoint, action)).start();
+//			new Thread(new ProxyClientHandler(key, endPoint, action)).start();
+			pool.execute(new ProxyClientHandler(key, endPoint, action));
 		}else if(p == Protocol.CONFIG) {
 			System.out.println("Debería manejar Config!");
 			//TODO: Thread que maneje la config
 		}else{
 			SocketChannel endPoint = (action == READ) ? connMap.getClientChannel(key.channel()) : null;
 			//User pool de threds
-			new Thread(new ProxyServerHandler(key, endPoint, action)).start();
+//			new Thread(new ProxyServerHandler(key, endPoint, action)).start();
+			pool.execute(new ProxyServerHandler(key, endPoint, action));
 		}
 		
 	}
@@ -121,7 +139,7 @@ public class IsecuServer {
 	 * @param key
 	 */
 	private void handleAccept(SelectionKey key) {
-		Protocol p = IsecuFactory.getInstance().getProtocolUtils().expectedProtocol(key);
+		Protocol p = factory.getProtocolUtils().expectedProtocol(key);
 
 		if(p == Protocol.CLIENT) {
 			connectClient(key);

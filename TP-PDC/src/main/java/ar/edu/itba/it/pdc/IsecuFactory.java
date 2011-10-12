@@ -1,10 +1,9 @@
 package ar.edu.itba.it.pdc;
 
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
-import javax.xml.parsers.FactoryConfigurationError;
-
-import ar.edu.itba.it.pdc.exception.UninitiatedFactoryException;
+import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 import ar.edu.itba.it.pdc.proxy.protocol.ProtocolUtils;
 
 public class IsecuFactory {
@@ -12,24 +11,27 @@ public class IsecuFactory {
 	private static IsecuFactory instance;
 	
 	private ProtocolUtils pu;
+	private ConfigLoader cl;
 	
-	public static void init(InetAddress origin, int originPort, InetAddress proxy, int proxyPort, int configPort) {
-		instance = new IsecuFactory(new ProtocolUtils(proxyPort, configPort));
-	}
 	
-	public static IsecuFactory getInstance() {
+	public static IsecuFactory getInstance() throws ConfigurationFileException {
 		if(instance == null) {
-			throw new UninitiatedFactoryException("Factory no iniciado");
+			instance = new IsecuFactory();
 		}
 		return instance;
 	}
 	
-	private IsecuFactory(ProtocolUtils pu) {
-		this.pu = pu;
+	private IsecuFactory() throws ConfigurationFileException {
+		this.cl = new ConfigLoader("init.properties", "configuration.properties");
+		this.pu = new ProtocolUtils(((InetSocketAddress) cl.getProxyAddress()).getPort(), ((InetSocketAddress) cl.getConfigAddress()).getPort());
 	}
 	
 	public ProtocolUtils getProtocolUtils() {
 		return pu;
+	}
+	
+	public ConfigLoader getConfigLoader() {
+		return cl;
 	}
 	
 }
