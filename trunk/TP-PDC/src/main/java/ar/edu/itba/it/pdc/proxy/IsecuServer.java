@@ -1,22 +1,17 @@
 package ar.edu.itba.it.pdc.proxy;
 
 import java.io.IOException;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import ar.edu.itba.it.pdc.IsecuFactory;
 import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
-import ar.edu.itba.it.pdc.proxy.handlers.ProxyClientHandler;
-import ar.edu.itba.it.pdc.proxy.handlers.ProxyServerHandler;
-import ar.edu.itba.it.pdc.proxy.map.ConnectionMap;
+import ar.edu.itba.it.pdc.proxy.info.ProxyInfo;
 import ar.edu.itba.it.pdc.proxy.protocol.Protocol;
+import ar.edu.itba.it.pdc.proxy.protocol.ProtocolUtils;
 
 public class IsecuServer {
 	
@@ -26,15 +21,8 @@ public class IsecuServer {
 	public static final int WRITE = SelectionKey.OP_WRITE;
 	public static final int ACCEPT = SelectionKey.OP_ACCEPT;
 	
-	private SocketAddress proxy;
-	private SocketAddress config;
-	private SocketAddress origin;
-	
 	private IsecuFactory factory;
-	
-	private ExecutorService pool;
-	
-	private ConnectionMap connMap = new ConnectionMap();;
+	private ProxyInfo proxyInfo;
 	
 	/**
 	 * Inicializa el proxy
@@ -44,15 +32,9 @@ public class IsecuServer {
 	 * @param proxyPort Puerto donde se bindea el servidor proxy.
 	 * @throws ConfigurationFileException 
 	 */
-	public IsecuServer(SocketAddress proxy, SocketAddress config, SocketAddress origin) throws ConfigurationFileException{
-		this.proxy = proxy;
-		this.config = config;
-		this.origin = origin;
-		
+	public IsecuServer() throws ConfigurationFileException{
 		this.factory = IsecuFactory.getInstance();
-		
-		this.pool = Executors.newFixedThreadPool(factory.getConfigLoader().getWorkersAmount());
-//		this.pool = Executors.newCachedThreadPool();
+		this.proxyInfo = factory.getConfigLoader().getProxyInfo();
 	}
 	
 	
@@ -61,27 +43,24 @@ public class IsecuServer {
 	 * @throws IOException
 	 */
 	public void start() throws IOException {
+		
 		Selector selector = Selector.open();
 		ServerSocketChannel serverChannel = ServerSocketChannel.open();
 		
 		serverChannel.configureBlocking(false);
-		serverChannel.socket().bind(proxy);
+		serverChannel.socket().bind(proxyInfo.getProxy());
 		serverChannel.register(selector, ACCEPT);
 	
 		ServerSocketChannel configChannel = ServerSocketChannel.open();
 		configChannel.configureBlocking(false);
-		configChannel.socket().bind(config);
+		configChannel.socket().bind(proxyInfo.getConfig());
 		configChannel.register(selector, ACCEPT);
 		
-		System.out.println("Servidor proxy inicializado: " + proxy);
+		System.out.println("Servidor isecu inicializado en: " + proxyInfo.getProxy());
 		
 		while(true){
 			
-			//Esto lo hago porque los threads cambian las interestOps, por ende
-			//tiene que ir actualizando. Preguntarle a Juan. TODO
-			if (selector.select(100) == 0) {
-                continue;
-            }
+			selector.select();
 			
             Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
             while (iterator.hasNext()) {
@@ -94,11 +73,11 @@ public class IsecuServer {
 	                }
 	                
 	                if (key.isReadable()) {
-	                	this.handleReadWrite(key, READ);
+	                	this.handleRead(key);
 	                }
 	                
 	                if (key.isWritable()) {
-	                	this.handleReadWrite(key, WRITE);
+	                	this.handleWrite(key);
 	                }
 	                
 	                iterator.remove();
@@ -107,80 +86,42 @@ public class IsecuServer {
 		}
 	}
 	
-	/**
-	 * Lanza thread para atender lectura/escritura dependiendo de la conexión
-	 * @param key
-	 */
-	private void handleReadWrite(SelectionKey key, int action) {
-		Protocol p = factory.getProtocolUtils().expectedProtocol(key);
-		
-		//Se desactiva la acción mientras se atiende
-		key.interestOps(key.interestOps() ^ action);
-		
-		if(p == Protocol.CLIENT) {
-			SocketChannel endPoint = (action == READ) ? connMap.getServerChannel(key.channel()) : null;
-			//Usar pool de threds
-//			new Thread(new ProxyClientHandler(key, endPoint, action)).start();
-			pool.execute(new ProxyClientHandler(key, endPoint, action));
-		}else if(p == Protocol.CONFIG) {
-			System.out.println("Debería manejar Config!");
-			//TODO: Thread que maneje la config
-		}else{
-			SocketChannel endPoint = (action == READ) ? connMap.getClientChannel(key.channel()) : null;
-			//User pool de threds
-//			new Thread(new ProxyServerHandler(key, endPoint, action)).start();
-			pool.execute(new ProxyServerHandler(key, endPoint, action));
+	private void handleWrite(SelectionKey key) {
+		try {
+			factory.getProtocolUtils().getHandler(key).write(key);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Handle write error");
 		}
-		
+	}
+	
+	private void handleRead(SelectionKey key) {
+		ProtocolUtils pu = factory.getProtocolUtils();
+		Protocol p = pu.expectedProtocol(key);
+		SocketChannel endPoint = null;
+		if(p == Protocol.CLIENT || p == Protocol.SERVER) {
+			endPoint = factory.getConnectionMap().getServerChannel(key.channel());
+		}
+		try {
+			factory.getProtocolUtils().getHandler(key).read(key, endPoint);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Handler read error");
+		}
 	}
 	
 	/**
-	 * Acepta conexiones
+	 * Acepta conexiones 
 	 * @param key
 	 */
 	private void handleAccept(SelectionKey key) {
-		Protocol p = factory.getProtocolUtils().expectedProtocol(key);
-
-		if(p == Protocol.CLIENT) {
-			connectClient(key);
-		}else{
-			connectConfig(key);
+		try {
+			factory.getProtocolUtils().getHandler(key).accept(key);
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Handle accept error");
 		}
 	}
 	
-	/**
-	 * Realiza la conexión al origin server y registra el par de conexiones
-	 * @param key
-	 */
-	private void connectClient(SelectionKey key) {
-		SocketChannel ss;
-		try {
-			SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
-			//Acá debería hacerse la multiplexación de usuarios
-			ss = SocketChannel.open(origin);
-			ss.configureBlocking(false);
-			connMap.addConnection(sc, ss);
-			sc.configureBlocking(false);
-			sc.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(BUFFER_SIZE));
-			ss.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(BUFFER_SIZE));
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Falla accept de client");
-		}
-	}
 	
-	/**
-	 * Registra la conexión de administración
-	 * @param key
-	 */
-	private void connectConfig(SelectionKey key) {
-		try {
-			SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
-			sc.configureBlocking(false);
-			sc.register(key.selector(), SelectionKey.OP_READ, ByteBuffer.allocate(BUFFER_SIZE));
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Falla accept de config");
-		}
-	}
 }

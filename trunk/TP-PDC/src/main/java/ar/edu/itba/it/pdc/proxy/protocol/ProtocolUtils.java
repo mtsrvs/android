@@ -1,8 +1,13 @@
 package ar.edu.itba.it.pdc.proxy.protocol;
 
+import java.net.ProtocolException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+
+import ar.edu.itba.it.pdc.IsecuFactory;
+import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
+import ar.edu.itba.it.pdc.proxy.handlers.TCPHandler;
 
 public class ProtocolUtils {
 
@@ -32,6 +37,20 @@ public class ProtocolUtils {
 		}else {
 			return Protocol.SERVER;
 		}
+	}
+	
+	public TCPHandler getHandler(SelectionKey key) throws ConfigurationFileException {
+		IsecuFactory factory = IsecuFactory.getInstance();
+		Protocol p = factory.getProtocolUtils().expectedProtocol(key);
+		switch(p){
+		case CLIENT:
+			return factory.getClientHandler();
+		case SERVER:
+			return factory.getServerHandler();
+		case CONFIG:
+			return factory.getConfigHandler();
+		}
+		throw new RuntimeException(new ProtocolException("Invalid protocol"));
 	}
 	
 }
