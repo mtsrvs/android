@@ -3,15 +3,18 @@ package ar.edu.itba.it.pdc.proxy.info;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
 
+import org.springframework.stereotype.Component;
+
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 /**
  * Mapa que matiene la relación bidireccional entre los sockets.
  */
+@Component
 public class ConnectionMap {
 
-	private BiMap<SocketChannel, SocketChannel> connections = HashBiMap.create();;
+	private BiMap<SocketChannel, SocketChannel> connections = HashBiMap.create();
 	
 	public void addConnection(SocketChannel client, SocketChannel server) {
 		connections.put(client, server);
