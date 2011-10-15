@@ -7,12 +7,15 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 
-import ar.edu.itba.it.pdc.IsecuFactory;
-import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
-import ar.edu.itba.it.pdc.proxy.info.ProxyInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.protocol.Protocol;
 import ar.edu.itba.it.pdc.proxy.protocol.ProtocolUtils;
 
+@Component
 public class IsecuServer {
 	
 	public static final int BUFFER_SIZE = 512;
@@ -21,22 +24,16 @@ public class IsecuServer {
 	public static final int WRITE = SelectionKey.OP_WRITE;
 	public static final int ACCEPT = SelectionKey.OP_ACCEPT;
 	
-	private IsecuFactory factory;
-	private ProxyInfo proxyInfo;
+	private ConfigLoader configLoader;
+	private ProtocolUtils protocolUtils;
+	private ConnectionMap connectionMap;
 	
-	/**
-	 * Inicializa el proxy
-	 * @param origin Address del servidor origin default.
-	 * @param originPort Puerto del servidor origin default.
-	 * @param proxy Interfaz donde se bindea el servidor proxy.
-	 * @param proxyPort Puerto donde se bindea el servidor proxy.
-	 * @throws ConfigurationFileException 
-	 */
-	public IsecuServer() throws ConfigurationFileException{
-		this.factory = IsecuFactory.getInstance();
-		this.proxyInfo = factory.getConfigLoader().getProxyInfo();
+	@Autowired
+	public IsecuServer(ConfigLoader configLoader, ProtocolUtils protocolUtils, ConnectionMap connectionMap) {
+		this.configLoader = configLoader;
+		this.protocolUtils = protocolUtils;
+		this.connectionMap = connectionMap;
 	}
-	
 	
 	/**
 	 * Inicia el servidor proxy
@@ -48,15 +45,15 @@ public class IsecuServer {
 		ServerSocketChannel serverChannel = ServerSocketChannel.open();
 		
 		serverChannel.configureBlocking(false);
-		serverChannel.socket().bind(proxyInfo.getProxy());
+		serverChannel.socket().bind(configLoader.getProxyAddress());
 		serverChannel.register(selector, ACCEPT);
 	
 		ServerSocketChannel configChannel = ServerSocketChannel.open();
 		configChannel.configureBlocking(false);
-		configChannel.socket().bind(proxyInfo.getConfig());
+		configChannel.socket().bind(configLoader.getConfigAddress());
 		configChannel.register(selector, ACCEPT);
 		
-		System.out.println("Servidor isecu inicializado en: " + proxyInfo.getProxy());
+		System.out.println("Servidor isecu inicializado en: " + configLoader.getProxyAddress());
 		
 		while(true){
 			
@@ -88,7 +85,7 @@ public class IsecuServer {
 	
 	private void handleWrite(SelectionKey key) {
 		try {
-			factory.getProtocolUtils().getHandler(key).write(key);
+			protocolUtils.getHandler(key).write(key);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Handle write error");
@@ -96,14 +93,15 @@ public class IsecuServer {
 	}
 	
 	private void handleRead(SelectionKey key) {
-		ProtocolUtils pu = factory.getProtocolUtils();
-		Protocol p = pu.expectedProtocol(key);
+		Protocol p = protocolUtils.expectedProtocol(key);
 		SocketChannel endPoint = null;
-		if(p == Protocol.CLIENT || p == Protocol.SERVER) {
-			endPoint = factory.getConnectionMap().getServerChannel(key.channel());
+		if(p == Protocol.CLIENT) {
+			endPoint = connectionMap.getServerChannel(key.channel());
+		}else if(p == Protocol.SERVER) {
+			endPoint = connectionMap.getClientChannel(key.channel());
 		}
 		try {
-			factory.getProtocolUtils().getHandler(key).read(key, endPoint);
+			protocolUtils.getHandler(key).read(key, endPoint);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Handler read error");
@@ -116,7 +114,7 @@ public class IsecuServer {
 	 */
 	private void handleAccept(SelectionKey key) {
 		try {
-			factory.getProtocolUtils().getHandler(key).accept(key);
+			protocolUtils.getHandler(key).accept(key);
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Handle accept error");

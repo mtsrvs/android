@@ -6,17 +6,28 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-import ar.edu.itba.it.pdc.IsecuFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.IsecuServer;
-import ar.edu.itba.it.pdc.proxy.info.ProxyInfo;
+import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 
 /**
  * Manejador de los eventos del socket a cliente.
  */
+@Component
 public class ClientHandler implements TCPHandler {
 	
-	private IsecuFactory factory = IsecuFactory.getInstance();
+	private ConfigLoader configLoader;
+	private ConnectionMap connectionMap;
+	
+	@Autowired
+	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap) {
+		this.configLoader = configLoader;
+		this.connectionMap = connectionMap;
+	}
 	
 	public void read(SelectionKey key, SocketChannel endPoint) throws IOException {
 		
@@ -36,8 +47,10 @@ public class ClientHandler implements TCPHandler {
 		System.out.println("<- " + buf.array().length + "b");
 		
 		/* Esto está mal, deberíamos escribir en un buffer y marcar como interestOp el write */
-		buf.flip();
-		endPoint.write(buf);
+		if(key.isValid()) {
+			buf.flip();
+			endPoint.write(buf);
+		}
 	}
 
 	public void write(SelectionKey key) {
@@ -47,11 +60,10 @@ public class ClientHandler implements TCPHandler {
 	public void accept(SelectionKey key) throws IOException {
 		SocketChannel ss;
 		SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
-		ProxyInfo proxyInfo = factory.getConfigLoader().getProxyInfo();
 		//Acá debería hacerse la multiplexación de usuarios
-		ss = SocketChannel.open(proxyInfo.getOrigin());
+		ss = SocketChannel.open(configLoader.getOriginServer());
 		ss.configureBlocking(false);
-		factory.getConnectionMap().addConnection(sc, ss);
+		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
 		sc.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(IsecuServer.BUFFER_SIZE));
 		ss.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(IsecuServer.BUFFER_SIZE));

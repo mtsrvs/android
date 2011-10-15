@@ -6,8 +6,11 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
+import org.springframework.stereotype.Component;
+
 import ar.edu.itba.it.pdc.proxy.IsecuServer;
 
+@Component("ConfigHandler")
 public class ConfigHandler implements TCPHandler {
 
 	public void read(SelectionKey key, SocketChannel endPoint)

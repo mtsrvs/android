@@ -6,8 +6,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
+import org.springframework.stereotype.Component;
+
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 
+@Component("ServerHandler")
 public class ServerHandler implements TCPHandler {
 
 	public void read(SelectionKey key, SocketChannel sEndPoint) throws IOException {

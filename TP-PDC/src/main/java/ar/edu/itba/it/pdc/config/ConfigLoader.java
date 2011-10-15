@@ -5,50 +5,66 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Properties;
 
-import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
-import ar.edu.itba.it.pdc.proxy.info.ProxyInfo;
+import org.springframework.stereotype.Component;
 
+import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
+
+@Component
 public class ConfigLoader {
 
-	private String initConfigPath;
+	private String initConfigPath = "init.properties";
 	private Properties initConfig = new Properties();
 
-	private String configPath;
+	private String fullConfigPath = "configuration.properties";
 	private Properties config = new Properties();
 	
-	private ProxyInfo proxyInfo;
-	
-	/**
-	 * Carga las configuraciones del proxy y del sistema de los arhivois especificados
-	 * @param initConfigPath Path al archivo de parámetros iniciales.
-	 * @param fullConfigPath Path al archivo de configuración del proxy.
-	 * @throws ConfigurationFileException
-	 */
-	public ConfigLoader(String initConfigPath, String fullConfigPath) throws ConfigurationFileException {
-		this.initConfigPath = initConfigPath;
-		this.updateInitConfig();
-		this.configPath = fullConfigPath;
+	ConfigLoader(){
 		this.updateConfig();
+		this.updateInitConfig();
 	}
+	
+	public String getInitConfigPath() {
+		return initConfigPath;
+	}
+
+	public void setInitConfigPath(String initConfigPath) {
+		this.initConfigPath = initConfigPath;
+	}
+
+	public String getFullConfigPath() {
+		return fullConfigPath;
+	}
+
+	public void setFullConfigPath(String configPath) {
+		this.fullConfigPath = configPath;
+	}
+
+
+
+//	/**
+//	 * Carga las configuraciones del proxy y del sistema de los arhivois especificados
+//	 * @param initConfigPath Path al archivo de parámetros iniciales.
+//	 * @param fullConfigPath Path al archivo de configuración del proxy.
+//	 * @throws ConfigurationFileException
+//	 */
+//	public ConfigLoader(String initConfigPath, String fullConfigPath) throws ConfigurationFileException {
+//		this.initConfigPath = initConfigPath;
+//		this.updateInitConfig();
+//		this.fullConfigPath = fullConfigPath;
+//		this.updateConfig();
+//	}
 	
 	/**
 	 * Carga los parámetros iniciales de la aplicación
 	 * @throws ConfigurationFileException
 	 */
-	private void updateInitConfig() throws ConfigurationFileException {
+	public void updateInitConfig() throws ConfigurationFileException {
 		try {
 			this.initConfig.load(ClassLoader.getSystemResourceAsStream(this.initConfigPath));
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ConfigurationFileException("Init configuration file");
 		}
-	}
-	
-	public ProxyInfo getProxyInfo() {
-		if(proxyInfo == null) {
-			this.proxyInfo = new ProxyInfo(getProxyAddress(), getConfigAddress(), getOriginServer());
-		}
-		return proxyInfo;
 	}
 	
 	/**
@@ -94,9 +110,9 @@ public class ConfigLoader {
 	 * Carga la configuración del proxy
 	 * @throws ConfigurationFileException
 	 */
-	private void updateConfig() throws ConfigurationFileException {
+	public void updateConfig() throws ConfigurationFileException {
 		try{
-			this.config.load(ClassLoader.getSystemResourceAsStream(this.configPath));
+			this.config.load(ClassLoader.getSystemResourceAsStream(this.fullConfigPath));
 		} catch (Exception e) {
 			throw new ConfigurationFileException("Configuration file");
 		}

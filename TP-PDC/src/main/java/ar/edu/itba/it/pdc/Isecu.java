@@ -2,24 +2,28 @@ package ar.edu.itba.it.pdc;
 
 import java.io.IOException;
 
-import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 import ar.edu.itba.it.pdc.proxy.IsecuServer;
 
 public class Isecu {
 	
-	private Isecu instance;
-	
 	public static void main(String[] args) throws IOException{
+		ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
+		BeanFactory factory = context;
+		IsecuServer is = (IsecuServer) factory.getBean("isecuServer");
+		new Isecu(is);
+	}
+	
+	public Isecu(IsecuServer isecuServer) {
 		try {
-			new IsecuServer().start();
-		}catch (ConfigurationFileException e) {
+			isecuServer.start();
+		} catch (IOException e) {
+			System.out.println("Error en el server!");
 			e.printStackTrace();
-			System.out.println("No se puede arrancar el proxy. Error en la configuración.");
 		}
 	}
 	
-	public Isecu getInstance(){
-		return instance;
-	}
-
 }
