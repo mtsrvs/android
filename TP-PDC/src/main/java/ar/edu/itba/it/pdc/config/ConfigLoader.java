@@ -6,6 +6,7 @@ import java.net.SocketAddress;
 import java.util.Properties;
 
 import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
+import ar.edu.itba.it.pdc.proxy.info.ProxyInfo;
 
 public class ConfigLoader {
 
@@ -14,6 +15,8 @@ public class ConfigLoader {
 
 	private String configPath;
 	private Properties config = new Properties();
+	
+	private ProxyInfo proxyInfo;
 	
 	/**
 	 * Carga las configuraciones del proxy y del sistema de los arhivois especificados
@@ -39,6 +42,13 @@ public class ConfigLoader {
 			e.printStackTrace();
 			throw new ConfigurationFileException("Init configuration file");
 		}
+	}
+	
+	public ProxyInfo getProxyInfo() {
+		if(proxyInfo == null) {
+			this.proxyInfo = new ProxyInfo(getProxyAddress(), getConfigAddress(), getOriginServer());
+		}
+		return proxyInfo;
 	}
 	
 	/**
@@ -79,11 +89,7 @@ public class ConfigLoader {
 			throw new ConfigurationFileException("Invalid config address");
 		} 
 	}
-	
-	public int getWorkersAmount() {
-		return Integer.valueOf(this.initConfig.getProperty("workers"));
-	}
-	
+		
 	/**
 	 * Carga la configuración del proxy
 	 * @throws ConfigurationFileException

@@ -1,4 +1,4 @@
-package ar.edu.itba.it.pdc.proxy.map;
+package ar.edu.itba.it.pdc.proxy.info;
 
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SocketChannel;
@@ -6,6 +6,9 @@ import java.nio.channels.SocketChannel;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
+/**
+ * Mapa que matiene la relación bidireccional entre los sockets.
+ */
 public class ConnectionMap {
 
 	private BiMap<SocketChannel, SocketChannel> connections = HashBiMap.create();;

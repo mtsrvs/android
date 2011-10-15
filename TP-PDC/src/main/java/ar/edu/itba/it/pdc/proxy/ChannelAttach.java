@@ -2,6 +2,9 @@ package ar.edu.itba.it.pdc.proxy;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Información que se attachea al socketChannel
+ */
 public class ChannelAttach {
 
 	private ByteBuffer buffer;
