@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
-import ar.edu.itba.it.pdc.proxy.IsecuServer;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 
 /**
@@ -60,13 +59,13 @@ public class ClientHandler implements TCPHandler {
 	public void accept(SelectionKey key) throws IOException {
 		SocketChannel ss;
 		SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
-		//Acá debería hacerse la multiplexación de usuarios
+		//TODO: Acá debería hacerse la multiplexación de usuarios
 		ss = SocketChannel.open(configLoader.getOriginServer());
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		sc.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(IsecuServer.BUFFER_SIZE));
-		ss.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(IsecuServer.BUFFER_SIZE));
+		sc.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(configLoader.getBufferSize()));
+		ss.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(configLoader.getBufferSize()));
 	}
 
 }

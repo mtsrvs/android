@@ -3,12 +3,16 @@ package ar.edu.itba.it.pdc.config;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 
+/**
+ * Cargador de parámetros de configuración
+ */
 @Component
 public class ConfigLoader {
 
@@ -22,38 +26,7 @@ public class ConfigLoader {
 		this.updateConfig();
 		this.updateInitConfig();
 	}
-	
-	public String getInitConfigPath() {
-		return initConfigPath;
-	}
 
-	public void setInitConfigPath(String initConfigPath) {
-		this.initConfigPath = initConfigPath;
-	}
-
-	public String getFullConfigPath() {
-		return fullConfigPath;
-	}
-
-	public void setFullConfigPath(String configPath) {
-		this.fullConfigPath = configPath;
-	}
-
-
-
-//	/**
-//	 * Carga las configuraciones del proxy y del sistema de los arhivois especificados
-//	 * @param initConfigPath Path al archivo de parámetros iniciales.
-//	 * @param fullConfigPath Path al archivo de configuración del proxy.
-//	 * @throws ConfigurationFileException
-//	 */
-//	public ConfigLoader(String initConfigPath, String fullConfigPath) throws ConfigurationFileException {
-//		this.initConfigPath = initConfigPath;
-//		this.updateInitConfig();
-//		this.fullConfigPath = fullConfigPath;
-//		this.updateConfig();
-//	}
-	
 	/**
 	 * Carga los parámetros iniciales de la aplicación
 	 * @throws ConfigurationFileException
@@ -74,7 +47,7 @@ public class ConfigLoader {
 	 */
 	public SocketAddress getProxyAddress() throws ConfigurationFileException {
 		try {
-			return new InetSocketAddress(InetAddress.getByName(this.initConfig.getProperty("proxy")),Integer.valueOf(this.initConfig.getProperty("proxyPort")));
+			return getAddressProperty("proxy", initConfig);
 		} catch (Exception e) {
 			throw new ConfigurationFileException("Invalid proxy address");
 		} 
@@ -87,7 +60,7 @@ public class ConfigLoader {
 	 */
 	public SocketAddress getOriginServer() throws ConfigurationFileException {
 		try {
-			return new InetSocketAddress(InetAddress.getByName(this.initConfig.getProperty("origin")),Integer.valueOf(this.initConfig.getProperty("originPort")));
+			return getAddressProperty("origin", initConfig);
 		} catch (Exception e) {
 			throw new ConfigurationFileException("Invalid origin address");
 		} 
@@ -100,7 +73,7 @@ public class ConfigLoader {
 	 */
 	public SocketAddress getConfigAddress() throws ConfigurationFileException {
 		try {
-			return new InetSocketAddress(InetAddress.getByName(this.initConfig.getProperty("config")),Integer.valueOf(this.initConfig.getProperty("configPort")));
+			return getAddressProperty("config", initConfig);
 		} catch (Exception e) {
 			throw new ConfigurationFileException("Invalid config address");
 		} 
@@ -118,4 +91,27 @@ public class ConfigLoader {
 		}
 	}
 	
+	/**
+	 * Tamaño de buffer de lectura y escritura
+	 * @return int - tamaño del buffer a utilizar
+	 */
+	public int getBufferSize() {
+		return getIntegerProperty("bufferSize", this.initConfig);
+	}
+	
+	/**
+	 * Retorna una direccíon de socket basandose en el archivo de properties
+	 * En el archivo necesita el nombre(name) y name + "Port".
+	 * @param name
+	 * @param prop
+	 * @return
+	 * @throws UnknownHostException
+	 */
+	private SocketAddress getAddressProperty(String name, Properties prop) throws UnknownHostException {
+		return new InetSocketAddress(InetAddress.getByName(prop.getProperty(name)), getIntegerProperty(name + "Port", prop));
+	}
+	
+	private int getIntegerProperty(String name, Properties prop) {
+		return Integer.valueOf(prop.getProperty(name));
+	}
 }
