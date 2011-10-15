@@ -18,8 +18,6 @@ import ar.edu.itba.it.pdc.proxy.protocol.ProtocolUtils;
 @Component
 public class IsecuServer {
 	
-	public static final int BUFFER_SIZE = 512;
-	
 	public static final int READ = SelectionKey.OP_READ;
 	public static final int WRITE = SelectionKey.OP_WRITE;
 	public static final int ACCEPT = SelectionKey.OP_ACCEPT;
