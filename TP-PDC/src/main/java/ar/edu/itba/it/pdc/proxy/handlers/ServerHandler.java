@@ -13,30 +13,49 @@ import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 @Component("ServerHandler")
 public class ServerHandler implements TCPHandler {
 
-	public void read(SelectionKey key, SocketChannel sEndPoint) throws IOException {
+	public void read(SelectionKey key, SelectionKey endPointKey) throws IOException {
 		
 		SocketChannel sc = (SocketChannel) key.channel();
 		ChannelAttach attach = (ChannelAttach) key.attachment();
-		ByteBuffer buf = attach.getBuffer();
-		buf.clear();
+		ByteBuffer buf = attach.getServerBuffer();
 
-		int read = sc.read(buf);
+		buf.clear();
 		
-		if(read == -1) {
+		int nread = sc.read(buf);
+		
+		if(nread == -1) {
 			sc.close();
-			sEndPoint.close();
 			key.cancel();
+			endPointKey.channel().close();
+			endPointKey.cancel();
 		}
 		
-		System.out.println("-> " + buf.array().length + "b");
+		System.out.println("server_read: " + nread + "b");
 		
-		buf.flip();
-		sEndPoint.write(buf);
-		
+		if(nread > 0) {
+			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		}else{
+			endPointKey.interestOps(SelectionKey.OP_WRITE);
+		}
 	}
 
 	public void write(SelectionKey key) throws IOException {
-		// TODO Auto-generated method stub
+		SocketChannel sc = (SocketChannel) key.channel();
+		ChannelAttach attach = (ChannelAttach) key.attachment();
+		ByteBuffer buf = attach.getClientBuffer();
+		
+		buf.flip();
+		int nwrite = sc.write(buf);
+		
+		System.out.println("server_write: " + nwrite + "b");
+
+		if(!buf.hasRemaining()) {
+			buf.clear();
+			key.interestOps(SelectionKey.OP_READ);
+		}else{
+			buf.compact();
+			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		}
 		
 	}
 

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.proxy.handlers.HandlerUtils;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.protocol.Protocol;
 import ar.edu.itba.it.pdc.proxy.protocol.ProtocolUtils;
@@ -99,7 +100,7 @@ public class IsecuServer {
 			endPoint = connectionMap.getClientChannel(key.channel());
 		}
 		try {
-			protocolUtils.getHandler(key).read(key, endPoint);
+			protocolUtils.getHandler(key).read(key, HandlerUtils.getKey(endPoint, key.selector()));
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("Handler read error");

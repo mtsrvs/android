@@ -2,7 +2,6 @@ package ar.edu.itba.it.pdc.proxy.handlers;
 
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
-import java.nio.channels.SocketChannel;
 
 public interface TCPHandler {
 	
@@ -12,7 +11,7 @@ public interface TCPHandler {
      * @param endPoint SocketChannel del endPoint. (En caso de no ser necesario es NULL).
      * @throws IOException
      */
-    void read(SelectionKey key, SocketChannel endPoint) throws IOException;
+    void read(SelectionKey key, SelectionKey endPointKey) throws IOException;
     
     /**
      * Escribe del socket seleccionado para escribir.
