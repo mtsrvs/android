@@ -28,31 +28,44 @@ public class ClientHandler implements TCPHandler {
 		this.connectionMap = connectionMap;
 	}
 	
-	public void read(SelectionKey key, SocketChannel endPoint) throws IOException {
+	public void read(SelectionKey key, SelectionKey endPointKey) throws IOException {
 		
 		SocketChannel sc = (SocketChannel) key.channel();
 		ChannelAttach attach = (ChannelAttach) key.attachment();
-		ByteBuffer buf = attach.getBuffer();
-		buf.clear();
+		ByteBuffer buf = attach.getClientBuffer();
 		
-		int read = sc.read(buf);
-		
-		if(read == -1) {
+		int nread;
+		if((nread = sc.read(buf)) == -1) {
 			sc.close();
-			endPoint.close();
 			key.cancel();
+			endPointKey.channel().close();
+			endPointKey.cancel();
 		}
 		
-		System.out.println("<- " + buf.array().length + "b");
-		
-		/* Esto está mal, deberíamos escribir en un buffer y marcar como interestOp el write */
-		if(key.isValid()) {
-			buf.flip();
-			endPoint.write(buf);
+		System.out.println("client_read: " + nread + "b");
+
+		if(nread > 0) {
+			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		}else{
+			endPointKey.interestOps(SelectionKey.OP_WRITE);
 		}
+		
 	}
 
-	public void write(SelectionKey key) {
+	public void write(SelectionKey key) throws IOException {
+		
+		SocketChannel sc = (SocketChannel) key.channel();
+		ChannelAttach attach = (ChannelAttach) key.attachment();
+		ByteBuffer buf = attach.getServerBuffer();
+		
+		buf.flip();
+		int nwrite = sc.write(buf);
+		
+		System.out.println("client_write: " + nwrite + "b");
+		
+		if(!buf.hasRemaining()) {
+			key.interestOps(SelectionKey.OP_READ);
+		}
 		
 	}
 
@@ -64,8 +77,9 @@ public class ClientHandler implements TCPHandler {
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		sc.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(configLoader.getBufferSize()));
-		ss.register(key.selector(), SelectionKey.OP_READ, new ChannelAttach(configLoader.getBufferSize()));
+		ChannelAttach attach = new ChannelAttach(configLoader.getBufferSize());
+		sc.register(key.selector(), SelectionKey.OP_READ, attach);
+		ss.register(key.selector(), SelectionKey.OP_READ, attach);
 	}
 
 }

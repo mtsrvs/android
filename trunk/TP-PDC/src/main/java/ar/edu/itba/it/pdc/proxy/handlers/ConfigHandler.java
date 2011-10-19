@@ -21,7 +21,7 @@ public class ConfigHandler implements TCPHandler {
 		this.configLoader = configLoader;
 	}
 	
-	public void read(SelectionKey key, SocketChannel endPoint)
+	public void read(SelectionKey key, SelectionKey ekey)
 			throws IOException {
 		// TODO Auto-generated method stub
 		

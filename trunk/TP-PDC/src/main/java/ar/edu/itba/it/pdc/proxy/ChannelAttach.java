@@ -7,14 +7,20 @@ import java.nio.ByteBuffer;
  */
 public class ChannelAttach {
 
-	private ByteBuffer buffer;
+	private ByteBuffer lc;
+	private ByteBuffer ls;
 	
 	public ChannelAttach(int bufferSize) {
-		this.buffer = ByteBuffer.allocate(bufferSize);
+		this.lc = ByteBuffer.allocate(bufferSize);
+		this.ls = ByteBuffer.allocate(bufferSize);
 	}
 
-	public ByteBuffer getBuffer() {
-		return buffer;
+	public ByteBuffer getClientBuffer() {
+		return lc;
+	}
+	
+	public ByteBuffer getServerBuffer() {
+		return ls;
 	}
 	
 }
