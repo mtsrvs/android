@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 
-@Component("ServerHandler")
+@Component
 public class ServerHandler implements TCPHandler {
 
 	public void read(SelectionKey key, SelectionKey endPointKey) throws IOException {
@@ -20,17 +20,17 @@ public class ServerHandler implements TCPHandler {
 		ByteBuffer buf = attach.getServerBuffer();
 
 		buf.clear();
-		
-		int nread = sc.read(buf);
-		
-		if(nread == -1) {
+		int nread;
+		if((nread = sc.read(buf)) == -1) {
 			sc.close();
 			key.cancel();
 			endPointKey.channel().close();
 			endPointKey.cancel();
+			return;
 		}
 		
 		System.out.println("server_read: " + nread + "b");
+		
 		
 		if(nread > 0) {
 			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
