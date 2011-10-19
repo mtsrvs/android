@@ -40,6 +40,7 @@ public class ClientHandler implements TCPHandler {
 			key.cancel();
 			endPointKey.channel().close();
 			endPointKey.cancel();
+			return;
 		}
 		
 		System.out.println("client_read: " + nread + "b");
