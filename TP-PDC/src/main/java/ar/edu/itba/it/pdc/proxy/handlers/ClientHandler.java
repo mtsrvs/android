@@ -43,6 +43,7 @@ public class ClientHandler implements TCPHandler {
 			return;
 		}
 		
+		
 		System.out.println("client_read: " + nread + "b");
 
 		if(nread > 0) {
@@ -65,9 +66,13 @@ public class ClientHandler implements TCPHandler {
 		System.out.println("client_write: " + nwrite + "b");
 		
 		if(!buf.hasRemaining()) {
+			buf.clear();
 			key.interestOps(SelectionKey.OP_READ);
+		}else{
+			buf.compact();
+			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
-		
+
 	}
 
 	public void accept(SelectionKey key) throws IOException {

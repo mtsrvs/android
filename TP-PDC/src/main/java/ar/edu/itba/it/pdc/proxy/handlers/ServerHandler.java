@@ -19,7 +19,6 @@ public class ServerHandler implements TCPHandler {
 		ChannelAttach attach = (ChannelAttach) key.attachment();
 		ByteBuffer buf = attach.getServerBuffer();
 
-		buf.clear();
 		int nread;
 		if((nread = sc.read(buf)) == -1) {
 			sc.close();
