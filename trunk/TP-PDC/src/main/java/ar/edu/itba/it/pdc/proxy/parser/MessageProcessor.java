@@ -22,11 +22,12 @@ public class MessageProcessor {
 		this.consumed = this.processed = this.toWrite = this.lastEvent = 0;
 		this.buffer = new StringBuilder();
 		InputFactoryImpl factory = new InputFactoryImpl();
+		factory.configureForLowMemUsage();
 		this.asyncReader = factory.createAsyncXMLStreamReader();
 	}
 	
 	public void read(ByteBuffer bb) {
-		bb.flip();
+//		bb.flip();
 		buffer.append(new String(bb.array()));
 		bb.clear();
 		process();
@@ -34,26 +35,31 @@ public class MessageProcessor {
 	
 	public void write(ByteBuffer bb) {
 		
+		System.out.println("\nWrite:");
+		System.out.println("Size: " + this.toWrite);
+		
 		byte data[] = buffer.substring(0, this.toWrite).getBytes();
 		
-		System.out.println(data.length + "b proccessed");
+		System.out.println("Data: " + new String(data));
 		
 		int i = 0;
 		while(bb.position() < bb.limit() && i < this.toWrite) {
 			bb.put(data[i++]);
 		}
 		
+		System.out.println("Written: " + i);
+		System.out.println();
+		
 		this.buffer = new StringBuilder(this.buffer.substring(i, this.buffer.length()));
 		this.consumed += i;
+		
+		this.toWrite -= i;
+		this.lastEvent -= i;
 		
 		//Lo dejo listo para leer
 		bb.flip();
 	}
 
-	private void markToWrite(int vLocation) {
-		this.toWrite = normalizeLocation(vLocation);
-	}
-	
 	private AsyncInputFeeder getFeeder() {
 		return asyncReader.getInputFeeder();
 	}
@@ -61,10 +67,15 @@ public class MessageProcessor {
 	private void process() {
 		try {
 			if (getFeeder().needMoreInput()) {
-				byte[] data = buffer.substring(processed, buffer.length()).getBytes();
-				System.out.println("Feed: " + data.length);
+				
+				System.out.println("\nFeed:");
+				byte[] data = buffer.substring(normalizeLocation(processed), buffer.length()).getBytes();
+				System.out.println("Size: " + data.length);
+				System.out.println("Data: " + new String(data));
 				getFeeder().feedInput(data, 0, data.length);
 				this.processed += data.length;
+			}else{
+				throw new IllegalStateException("No need input");
 			}
 
 			int event; 
@@ -81,9 +92,11 @@ public class MessageProcessor {
 				}
 			}
 		} catch (WFCException e){
-			e.printStackTrace();
+			System.out.println("Error: " + e.getLocation().getCharacterOffset());
+			System.out.println("Character: " + this.buffer.charAt(normalizeLocation(e.getLocation().getCharacterOffset())) + "\n");
+//			e.printStackTrace();
 		} catch (XMLStreamException e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 		}
 
 	}
@@ -94,6 +107,10 @@ public class MessageProcessor {
 	
 	public String getEventString(int vLocation) {
 		return this.buffer.substring(this.lastEvent, normalizeLocation(vLocation));
+	}
+	
+	private void markToWrite(int vLocation) {
+		this.toWrite = normalizeLocation(vLocation);
 	}
 	
 	protected void markLastEvent(int vLocation) {
