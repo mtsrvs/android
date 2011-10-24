@@ -20,6 +20,7 @@ import ar.edu.itba.it.pdc.proxy.handlers.TCPHandler;
 public class ProtocolUtils {
 
 	private ConfigLoader configLoader;
+
 	private ClientHandler clientHandler;
 	private ServerHandler serverHandler;
 	private ConfigHandler configHandler;
