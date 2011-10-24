@@ -3,6 +3,8 @@ package ar.edu.itba.it.pdc.proxy.handlers;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 
+import ar.edu.itba.it.pdc.exception.AccessControlException;
+
 public interface TCPHandler {
 	
     /**
@@ -25,6 +27,7 @@ public interface TCPHandler {
      * Acepta la conexión y coloca el socket en el selector
      * @param key
      * @throws IOException
+     * @throws AccessControlException 
      */
-    void accept(SelectionKey key) throws IOException;
+    void accept(SelectionKey key) throws IOException, AccessControlException;
 }
