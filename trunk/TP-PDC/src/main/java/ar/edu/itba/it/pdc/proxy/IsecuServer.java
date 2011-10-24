@@ -29,7 +29,7 @@ public class IsecuServer {
 	private ConfigLoader configLoader;
 	private ProtocolUtils protocolUtils;
 	private ConnectionMap connectionMap;
-
+	
 	@Autowired
 	public IsecuServer(ConfigLoader configLoader, ProtocolUtils protocolUtils,
 			ConnectionMap connectionMap) {
