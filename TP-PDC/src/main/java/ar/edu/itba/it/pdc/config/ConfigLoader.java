@@ -4,7 +4,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Component;
 
@@ -100,6 +105,27 @@ public class ConfigLoader {
 	}
 	
 	/**
+	 * @return List<String> - Lista de IPs en la lista negra.
+	 */
+	public List<String> getIPBlacklist(){
+		return getBlacklistProperty("ipBlacklist", this.config);
+	}
+	
+	/**
+	 * @return List<String> - Lista de redes en la lista negra.
+	 */
+	public List<String> getNetworkBlacklist(){
+		return getBlacklistProperty("networkBlacklist", this.config);
+	}
+	
+	/**
+	 * @return List<TimeRange> - Lista de restricciones horarias por usuario.
+	 */
+	public Hashtable<String,TimeRange> getTimeRanges(){
+		return getTimeRangesProperty("timeRanges", this.config);
+	}
+	
+	/**
 	 * Retorna una direccíon de socket basandose en el archivo de properties
 	 * En el archivo necesita el nombre(name) y name + "Port".
 	 * @param name
@@ -113,5 +139,35 @@ public class ConfigLoader {
 	
 	private int getIntegerProperty(String name, Properties prop) {
 		return Integer.valueOf(prop.getProperty(name));
+	}
+	
+	private List<String> getBlacklistProperty(String name, Properties prop) {
+		String blacklist = prop.getProperty(name);
+		String divisor = ",";
+		Pattern pattern = Pattern.compile(divisor);
+		String[] items = pattern.split(blacklist);
+		return Arrays.asList(items);
+	}
+	
+	private Hashtable<String,TimeRange> getTimeRangesProperty(String name, Properties prop){
+		String timeRanges = prop.getProperty(name);
+		String divisor = ",";
+		Pattern pattern = Pattern.compile(divisor);
+		String[] items = pattern.split(timeRanges);
+		Hashtable<String,TimeRange> ans = new Hashtable<String,TimeRange>();
+		
+		for (String s : items){
+			StringTokenizer st = new StringTokenizer(s);
+			String username = st.nextToken("=");
+			int fromH = Integer.valueOf(st.nextToken(":").substring(1));
+			int fromM = Integer.valueOf(st.nextToken(":"));
+			int fromS = Integer.valueOf(st.nextToken("-").substring(1));
+			int toH = Integer.valueOf(st.nextToken(":").substring(1));
+			int toM = Integer.valueOf(st.nextToken(":"));
+			int toS = Integer.valueOf(st.nextToken());
+			ans.put(username, new TimeRange(fromH, fromM, fromS, toH, toM, toS));
+		}
+		
+		return ans;
 	}
 }

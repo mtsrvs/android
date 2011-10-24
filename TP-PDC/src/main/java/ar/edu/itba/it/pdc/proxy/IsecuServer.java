@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.AccessControlException;
+import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 import ar.edu.itba.it.pdc.proxy.handlers.HandlerUtils;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.protocol.Protocol;
@@ -33,7 +35,7 @@ public class IsecuServer {
 			ConnectionMap connectionMap) {
 		this.configLoader = configLoader;
 		this.protocolUtils = protocolUtils;
-		this.connectionMap = connectionMap;
+		this.connectionMap = connectionMap;		
 	}
 
 	/**
@@ -84,7 +86,7 @@ public class IsecuServer {
 						
 						iterator.remove();
 					}
-				}catch(CancelledKeyException e) {
+				} catch(CancelledKeyException e) {
 					System.out.println("Se cerró conexión");
 				}
 			}
@@ -123,11 +125,17 @@ public class IsecuServer {
 	 * @param key
 	 */
 	private void handleAccept(SelectionKey key) {
-		try {
+		try {			
 			protocolUtils.getHandler(key).accept(key);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("Handle accept error");
+		} catch (ConfigurationFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (AccessControlException e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 
