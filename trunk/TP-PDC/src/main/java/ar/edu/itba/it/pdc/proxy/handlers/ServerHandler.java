@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
+import ar.edu.itba.it.pdc.proxy.parser.MessageProcessor;
 
 @Component
 public class ServerHandler implements TCPHandler {
@@ -28,32 +29,30 @@ public class ServerHandler implements TCPHandler {
 			return;
 		}
 		
-		System.out.println("server_read: " + nread + "b");
-		
-		
 		if(nread > 0) {
 			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}else{
 			endPointKey.interestOps(SelectionKey.OP_WRITE);
 		}
+		
 	}
 
 	public void write(SelectionKey key) throws IOException {
+
 		SocketChannel sc = (SocketChannel) key.channel();
 		ChannelAttach attach = (ChannelAttach) key.attachment();
-		ByteBuffer buf = attach.getClientBuffer();
+		MessageProcessor processor = attach.getProcessor();
+		ByteBuffer buf = attach.getWriteClientBuffer();
 		
-		buf.flip();
-		int nwrite = sc.write(buf);
+		processor.write(buf);
 		
-		System.out.println("server_write: " + nwrite + "b");
-
+		sc.write(buf);
+		
 		if(!buf.hasRemaining()) {
 			buf.clear();
 			key.interestOps(SelectionKey.OP_READ);
 		}else{
 			buf.compact();
-			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
 		
 	}

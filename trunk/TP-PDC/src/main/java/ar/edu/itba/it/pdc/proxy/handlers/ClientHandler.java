@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
+import ar.edu.itba.it.pdc.proxy.parser.MessageProcessor;
 
 /**
  * Manejador de los eventos del socket a cliente.
@@ -32,10 +33,13 @@ public class ClientHandler implements TCPHandler {
 		
 		SocketChannel sc = (SocketChannel) key.channel();
 		ChannelAttach attach = (ChannelAttach) key.attachment();
-		ByteBuffer buf = attach.getClientBuffer();
+		MessageProcessor processor = attach.getProcessor();
+		ByteBuffer buf = attach.getReadClientBuffer();
 		
-		int nread;
-		if((nread = sc.read(buf)) == -1) {
+		int r = sc.read(buf);
+		if(r > 0) {
+			processor.read(buf);
+		}else if(r < 0) {
 			sc.close();
 			key.cancel();
 			endPointKey.channel().close();
@@ -43,13 +47,8 @@ public class ClientHandler implements TCPHandler {
 			return;
 		}
 		
-		
-		System.out.println("client_read: " + nread + "b");
-
-		if(nread > 0) {
+		if(processor.needToWrite()) {
 			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-		}else{
-			endPointKey.interestOps(SelectionKey.OP_WRITE);
 		}
 		
 	}
@@ -61,9 +60,7 @@ public class ClientHandler implements TCPHandler {
 		ByteBuffer buf = attach.getServerBuffer();
 		
 		buf.flip();
-		int nwrite = sc.write(buf);
-		
-		System.out.println("client_write: " + nwrite + "b");
+		sc.write(buf);
 		
 		if(!buf.hasRemaining()) {
 			buf.clear();
