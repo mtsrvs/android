@@ -3,6 +3,7 @@ package ar.edu.itba.it.pdc.proxy;
 import java.nio.ByteBuffer;
 
 import ar.edu.itba.it.pdc.proxy.parser.MessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
 
 /**
  * Información que se attachea al socketChannel
@@ -14,13 +15,13 @@ public class ChannelAttach {
 
 	private ByteBuffer serverBuf;
 	
-	private MessageProcessor processor;
+	private XMPPMessageProcessor processor;
 	
 	public ChannelAttach(int bufferSize) {
 		this.readClientBuf = ByteBuffer.allocate(bufferSize);
 		this.writeClientBuf = ByteBuffer.allocate(bufferSize);
 		this.serverBuf = ByteBuffer.allocate(bufferSize);
-		this.processor = new MessageProcessor();
+		this.processor = new XMPPMessageProcessor();
 	}
 
 	public ByteBuffer getReadClientBuffer() {

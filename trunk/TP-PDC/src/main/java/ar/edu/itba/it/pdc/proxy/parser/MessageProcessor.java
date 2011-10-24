@@ -9,7 +9,7 @@ import com.fasterxml.aalto.AsyncXMLStreamReader;
 import com.fasterxml.aalto.WFCException;
 import com.fasterxml.aalto.stax.InputFactoryImpl;
 
-public class MessageProcessor {
+public abstract class MessageProcessor {
 
 	private AsyncXMLStreamReader asyncReader;
 	private int consumed;
@@ -67,11 +67,7 @@ public class MessageProcessor {
 	private void process() {
 		try {
 			if (getFeeder().needMoreInput()) {
-				
-				System.out.println("\nFeed:");
 				byte[] data = buffer.substring(normalizeLocation(processed), buffer.length()).getBytes();
-				System.out.println("Size: " + data.length);
-				System.out.println("Data: " + new String(data));
 				getFeeder().feedInput(data, 0, data.length);
 				this.processed += data.length;
 			}else{
@@ -92,11 +88,9 @@ public class MessageProcessor {
 				}
 			}
 		} catch (WFCException e){
-			System.out.println("Error: " + e.getLocation().getCharacterOffset());
-			System.out.println("Character: " + this.buffer.charAt(normalizeLocation(e.getLocation().getCharacterOffset())) + "\n");
-//			e.printStackTrace();
+			e.printStackTrace();
 		} catch (XMLStreamException e) {
-//			e.printStackTrace();
+			e.printStackTrace();
 		}
 
 	}
@@ -117,25 +111,16 @@ public class MessageProcessor {
 		this.lastEvent = normalizeLocation(vLocation);
 	}
 	
-	private void sendEvent(int vLocation) {
+	protected void sendEvent(int vLocation) {
 		markLastEvent(vLocation);
 		markToWrite(vLocation);
 	}
 	
-	public void handleStartDocument(int vLocation) {
-		System.out.println("StartDoc: " + getEventString(vLocation));
-		sendEvent(vLocation);
-	}
+	public abstract void handleStartDocument(int vLocation);
 	
-	public void handleStartElement(int vLocation) {
-		System.out.println("StartElem: " + getEventString(vLocation));
-		sendEvent(vLocation);
-	}
+	public abstract void handleStartElement(int vLocation);
 	
-	public void handleAttribute(int vLocation) {
-		System.out.println("Attribute: " + getEventString(vLocation));
-		sendEvent(vLocation);
-	}
+	public abstract void handleAttribute(int vLocation);
 	
 	public boolean needToWrite() {
 		return this.toWrite != 0;
