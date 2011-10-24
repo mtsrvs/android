@@ -39,6 +39,8 @@ public class ServerHandler implements TCPHandler {
 
 	public void write(SelectionKey key) throws IOException {
 
+		System.out.println("Escribe");
+		
 		SocketChannel sc = (SocketChannel) key.channel();
 		ChannelAttach attach = (ChannelAttach) key.attachment();
 		MessageProcessor processor = attach.getProcessor();

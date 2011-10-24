@@ -48,6 +48,7 @@ public class ClientHandler implements TCPHandler {
 		}
 		
 		if(processor.needToWrite()) {
+			System.out.println("Se marca para escribir");
 			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
 		
