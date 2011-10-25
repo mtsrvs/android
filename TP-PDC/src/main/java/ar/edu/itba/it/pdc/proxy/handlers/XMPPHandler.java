@@ -20,13 +20,16 @@ public abstract class XMPPHandler implements TCPHandler {
 		SocketChannel sc = (SocketChannel) key.channel();
 		XMPPMessageProcessor processor = getProcessor(key, Opt.READ);
 		ByteBuffer buf = this.getReadBuffer(key);
-		
-		int r =  sc.read(buf);
+
+		int r = 0;
+		if(!processor.needToReset()) {
+			r =  sc.read(buf);
+		}
 		System.out.println("Read: " + r + "b. " + getName());
 		
-		if(r > 0) {
-			processor.read(buf,r);
-		}else if(r < 0) {
+		processor.read(buf,r);
+
+		if(r < 0) {
 			sc.close();
 			key.cancel();
 			endPointKey.channel().close();
@@ -34,7 +37,8 @@ public abstract class XMPPHandler implements TCPHandler {
 			return;
 		}
 		
-		if(processor.needToReset()) {
+		if(processor.hasResetMessage()) {
+			System.out.println("Se marca el otro para resetear");
 			getProcessor(key, Opt.WRITE).markToReset();
 		}
 		
