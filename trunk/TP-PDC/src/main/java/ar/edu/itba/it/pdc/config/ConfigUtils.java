@@ -1,4 +1,4 @@
-package ar.edu.itba.it.pdc.proxy.handlers;
+package ar.edu.itba.it.pdc.config;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
