@@ -9,10 +9,10 @@ import java.nio.channels.SocketChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import ar.edu.itba.it.pdc.config.ConfigHandler;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 import ar.edu.itba.it.pdc.proxy.handlers.ClientHandler;
-import ar.edu.itba.it.pdc.proxy.handlers.ConfigHandler;
 import ar.edu.itba.it.pdc.proxy.handlers.ServerHandler;
 import ar.edu.itba.it.pdc.proxy.handlers.TCPHandler;
 

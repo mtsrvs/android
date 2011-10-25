@@ -1,4 +1,4 @@
-package ar.edu.itba.it.pdc.proxy.handlers;
+package ar.edu.itba.it.pdc.config;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -9,7 +9,7 @@ import java.nio.channels.SocketChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.proxy.handlers.TCPHandler;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 
 @Component
