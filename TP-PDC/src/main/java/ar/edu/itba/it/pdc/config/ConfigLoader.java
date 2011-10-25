@@ -4,8 +4,10 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -96,6 +98,25 @@ public class ConfigLoader {
 		}
 	}
 	
+//	/**
+//	 * Devuelve la lista negra de IPs
+//	 * @return
+//	 * @throws ConfigurationFileException
+//	 */
+//	public List<InetAddress> getIpBlacklist() throws ConfigurationFileException {
+//		//TODO incluir redes y mascaras
+//		try {
+//			List<String> stringIpBlacklist = getStringListProperty("ipBlacklist", config);
+//			List<InetAddress> ipBlacklist = new ArrayList<InetAddress>();
+//			for(String address : stringIpBlacklist) {
+//				ipBlacklist.add(InetAddress.getByName(address));
+//			}
+//			return ipBlacklist;
+//		} catch (Exception e) {
+//			throw new ConfigurationFileException("Invalid config address");
+//		} 
+//	}
+	
 	/**
 	 * Tamaño de buffer de lectura y escritura
 	 * @return int - tamaño del buffer a utilizar
@@ -123,6 +144,23 @@ public class ConfigLoader {
 	 */
 	public Hashtable<String,TimeRange> getTimeRanges(){
 		return getTimeRangesProperty("timeRanges", this.config);
+	}
+	
+	
+	/**
+	 * Nombre de usuario del administrador de configuracion
+	 * @return
+	 */
+	public String getAdminUsername() {
+		return initConfig.getProperty("adminUsername");
+	}
+	
+	/**
+	 * Contraseña del administrador de configuracion
+	 * @return
+	 */
+	public String getAdminPassword() {
+		return initConfig.getProperty("adminPassword");
 	}
 	
 	/**
@@ -170,4 +208,41 @@ public class ConfigLoader {
 		
 		return ans;
 	}
+	
+	
+	
+	public boolean addBlackIp(String ip) {
+		config.setProperty("ipBlacklist", config.getProperty("ipBlacklist") + "," + ip);
+		return true;
+	}
+	
+	public boolean removeBlackIp(String ip) {
+		List<String> ipBlacklist = new ArrayList<String>(getIPBlacklist());
+		
+		Iterator<String> it = ipBlacklist.iterator();
+		while(it.hasNext()) {
+			if(((String)it.next()).equals(ip)) {
+				it.remove();
+				return true;
+			}
+		}
+		
+		saveIpList(ipBlacklist);
+		
+		return false;
+	}
+	
+	private void saveIpList(List<String> ipBlacklist) {
+		StringBuilder stringBlacklist = new StringBuilder();
+		
+		for(int i = 0; i < ipBlacklist.size(); i++) {
+			stringBlacklist.append(ipBlacklist.get(i));
+			if(i < ipBlacklist.size() - 1) {
+				stringBlacklist.append(",");
+			}
+		}
+		
+		config.setProperty("ipBlacklist", stringBlacklist.toString());
+	}
+
 }

@@ -46,8 +46,8 @@ public class IsecuServer {
 	public void start() throws IOException {
 
 		Selector selector = Selector.open();
+		
 		ServerSocketChannel serverChannel = ServerSocketChannel.open();
-
 		serverChannel.configureBlocking(false);
 		serverChannel.socket().bind(configLoader.getProxyAddress());
 		serverChannel.register(selector, ACCEPT);
@@ -59,6 +59,9 @@ public class IsecuServer {
 
 		System.out.println("Servidor isecu inicializado en: "
 				+ configLoader.getProxyAddress());
+		
+		System.out.println("Servidor de configuracion inicializado en: "
+				+ configLoader.getConfigAddress());
 
 		while (true) {
 
@@ -107,7 +110,7 @@ public class IsecuServer {
 		SocketChannel endPoint = null;
 		if (p == Protocol.CLIENT) {
 			endPoint = connectionMap.getServerChannel(key.channel());
-		} else if (p == Protocol.SERVER) {
+		} else if (p == Protocol.SERVER || p == Protocol.CONFIG) {
 			endPoint = connectionMap.getClientChannel(key.channel());
 		}
 		try {
