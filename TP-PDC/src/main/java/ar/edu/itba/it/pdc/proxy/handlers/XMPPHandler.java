@@ -25,9 +25,8 @@ public abstract class XMPPHandler implements TCPHandler {
 		if(!processor.needToReset()) {
 			r =  sc.read(buf);
 		}
-		System.out.println("Read: " + r + "b. " + getName());
 		
-		processor.read(buf,r);
+		processor.read(buf,r,getName());
 
 		if(r < 0) {
 			sc.close();
@@ -52,17 +51,23 @@ public abstract class XMPPHandler implements TCPHandler {
 		SocketChannel sc = (SocketChannel) key.channel();
 		ByteBuffer buf = this.getWriteBuffer(key);
 		
-		getProcessor(key, Opt.WRITE).write(getWriteBuffer(key));
-		int w = sc.write(buf);
-
-		System.out.println("Write: " + w + "b. " + getName());
+		XMPPMessageProcessor processor = getProcessor(key, Opt.WRITE);
 		
-		if(!buf.hasRemaining()) {
-			buf.clear();
-			key.interestOps(SelectionKey.OP_READ);
+		processor.write(getWriteBuffer(key), getName());
+		sc.write(buf);
+
+		
+		if(processor.needToWrite() || buf.hasRemaining()) {
+			if(buf.hasRemaining()) {
+				buf.compact();
+			}else{
+				buf.clear();
+			}
+			//Sigue prendido el write
 		}else{
-			buf.compact();
-			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+			buf.clear();
+			System.out.println("Stop write " + getName() + "\n");
+			key.interestOps(SelectionKey.OP_READ);
 		}
 	}
 

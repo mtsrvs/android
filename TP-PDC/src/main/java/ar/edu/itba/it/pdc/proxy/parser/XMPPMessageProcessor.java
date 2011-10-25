@@ -32,36 +32,36 @@ public abstract class XMPPMessageProcessor {
 		this.asyncReader = this.readerFactory.newAsyncReader();
 	}
 
-	public void read(ByteBuffer bb, int read) {
-		if(!this.reset) {
+	public void read(ByteBuffer bb, int read, String name) {
+		if(this.reset) {
+			tryToReset();
+		}else{
 			bb.rewind();
 			int i;
 			for (i = 0; i < read; i++) {
 				buffer.append((char) bb.get());
 			}
+			System.out.println("Read[" + name + "][" + i + "]");
 			bb.clear();
 			if(i > 0) {
 				process();
 			}
-		}else{
-			tryToReset();
 		}
 	}
 
-	public void write(ByteBuffer bb) {
+	public void write(ByteBuffer bb, String name) {
 
-		byte data[] = buffer.substring(0, this.toWrite).getBytes();
+		byte data[] = this.buffer.substring(0, this.toWrite).getBytes();
 
 		int i = 0;
-		while (bb.position() < bb.limit() && i < this.toWrite) {
-			bb.put(data[i++]);
+		for( ; i < data.length && bb.position() < bb.limit(); i++) {
+			bb.put(data[i]);
 		}
 
-		this.buffer = new StringBuilder(this.buffer.substring(i,
-				this.buffer.length()));
-
-		System.out.println("Se escriben " + i + " para salida");
-
+		
+		this.buffer = new StringBuilder(this.buffer.substring(i, this.buffer.length()));
+		System.out.println("Write[" + name + "][" + i + "][" + this.buffer.length() + "]");
+		
 		this.consumed += i;
 
 		this.toWrite -= i;
@@ -141,16 +141,12 @@ public abstract class XMPPMessageProcessor {
 				normalizeLocation(vLocation));
 	}
 
-	private void markToWrite(int vLocation) {
-		this.toWrite = normalizeLocation(vLocation);
-	}
-
 	private void markLastEvent(int vLocation) {
 		this.lastEvent = vLocation;
 	}
 
 	protected void sendEvent(int vLocation) {
-		markToWrite(vLocation);
+		this.toWrite = normalizeLocation(vLocation);
 	}
 
 	public boolean needToWrite() {
@@ -175,7 +171,7 @@ public abstract class XMPPMessageProcessor {
 	
 	private void resetReader() {
 		System.out.println("Resetea!");
-		this.buffer = new StringBuilder(this.buffer.substring(normalizeLocation(getCurrentLocation()), this.buffer.length()));
+		this.buffer = new StringBuilder(this.buffer.substring(normalizeLocation(getCurrentLocation())));
 		this.toWrite = this.processed = this.consumed = 0;
 		this.asyncReader = readerFactory.newAsyncReader();
 		this.reset = false;
