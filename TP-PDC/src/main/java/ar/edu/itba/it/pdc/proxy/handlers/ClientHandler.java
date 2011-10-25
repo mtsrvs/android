@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
+import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
 
 /**

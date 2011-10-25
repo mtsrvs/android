@@ -2,7 +2,7 @@ package ar.edu.itba.it.pdc.proxy;
 
 import java.nio.ByteBuffer;
 
-import ar.edu.itba.it.pdc.proxy.handlers.ReaderFactory;
+import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
 import ar.edu.itba.it.pdc.proxy.parser.XMPPClientMessageProcessor;
 import ar.edu.itba.it.pdc.proxy.parser.XMPPServerMessageProcessor;
