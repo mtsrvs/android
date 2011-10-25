@@ -1,6 +1,5 @@
 package ar.edu.itba.it.pdc.proxy.parser;
 
-import ar.edu.itba.it.pdc.proxy.handlers.ReaderFactory;
 
 public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 

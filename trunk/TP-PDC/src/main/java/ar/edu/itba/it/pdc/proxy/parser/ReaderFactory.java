@@ -1,4 +1,4 @@
-package ar.edu.itba.it.pdc.proxy.handlers;
+package ar.edu.itba.it.pdc.proxy.parser;
 
 import org.springframework.stereotype.Component;
 
