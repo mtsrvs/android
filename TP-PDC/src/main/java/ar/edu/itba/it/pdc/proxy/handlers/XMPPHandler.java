@@ -34,6 +34,10 @@ public abstract class XMPPHandler implements TCPHandler {
 			return;
 		}
 		
+		if(processor.needToReset()) {
+			getProcessor(key, Opt.WRITE).markToReset();
+		}
+		
 		if(processor.needToWrite()) {
 			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
@@ -46,8 +50,6 @@ public abstract class XMPPHandler implements TCPHandler {
 		
 		getProcessor(key, Opt.WRITE).write(getWriteBuffer(key));
 		int w = sc.write(buf);
-
-		//		buf.flip();
 
 		System.out.println("Write: " + w + "b. " + getName());
 		

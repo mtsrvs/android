@@ -10,14 +10,20 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	@Override
 	protected void handleStartDocument(int vLocation) {
-		System.out.println("Start document server");
 		sendEvent(vLocation);
 	}
 
 	@Override
 	protected void handleStartElement(int vLocation) {
-		System.out.println("Start element server: " + getReader().getName().getLocalPart());
-		sendEvent(vLocation);
+		switch(getTagType(getReader().getName().getLocalPart())) {
+		case SUCCESS:
+			System.out.println("\nLlega success!\n");
+			
+			sendEvent(vLocation);break;
+		default:
+			sendEvent(vLocation);
+		}
+		
 	}
 
 	@Override
