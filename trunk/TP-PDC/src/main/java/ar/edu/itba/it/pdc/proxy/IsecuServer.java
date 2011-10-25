@@ -61,7 +61,7 @@ public class IsecuServer {
 				+ configLoader.getProxyAddress());
 		
 		System.out.println("Servidor de configuracion inicializado en: "
-				+ configLoader.getConfigAddress());
+				+ configLoader.getConfigAddress() + "\n");
 
 		while (true) {
 
