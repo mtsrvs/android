@@ -42,6 +42,8 @@ public abstract class XMPPMessageProcessor {
 			}
 			bb.clear();
 			process();
+		}else{
+			tryToReset();
 		}
 	}
 
@@ -64,7 +66,7 @@ public abstract class XMPPMessageProcessor {
 		this.toWrite -= i;
 		this.processed -= i;
 
-		if(this.toWrite == 0) {
+		if(this.reset && this.toWrite == 0) {
 			this.resetReader();
 		}
 		
@@ -87,28 +89,32 @@ public abstract class XMPPMessageProcessor {
 				throw new IllegalStateException("No need input");
 			}
 
-			int event;
-			while ((event = asyncReader.next()) != AsyncXMLStreamReader.EVENT_INCOMPLETE) {
-				switch (event) {
-				case AsyncXMLStreamReader.START_DOCUMENT:
-					handleStartDocument(getCurrentLocation());
-					markLastEvent(getCurrentLocation());
-					break;
-				case AsyncXMLStreamReader.START_ELEMENT:
-					handleStartElement(getCurrentLocation());
-					markLastEvent(getCurrentLocation());
-					break;
-				case AsyncXMLStreamReader.END_ELEMENT:
-					handleEndElement(getCurrentLocation());
-					break;
-				case AsyncXMLStreamReader.ATTRIBUTE:
-					handleAttribute(getCurrentLocation());
-					markLastEvent(getCurrentLocation());
-					break;
-				default:
-					handleAnyOtherEvent(getCurrentLocation());
+			if(this.reset) {
+				tryToReset();
+			} else {
+				int event;
+				while ((event = asyncReader.next()) != AsyncXMLStreamReader.EVENT_INCOMPLETE) {
+					switch (event) {
+					case AsyncXMLStreamReader.START_DOCUMENT:
+						handleStartDocument(getCurrentLocation());
+						markLastEvent(getCurrentLocation());
+						break;
+					case AsyncXMLStreamReader.START_ELEMENT:
+						handleStartElement(getCurrentLocation());
+						markLastEvent(getCurrentLocation());
+						break;
+					case AsyncXMLStreamReader.END_ELEMENT:
+						handleEndElement(getCurrentLocation());
+						break;
+					case AsyncXMLStreamReader.ATTRIBUTE:
+						handleAttribute(getCurrentLocation());
+						markLastEvent(getCurrentLocation());
+						break;
+					default:
+						handleAnyOtherEvent(getCurrentLocation());
+						markLastEvent(getCurrentLocation());
+					}
 				}
-
 			}
 		} catch (WFCException e) {
 			e.printStackTrace();
@@ -118,6 +124,13 @@ public abstract class XMPPMessageProcessor {
 
 	}
 
+	private void tryToReset() {
+		System.out.println("Intenta");
+		if(this.toWrite == 0) {
+			this.resetReader();
+		}
+	}
+	
 	private int getCurrentLocation() {
 		return asyncReader.getLocation().getCharacterOffset();
 	}
@@ -131,12 +144,11 @@ public abstract class XMPPMessageProcessor {
 		this.toWrite = normalizeLocation(vLocation);
 	}
 
-	protected void markLastEvent(int vLocation) {
+	private void markLastEvent(int vLocation) {
 		this.lastEvent = vLocation;
 	}
 
 	protected void sendEvent(int vLocation) {
-		markLastEvent(vLocation);
 		markToWrite(vLocation);
 	}
 
@@ -152,13 +164,17 @@ public abstract class XMPPMessageProcessor {
 		this.reset = true;
 	}
 	
+	public boolean hasResetMessage() {
+		return false;
+	}
+	
 	public boolean needToReset() {
 		return this.reset;
 	}
 	
 	private void resetReader() {
-		this.buffer = new StringBuilder(this.buffer.substring(
-				normalizeLocation(getCurrentLocation()), this.buffer.length()));
+		System.out.println("Resetea!");
+		this.buffer = new StringBuilder(this.buffer.substring(normalizeLocation(getCurrentLocation()), this.buffer.length()));
 		this.toWrite = this.processed = this.consumed = 0;
 		this.asyncReader = readerFactory.newAsyncReader();
 		this.reset = false;
@@ -178,14 +194,24 @@ public abstract class XMPPMessageProcessor {
 		}
 	}
 
-	protected abstract void handleStartDocument(int vLocation);
+	protected void handleStartDocument(int vLocation) {
+		sendEvent(vLocation);
+	}
 
-	protected abstract void handleStartElement(int vLocation);
+	protected void handleStartElement(int vLocation) {
+		sendEvent(vLocation);
+	}
 
-	protected abstract void handleAttribute(int vLocation);
+	protected void handleAttribute(int vLocation) {
+		sendEvent(vLocation);
+	}
 
-	protected abstract void handleEndElement(int vLocation);
+	protected void handleEndElement(int vLocation) {
+		sendEvent(vLocation);
+	}
 
-	protected abstract void handleAnyOtherEvent(int vLocation);
+	protected void handleAnyOtherEvent(int vLocation) {
+		sendEvent(vLocation);
+	}
 
 }
