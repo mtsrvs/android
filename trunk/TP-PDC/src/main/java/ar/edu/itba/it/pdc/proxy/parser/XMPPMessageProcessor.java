@@ -41,7 +41,9 @@ public abstract class XMPPMessageProcessor {
 				buffer.append((char) bb.get());
 			}
 			bb.clear();
-			process();
+			if(i > 0) {
+				process();
+			}
 		}else{
 			tryToReset();
 		}
