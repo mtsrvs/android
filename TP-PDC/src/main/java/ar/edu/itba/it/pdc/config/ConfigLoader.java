@@ -153,6 +153,22 @@ public class ConfigLoader {
 		return getTimeRangesProperty("timeRanges", this.config);
 	}
 	
+	/**
+	 * @return	true - Filtro de transformación de texto a L33t activado.
+	 * 			false - Caso contrario.
+	 */
+	public boolean getL33t(){
+		return getFilterProperty("l33t", this.config);
+	}
+	
+	/**
+	 * @return	true - Filtro de verificación de hash activado.
+	 * 			false - Caso contrario.
+	 */
+	public boolean getHash(){
+		return getFilterProperty("hash", this.config);
+	}
+	
 	
 	/**
 	 * Nombre de usuario del administrador de configuracion
@@ -214,6 +230,13 @@ public class ConfigLoader {
 		}
 		
 		return ans;
+	}
+	
+	private boolean getFilterProperty(String name, Properties prop){
+		String filter = prop.getProperty(name);
+		if (filter.equalsIgnoreCase("on"))
+			return true;
+		return false;
 	}
 	
 	public void setServer(String origin, String port) {

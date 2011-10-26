@@ -1,12 +1,14 @@
 package ar.edu.itba.it.pdc.proxy.parser;
 
+import ar.edu.itba.it.pdc.config.ConfigLoader;
+
 
 public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	private boolean resetMessage = false;
 	
-	public XMPPServerMessageProcessor(ReaderFactory readerFactory) {
-		super(readerFactory);
+	public XMPPServerMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory) {
+		super(configLoader, readerFactory);
 	}
 
 	@Override

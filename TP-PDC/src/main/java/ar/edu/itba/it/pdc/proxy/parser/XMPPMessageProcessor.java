@@ -2,8 +2,11 @@ package ar.edu.itba.it.pdc.proxy.parser;
 
 import java.nio.ByteBuffer;
 
+import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
+import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.proxy.filters.L33tFilter;
 
 import com.fasterxml.aalto.AsyncInputFeeder;
 import com.fasterxml.aalto.AsyncXMLStreamReader;
@@ -11,25 +14,35 @@ import com.fasterxml.aalto.WFCException;
 
 public abstract class XMPPMessageProcessor {
 
+	private StringBuilder buffer;
+	private ConfigLoader configLoader;
 	private ReaderFactory readerFactory;
 	private AsyncXMLStreamReader asyncReader;
 	private int consumed;
 	private int processed;
 	private int toWrite;
 	private int lastEvent;
-	private StringBuilder buffer;
-	
 	private boolean reset = false;
-
+	
+	// Access controls/filters variables
+	private int total = 0;
+	private boolean iqFlag = false;
+	private boolean queryFlag = false;
+	private boolean usernameFlag = false;
+	private boolean messageFlag = false;
+	private boolean bodyFlag = false;
+	
 	protected static enum TagType {
 		MESSAGE, SUCCESS, OTHER;
 	}
 
-	public XMPPMessageProcessor(ReaderFactory readerFactory) {
+	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory) {
 		this.consumed = this.processed = this.toWrite = this.lastEvent = 0;
 		this.buffer = new StringBuilder();
 		this.readerFactory = readerFactory;
 		this.asyncReader = this.readerFactory.newAsyncReader();
+		
+		this.configLoader = configLoader;
 	}
 
 	public void read(ByteBuffer bb, int read, String name) {
@@ -42,10 +55,12 @@ public abstract class XMPPMessageProcessor {
 				buffer.append((char) bb.get());
 			}
 			System.out.println("Read[" + name + "][" + i + "]");
-			bb.clear();
-			if(i > 0) {
+			
+			if(i > 0){
 				process();
 			}
+			
+			bb.clear();
 		}
 	}
 
@@ -57,9 +72,8 @@ public abstract class XMPPMessageProcessor {
 		for( ; i < data.length && bb.position() < bb.limit(); i++) {
 			bb.put(data[i]);
 		}
-
 		
-		this.buffer = new StringBuilder(this.buffer.substring(i, this.buffer.length()));
+		this.buffer = new StringBuilder(this.buffer.substring(i, this.buffer.length()));		
 		System.out.println("Write[" + name + "][" + i + "][" + this.buffer.length() + "]");
 		
 		this.consumed += i;
@@ -81,15 +95,16 @@ public abstract class XMPPMessageProcessor {
 
 	private void process() {
 		try {
-			if (getFeeder().needMoreInput()) {
-				byte[] data = buffer.substring(processed, buffer.length())
-						.getBytes();
+			byte[] data;
+			if (getFeeder().needMoreInput()) {				
+				data = buffer.substring(processed, buffer.length()).getBytes();
 				getFeeder().feedInput(data, 0, data.length);
+				this.total += this.buffer.length() - this.processed;
 				this.processed += data.length;
 			} else {
 				throw new IllegalStateException("No need input");
 			}
-
+			
 			if(this.reset) {
 				tryToReset();
 			} else {
@@ -109,6 +124,39 @@ public abstract class XMPPMessageProcessor {
 						break;
 					case AsyncXMLStreamReader.ATTRIBUTE:
 						handleAttribute(getCurrentLocation());
+						markLastEvent(getCurrentLocation());
+						break;
+					case AsyncXMLStreamReader.CHARACTERS:
+						handleAttribute(getCurrentLocation());
+						Location location = getReader().getLocation();
+						int position = location.getCharacterOffset();
+										
+						/*// Prints de testeo
+						System.out.println("no tChars: " + getReader().getText());
+						System.out.println("buffer: " + this.buffer.toString());
+						System.out.println("cant: " + this.cant);
+						System.out.println("pos: " + position);	
+						System.out.println("buffer size: " + this.buffer.length());*/
+						
+						if(this.configLoader.getL33t() && this.bodyFlag){
+							String bodyText = getReader().getText();
+							
+							/*// Prints de testeo
+							System.out.println(this.buffer.length() - this.cant + position - 1);
+							System.out.println(this.buffer.charAt(this.buffer.length() - this.cant + position - 1));
+							System.out.println(this.buffer.length() - this.cant + position - 1 + str.length());*/
+							
+							int start = this.buffer.length() - this.total + position - 1;
+							int end = start + bodyText.length();
+
+							this.buffer.replace(start, end, L33tFilter.transform(bodyText));
+						}
+						//System.out.println("buffer despues: " + this.buffer.toString());
+						
+						if (this.usernameFlag)
+							System.out.println(getReader().getText());
+						
+						
 						markLastEvent(getCurrentLocation());
 						break;
 					default:
@@ -194,16 +242,38 @@ public abstract class XMPPMessageProcessor {
 	protected void handleStartDocument(int vLocation) {
 		sendEvent(vLocation);
 	}
-
+	
 	protected void handleStartElement(int vLocation) {
-		sendEvent(vLocation);
-	}
-
-	protected void handleAttribute(int vLocation) {
+		if (getReader().getName().getLocalPart().equalsIgnoreCase("message"))
+			this.messageFlag = true;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("body"))
+			this.bodyFlag = this.messageFlag;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("iq"))
+			this.iqFlag = true;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("query"))
+			this.queryFlag = this.iqFlag;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("username"))
+			this.usernameFlag = this.queryFlag;
+		
 		sendEvent(vLocation);
 	}
 
 	protected void handleEndElement(int vLocation) {
+		if (getReader().getName().getLocalPart().equalsIgnoreCase("message"))
+			this.messageFlag = false;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("body"))
+			this.bodyFlag = false;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("iq"))
+			this.iqFlag = false;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("query"))
+			this.queryFlag = false;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("username"))
+			this.usernameFlag = false;
+		
+		sendEvent(vLocation);
+	}
+
+	protected void handleAttribute(int vLocation) {
 		sendEvent(vLocation);
 	}
 

@@ -43,7 +43,7 @@ public class ClientHandler extends XMPPHandler {
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		ChannelAttach attach = new ChannelAttach(configLoader.getBufferSize(), this.readerFactory);
+		ChannelAttach attach = new ChannelAttach(configLoader, this.readerFactory);
 		sc.register(key.selector(), SelectionKey.OP_READ, attach);
 		ss.register(key.selector(), SelectionKey.OP_READ, attach);
 	}
@@ -67,6 +67,5 @@ public class ClientHandler extends XMPPHandler {
 	protected String getName() {
 		return "Client";
 	}
-
 
 }

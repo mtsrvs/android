@@ -14,6 +14,7 @@ public class Isecu {
 		ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
 		BeanFactory factory = context;
 		IsecuServer is = (IsecuServer) factory.getBean("isecuServer");
+				
 		new Isecu(is);
 	}
 	
