@@ -1,13 +1,12 @@
 package ar.edu.itba.it.pdc.config;
 
+import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.StringTokenizer;
@@ -44,6 +43,33 @@ public class ConfigLoader {
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new ConfigurationFileException("Init configuration file");
+		}
+	}
+	
+	/**
+	 * Devuelve una property tal cual como esta en el archivo
+	 * @param prop
+	 * @return
+	 */
+	public String getProperty(String prop) {
+		return config.getProperty(prop);
+	}
+	
+	/**
+	 * Setea una property tal cual como se la pasa por parametro
+	 * @param prop
+	 * @param value
+	 */
+	public void setProperty(String prop, String value) {
+		config.setProperty(prop, value);
+		try {
+			//TODO porque me pone las barras en el .properties?
+			FileOutputStream fos = new FileOutputStream("src/main/resources/" + fullConfigPath);
+			config.store(fos, null);
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ConfigurationFileException("Full configuration file");
 		}
 	}
 	
@@ -97,25 +123,6 @@ public class ConfigLoader {
 			throw new ConfigurationFileException("Configuration file");
 		}
 	}
-	
-//	/**
-//	 * Devuelve la lista negra de IPs
-//	 * @return
-//	 * @throws ConfigurationFileException
-//	 */
-//	public List<InetAddress> getIpBlacklist() throws ConfigurationFileException {
-//		//TODO incluir redes y mascaras
-//		try {
-//			List<String> stringIpBlacklist = getStringListProperty("ipBlacklist", config);
-//			List<InetAddress> ipBlacklist = new ArrayList<InetAddress>();
-//			for(String address : stringIpBlacklist) {
-//				ipBlacklist.add(InetAddress.getByName(address));
-//			}
-//			return ipBlacklist;
-//		} catch (Exception e) {
-//			throw new ConfigurationFileException("Invalid config address");
-//		} 
-//	}
 	
 	/**
 	 * Tamaño de buffer de lectura y escritura
@@ -209,40 +216,17 @@ public class ConfigLoader {
 		return ans;
 	}
 	
-	
-	
-	public boolean addBlackIp(String ip) {
-		config.setProperty("ipBlacklist", config.getProperty("ipBlacklist") + "," + ip);
-		return true;
-	}
-	
-	public boolean removeBlackIp(String ip) {
-		List<String> ipBlacklist = new ArrayList<String>(getIPBlacklist());
-		
-		Iterator<String> it = ipBlacklist.iterator();
-		while(it.hasNext()) {
-			if(((String)it.next()).equals(ip)) {
-				it.remove();
-				return true;
-			}
+	public void setServer(String origin, String port) {
+		initConfig.setProperty("origin", origin);
+		initConfig.setProperty("originPort", port);
+		try {
+			//TODO porque me pone las barras en el .properties?
+			FileOutputStream fos = new FileOutputStream("src/main/resources/" + initConfigPath);
+			initConfig.store(fos, null);
+			fos.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new ConfigurationFileException("Init configuration file");
 		}
-		
-		saveIpList(ipBlacklist);
-		
-		return false;
 	}
-	
-	private void saveIpList(List<String> ipBlacklist) {
-		StringBuilder stringBlacklist = new StringBuilder();
-		
-		for(int i = 0; i < ipBlacklist.size(); i++) {
-			stringBlacklist.append(ipBlacklist.get(i));
-			if(i < ipBlacklist.size() - 1) {
-				stringBlacklist.append(",");
-			}
-		}
-		
-		config.setProperty("ipBlacklist", stringBlacklist.toString());
-	}
-
 }
