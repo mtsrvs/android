@@ -35,7 +35,8 @@ public class ConfigCommandsValidator {
 		validCommands.add("caccess");
 		validCommands.add("multiplex");
 		validCommands.add("silence");
-		validCommands.add("filter");
+		validCommands.add("leet");
+		validCommands.add("hash");
 		validCommands.add("rangeBlacklist");
 		validCommands.add("loginsBlacklist");
 		validCommands.add("ipBlacklist");
@@ -77,13 +78,13 @@ public class ConfigCommandsValidator {
 		validFilters.add("hash");
 		
 		List<String> validStatus = new ArrayList<String>();
-		validFilters.add("on");
-		validFilters.add("off");
+		validStatus.add("on");
+		validStatus.add("off");
 		
 		List<String> filter = (List<String>) command.get("filter");
 		
 		if(!validFilters.contains(filter.get(0)) || jidIsWrong(filter.get(1)) ||
-				!validFilters.contains(filter.get(2))) {
+				!validStatus.contains(filter.get(2))) {
 			throw new CommandValidationException();
 		}
 	}
