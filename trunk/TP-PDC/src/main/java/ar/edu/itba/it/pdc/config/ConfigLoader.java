@@ -3,7 +3,6 @@ package ar.edu.itba.it.pdc.config;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
@@ -246,46 +245,11 @@ public class ConfigLoader {
 		return Integer.valueOf(prop.getProperty(name));
 	}
 	
-//	private Hashtable<String,TimeRange> getTimeRangesProperty(String name, Properties prop){
-//		String timeRanges = prop.getProperty(name);
-//		String divisor = ",";
-//		Pattern pattern = Pattern.compile(divisor);
-//		String[] items = pattern.split(timeRanges);
-//		Hashtable<String,TimeRange> ans = new Hashtable<String,TimeRange>();
-//		
-//		for (String s : items){
-//			StringTokenizer st = new StringTokenizer(s);
-//			String username = st.nextToken("=");
-//			int fromH = Integer.valueOf(st.nextToken(":").substring(1));
-//			int fromM = Integer.valueOf(st.nextToken(":"));
-//			int fromS = Integer.valueOf(st.nextToken("-").substring(1));
-//			int toH = Integer.valueOf(st.nextToken(":").substring(1));
-//			int toM = Integer.valueOf(st.nextToken(":"));
-//			int toS = Integer.valueOf(st.nextToken());
-//			ans.put(username, new TimeRange(fromH, fromM, fromS, toH, toM, toS));
-//		}
-//		
-//		return ans;
-//	}
-	
 	private boolean getFilterProperty(String name, Properties prop){
 		String filter = prop.getProperty(name);
 		if (filter.equalsIgnoreCase("on"))
 			return true;
 		return false;
-	}
-	
-	public static void main(String[] args) {
-		ConfigLoader a = new ConfigLoader(new ConfigLoaderUtils());
-		System.out.println(a.getCaccess());
-		System.out.println(a.getMultiplex());
-		System.out.println(a.getSilence());
-		System.out.println(a.getLeet());
-		System.out.println(a.getHash());
-		System.out.println(a.getTimeRanges());
-		System.out.println(a.getLoginsBlacklist());
-		System.out.println(a.getIPBlacklist());
-//		System.out.println(a.getNetworkBlacklist());
 	}
 	
 }
