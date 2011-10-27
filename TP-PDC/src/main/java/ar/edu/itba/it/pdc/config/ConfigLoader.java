@@ -3,15 +3,14 @@ package ar.edu.itba.it.pdc.config;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
-import java.util.StringTokenizer;
-import java.util.regex.Pattern;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
@@ -28,9 +27,13 @@ public class ConfigLoader {
 	private String fullConfigPath = "configuration.properties";
 	private Properties config = new Properties();
 	
-	ConfigLoader(){
+	private ConfigLoaderUtils configLoaderUtils;
+	
+	@Autowired
+	ConfigLoader(ConfigLoaderUtils configLoaderUtils){
 		this.updateConfig();
 		this.updateInitConfig();
+		this.configLoaderUtils = configLoaderUtils;
 	}
 
 	/**
@@ -63,6 +66,7 @@ public class ConfigLoader {
 	public void setProperty(String prop, String value) {
 		config.setProperty(prop, value);
 		try {
+			//TODO modificar
 			//TODO porque me pone las barras en el .properties?
 			FileOutputStream fos = new FileOutputStream("src/main/resources/" + fullConfigPath);
 			config.store(fos, null);
@@ -133,24 +137,32 @@ public class ConfigLoader {
 	}
 	
 	/**
-	 * @return List<String> - Lista de IPs en la lista negra.
+	 * Lista de IPs en la lista negra.
+	 * @return List<String>
 	 */
-	public List<String> getIPBlacklist(){
-		return getBlacklistProperty("ipBlacklist", this.config);
+	public List<String> getIPBlacklist() {
+		return configLoaderUtils.getStringList(config.getProperty("ipBlacklist"));
 	}
 	
 	/**
-	 * @return List<String> - Lista de redes en la lista negra.
+	 * Lista de redes en la lista negra.
+	 * @return List<String>
 	 */
-	public List<String> getNetworkBlacklist(){
-		return getBlacklistProperty("networkBlacklist", this.config);
+	public List<String> getNetworkBlacklist() {
+		//TODO ver como modelar una red
+		return configLoaderUtils.getStringList(config.getProperty("netBlacklist"));
 	}
 	
 	/**
-	 * @return List<TimeRange> - Lista de restricciones horarias por usuario.
+	 * Restricciones horarias por usuario.
+	 * @return Map<String,TimeRange>
 	 */
-	public Hashtable<String,TimeRange> getTimeRanges(){
-		return getTimeRangesProperty("timeRanges", this.config);
+	public Map<String,TimeRange> getTimeRanges() {
+		return configLoaderUtils.getTimeRangesProperty(config.getProperty("rangeBlacklist"));
+	}
+	
+	public Map<String,String> getLoginsBlacklist() {
+		return configLoaderUtils.getStringStringMap(config.getProperty("loginsBlacklist"));
 	}
 	
 	/**
@@ -158,17 +170,49 @@ public class ConfigLoader {
 	 * 			false - Caso contrario.
 	 */
 	public boolean getL33t(){
+		//TODO lo dejo porque esta en uso, pero hay que cambiarlo por getLeet()
 		return getFilterProperty("l33t", this.config);
 	}
 	
 	/**
-	 * @return	true - Filtro de verificación de hash activado.
-	 * 			false - Caso contrario.
+	 * Filtro leet por usuario
+	 * @return Map<String, String> 
 	 */
-	public boolean getHash(){
-		return getFilterProperty("hash", this.config);
+	public Map<String, String> getLeet(){
+		return configLoaderUtils.getStringStringMap(config.getProperty("leet"));
 	}
 	
+	/**
+	 * Filtro hash por usuario
+	 * @return Map<String, String> 
+	 */
+	public Map<String, String> getHash(){
+		return configLoaderUtils.getStringStringMap(config.getProperty("hash"));
+	}
+	
+	/**
+	 * Multiplexador de cuentas
+	 * @return Map<String, InetAddress>
+	 */
+	public Map<String, InetAddress> getMultiplex(){
+		return configLoaderUtils.getStringInetMap(config.getProperty("multiplex"));
+	}
+	
+	/**
+	 * Control de concurrencia 
+	 * @return Map<String, Integer>
+	 */
+	public Map<String, Integer> getCaccess(){
+		return configLoaderUtils.getStringIntegerMap(config.getProperty("caccess"));
+	}
+	
+	/**
+	 * Lista de usuarios silenciados
+	 * @return List<String>
+	 */
+	public List<String> getSilence(){
+		return configLoaderUtils.getStringList(config.getProperty("silence"));
+	}
 	
 	/**
 	 * Nombre de usuario del administrador de configuracion
@@ -202,35 +246,27 @@ public class ConfigLoader {
 		return Integer.valueOf(prop.getProperty(name));
 	}
 	
-	private List<String> getBlacklistProperty(String name, Properties prop) {
-		String blacklist = prop.getProperty(name);
-		String divisor = ",";
-		Pattern pattern = Pattern.compile(divisor);
-		String[] items = pattern.split(blacklist);
-		return Arrays.asList(items);
-	}
-	
-	private Hashtable<String,TimeRange> getTimeRangesProperty(String name, Properties prop){
-		String timeRanges = prop.getProperty(name);
-		String divisor = ",";
-		Pattern pattern = Pattern.compile(divisor);
-		String[] items = pattern.split(timeRanges);
-		Hashtable<String,TimeRange> ans = new Hashtable<String,TimeRange>();
-		
-		for (String s : items){
-			StringTokenizer st = new StringTokenizer(s);
-			String username = st.nextToken("=");
-			int fromH = Integer.valueOf(st.nextToken(":").substring(1));
-			int fromM = Integer.valueOf(st.nextToken(":"));
-			int fromS = Integer.valueOf(st.nextToken("-").substring(1));
-			int toH = Integer.valueOf(st.nextToken(":").substring(1));
-			int toM = Integer.valueOf(st.nextToken(":"));
-			int toS = Integer.valueOf(st.nextToken());
-			ans.put(username, new TimeRange(fromH, fromM, fromS, toH, toM, toS));
-		}
-		
-		return ans;
-	}
+//	private Hashtable<String,TimeRange> getTimeRangesProperty(String name, Properties prop){
+//		String timeRanges = prop.getProperty(name);
+//		String divisor = ",";
+//		Pattern pattern = Pattern.compile(divisor);
+//		String[] items = pattern.split(timeRanges);
+//		Hashtable<String,TimeRange> ans = new Hashtable<String,TimeRange>();
+//		
+//		for (String s : items){
+//			StringTokenizer st = new StringTokenizer(s);
+//			String username = st.nextToken("=");
+//			int fromH = Integer.valueOf(st.nextToken(":").substring(1));
+//			int fromM = Integer.valueOf(st.nextToken(":"));
+//			int fromS = Integer.valueOf(st.nextToken("-").substring(1));
+//			int toH = Integer.valueOf(st.nextToken(":").substring(1));
+//			int toM = Integer.valueOf(st.nextToken(":"));
+//			int toS = Integer.valueOf(st.nextToken());
+//			ans.put(username, new TimeRange(fromH, fromM, fromS, toH, toM, toS));
+//		}
+//		
+//		return ans;
+//	}
 	
 	private boolean getFilterProperty(String name, Properties prop){
 		String filter = prop.getProperty(name);
@@ -239,17 +275,17 @@ public class ConfigLoader {
 		return false;
 	}
 	
-	public void setServer(String origin, String port) {
-		initConfig.setProperty("origin", origin);
-		initConfig.setProperty("originPort", port);
-		try {
-			//TODO porque me pone las barras en el .properties?
-			FileOutputStream fos = new FileOutputStream("src/main/resources/" + initConfigPath);
-			initConfig.store(fos, null);
-			fos.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new ConfigurationFileException("Init configuration file");
-		}
+	public static void main(String[] args) {
+		ConfigLoader a = new ConfigLoader(new ConfigLoaderUtils());
+		System.out.println(a.getCaccess());
+		System.out.println(a.getMultiplex());
+		System.out.println(a.getSilence());
+		System.out.println(a.getLeet());
+		System.out.println(a.getHash());
+		System.out.println(a.getTimeRanges());
+		System.out.println(a.getLoginsBlacklist());
+		System.out.println(a.getIPBlacklist());
+//		System.out.println(a.getNetworkBlacklist());
 	}
+	
 }

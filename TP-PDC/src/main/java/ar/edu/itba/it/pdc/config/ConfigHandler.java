@@ -20,8 +20,7 @@ public class ConfigHandler implements TCPHandler {
 	private ConfigCommandsProcessor commandsProcessor;
 
 	@Autowired
-	public ConfigHandler(ConfigLoader configLoader,
-			ConnectionMap connectionMap, ConfigUtils configUtils,
+	public ConfigHandler(ConfigLoader configLoader, ConnectionMap connectionMap, 
 			ConfigCommandsProcessor commandsProcessor) {
 		this.configLoader = configLoader;
 		this.connectionMap = connectionMap;
