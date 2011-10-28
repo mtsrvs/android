@@ -1,12 +1,12 @@
 package ar.edu.itba.it.pdc.proxy.parser;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.filters.L33tFilter;
 
 import com.fasterxml.aalto.AsyncInputFeeder;
@@ -18,6 +18,7 @@ public abstract class XMPPMessageProcessor {
 	private StringBuilder buffer;
 	private ConfigLoader configLoader;
 	private ReaderFactory readerFactory;
+	private FilterControls filterControls;
 	private AsyncXMLStreamReader asyncReader;
 	private int consumed;
 	private int processed;
@@ -37,10 +38,11 @@ public abstract class XMPPMessageProcessor {
 		MESSAGE, SUCCESS, OTHER;
 	}
 
-	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory) {
+	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory, FilterControls filterControls) {
 		this.consumed = this.processed = this.toWrite = this.lastEvent = 0;
 		this.buffer = new StringBuilder();
 		this.readerFactory = readerFactory;
+		this.filterControls = filterControls;
 		this.asyncReader = this.readerFactory.newAsyncReader();
 		
 		this.configLoader = configLoader;
@@ -139,10 +141,8 @@ public abstract class XMPPMessageProcessor {
 						System.out.println("pos: " + position);	
 						System.out.println("buffer size: " + this.buffer.length());*/
 						
-						Map<String,String> l33t = this.configLoader.getLeet();
 						//TODO ESTA CABLEADO A USER
-						boolean l33tFlag = l33t.get("user").equalsIgnoreCase("on");
-						if(l33tFlag && this.bodyFlag){
+						if(this.bodyFlag && this.filterControls.l33t("user")){
 							String bodyText = getReader().getText();
 							
 							/*// Prints de testeo

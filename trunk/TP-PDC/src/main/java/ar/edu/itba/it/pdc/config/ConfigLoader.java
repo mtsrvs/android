@@ -162,7 +162,7 @@ public class ConfigLoader {
 	 * @return Map<String,TimeRange>
 	 */
 	public Map<String,TimeRange> getTimeRanges() {
-		return configLoaderUtils.getTimeRangesProperty(config.getProperty("rangeBlacklist"));
+		return configLoaderUtils.getTimeRangesMap(config.getProperty("rangeBlacklist"));
 	}
 	
 	public Map<String,String> getLoginsBlacklist() {
