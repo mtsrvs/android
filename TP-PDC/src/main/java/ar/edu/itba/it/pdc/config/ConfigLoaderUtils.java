@@ -35,7 +35,7 @@ public class ConfigLoaderUtils {
 		}
 	}
 	
-	public Map<String,TimeRange> getTimeRangesProperty(String property){
+	public Map<String,TimeRange> getTimeRangesMap(String property){
 		Map<String,TimeRange> timeRanges = new HashMap<String, TimeRange>();
 		if(property != null) {
 			Map<String, List<String>> map = new HashMap<String, List<String>>();

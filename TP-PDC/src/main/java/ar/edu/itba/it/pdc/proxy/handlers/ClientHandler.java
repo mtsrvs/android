@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
+import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
@@ -24,13 +25,14 @@ public class ClientHandler extends XMPPHandler {
 	private ConfigLoader configLoader;
 	private ConnectionMap connectionMap;
 	private ReaderFactory readerFactory;
-	
+	private FilterControls filterControls;
 	
 	@Autowired
-	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory) {
+	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls) {
 		this.configLoader = configLoader;
 		this.connectionMap = connectionMap;
 		this.readerFactory = readerFactory;
+		this.filterControls = filterControls;
 	}
 
 	public void accept(SelectionKey key) throws IOException {
@@ -43,7 +45,7 @@ public class ClientHandler extends XMPPHandler {
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		ChannelAttach attach = new ChannelAttach(configLoader, this.readerFactory);
+		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls);
 		sc.register(key.selector(), SelectionKey.OP_READ, attach);
 		ss.register(key.selector(), SelectionKey.OP_READ, attach);
 	}

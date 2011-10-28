@@ -1,33 +1,42 @@
 package ar.edu.itba.it.pdc.proxy.controls;
 
 import java.net.InetAddress;
-import java.util.Hashtable;
-import java.util.List;
 
 import org.apache.commons.net.util.SubnetUtils;
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.config.TimeRange;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 
+@Component
 public class AccessControls {
 	
-	public static void ip(InetAddress iaddr, List<String> blacklist) throws AccessControlException {
+	private ConfigLoader configLoader;
+	
+	@Autowired
+	public AccessControls(ConfigLoader configLoader){
+		this.configLoader = configLoader;
+	}
+	
+	public void ip(InetAddress iaddr) throws AccessControlException {
 		String addr = iaddr.getHostAddress();
-		if (blacklist.contains(addr))
+		if (this.configLoader.getIPBlacklist().contains(addr))
 			throw new AccessControlException("IP blacklisted!");
 	}
 	
-	public static void network(InetAddress iaddr, List<String> blacklist) throws AccessControlException {
+	public void network(InetAddress iaddr) throws AccessControlException {
 		String addr = iaddr.getHostAddress();
 		
-		for(String net: blacklist)
+		for(String net: this.configLoader.getNetworkBlacklist())
 			if (new SubnetUtils(net).getInfo().isInRange(addr))
 				throw new AccessControlException("Network blacklisted!");
 	}
 	
-	public static void range(String username, Hashtable<String,TimeRange> timeRanges) throws AccessControlException {
-		TimeRange timeRange = timeRanges.get(username);
+	public void range(String username) throws AccessControlException {
+		TimeRange timeRange = this.configLoader.getTimeRanges().get(username);
 		
 		if (timeRange != null && !timeRange.isInRange(DateTime.now()))
 			throw new AccessControlException("You are not allowed to login at this time.");
