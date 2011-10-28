@@ -153,6 +153,11 @@ public class ConfigLoader {
 	}
 	
 	/**
+	 * @return	true - Filtro de transformación de texto a L33t activado.
+	 * 			false - Caso contrario.
+	 */
+	
+	/**
 	 * Restricciones horarias por usuario.
 	 * @return Map<String,TimeRange>
 	 */
@@ -162,15 +167,6 @@ public class ConfigLoader {
 	
 	public Map<String,String> getLoginsBlacklist() {
 		return configLoaderUtils.getStringStringMap(config.getProperty("loginsBlacklist"));
-	}
-	
-	/**
-	 * @return	true - Filtro de transformación de texto a L33t activado.
-	 * 			false - Caso contrario.
-	 */
-	public boolean getL33t(){
-		//TODO lo dejo porque esta en uso, pero hay que cambiarlo por getLeet()
-		return getFilterProperty("l33t", this.config);
 	}
 	
 	/**
@@ -243,13 +239,6 @@ public class ConfigLoader {
 	
 	private int getIntegerProperty(String name, Properties prop) {
 		return Integer.valueOf(prop.getProperty(name));
-	}
-	
-	private boolean getFilterProperty(String name, Properties prop){
-		String filter = prop.getProperty(name);
-		if (filter.equalsIgnoreCase("on"))
-			return true;
-		return false;
 	}
 	
 }
