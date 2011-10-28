@@ -1,6 +1,7 @@
 package ar.edu.itba.it.pdc.proxy.parser;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
@@ -138,7 +139,10 @@ public abstract class XMPPMessageProcessor {
 						System.out.println("pos: " + position);	
 						System.out.println("buffer size: " + this.buffer.length());*/
 						
-						if(this.configLoader.getL33t() && this.bodyFlag){
+						Map<String,String> l33t = this.configLoader.getLeet();
+						//TODO ESTA CABLEADO A USER
+						boolean l33tFlag = l33t.get("user").equalsIgnoreCase("on");
+						if(l33tFlag && this.bodyFlag){
 							String bodyText = getReader().getText();
 							
 							/*// Prints de testeo
@@ -176,6 +180,7 @@ public abstract class XMPPMessageProcessor {
 	private void tryToReset() {
 		System.out.println("Intenta");
 		if(this.toWrite == 0) {
+			this.total = 0;
 			this.resetReader();
 		}
 	}
