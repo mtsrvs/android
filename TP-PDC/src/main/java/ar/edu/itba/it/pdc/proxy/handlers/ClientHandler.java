@@ -70,4 +70,9 @@ public class ClientHandler extends XMPPHandler {
 		return "Client";
 	}
 
+	@Override
+	protected void setWriteBuffer(SelectionKey key, ByteBuffer wb) {
+		getAttach(key).setWriteClientBuf(wb);
+	}
+
 }

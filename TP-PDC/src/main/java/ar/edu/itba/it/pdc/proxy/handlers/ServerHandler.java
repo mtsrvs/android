@@ -36,4 +36,9 @@ public class ServerHandler extends XMPPHandler {
 		return "Server";
 	}
 
+	@Override
+	protected void setWriteBuffer(SelectionKey key, ByteBuffer wb) {
+		getAttach(key).setWriteServerBuf(wb);
+	}
+
 }

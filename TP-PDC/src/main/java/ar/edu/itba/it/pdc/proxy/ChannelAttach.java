@@ -26,9 +26,9 @@ public class ChannelAttach {
 	public ChannelAttach(ConfigLoader configLoader, ReaderFactory readerFactory, FilterControls filterControls) {
 		int bufferSize = configLoader.getBufferSize();
 		this.readClientBuf = ByteBuffer.allocate(bufferSize);
-		this.writeClientBuf = ByteBuffer.allocate(bufferSize);
+//		this.writeClientBuf = ByteBuffer.allocate(bufferSize);
 		this.readServerBuf = ByteBuffer.allocate(bufferSize);
-		this.writeServerBuf = ByteBuffer.allocate(bufferSize);
+//		this.writeServerBuf = ByteBuffer.allocate(bufferSize);
 		
 		this.clientProcessor = new XMPPClientMessageProcessor(configLoader, readerFactory, filterControls);
 		this.serverProcessor = new XMPPServerMessageProcessor(configLoader, readerFactory, filterControls);
@@ -50,7 +50,14 @@ public class ChannelAttach {
 		return this.writeServerBuf;
 	}
 	
-	
+	public void setWriteClientBuf(ByteBuffer writeClientBuf) {
+		this.writeClientBuf = writeClientBuf;
+	}
+
+	public void setWriteServerBuf(ByteBuffer writeServerBuf) {
+		this.writeServerBuf = writeServerBuf;
+	}
+
 	public XMPPMessageProcessor getClientProcessor() {
 		return this.clientProcessor;
 	}
