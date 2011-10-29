@@ -1,13 +1,13 @@
 package ar.edu.itba.it.pdc.proxy.parser;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
-import ar.edu.itba.it.pdc.proxy.filters.L33tFilter;
 
 import com.fasterxml.aalto.AsyncInputFeeder;
 import com.fasterxml.aalto.AsyncXMLStreamReader;
@@ -15,19 +15,16 @@ import com.fasterxml.aalto.WFCException;
 
 public abstract class XMPPMessageProcessor {
 
-	private StringBuilder buffer;
+	//Parser variables
 	private ConfigLoader configLoader;
 	private ReaderFactory readerFactory;
 	private FilterControls filterControls;
 	private AsyncXMLStreamReader asyncReader;
-	private int consumed;
-	private int processed;
-	private int toWrite;
-	private int lastEvent;
+	
+	protected MessageBuffer messageBuffer = new MessageBuffer();
+	
 	private boolean reset = false;
 	
-	// Access controls/filters variables
-	private int total = 0;
 	private boolean iqFlag = false;	//TODO TODAVIA NO ESTA EN USO
 	private boolean queryFlag = false;	//TODO TODAVIA NO ESTA EN USO
 	private boolean usernameFlag = false;	//TODO TODAVIA NO ESTA EN USO
@@ -35,15 +32,11 @@ public abstract class XMPPMessageProcessor {
 	private boolean messageFlag = false;
 	private boolean bodyFlag = false;
 	
-	
-	
 	protected static enum TagType {
-		MESSAGE, SUCCESS, OTHER;
+		MESSAGE, BODY, IQ, SUCCESS, QUERY, OTHER;
 	}
 
 	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory, FilterControls filterControls) {
-		this.consumed = this.processed = this.toWrite = this.lastEvent = 0;
-		this.buffer = new StringBuilder();
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
 		this.asyncReader = this.readerFactory.newAsyncReader();
@@ -51,62 +44,55 @@ public abstract class XMPPMessageProcessor {
 		this.configLoader = configLoader;
 	}
 
+	/**
+	 * Appendea al buffer
+	 * @param bb ByteBuffer de donde lee
+	 * @param read Cantidad de bytes a appendear
+	 * @param name Nombre para imprimir mensajes
+	 */
 	public void read(ByteBuffer bb, int read, String name) {
 		if(this.reset) {
 			tryToReset();
 		}else{
-			bb.rewind();
-			int i;
-			for (i = 0; i < read; i++) {
-				buffer.append((char) bb.get());
-			}
-			System.out.println("Read[" + name + "][" + i + "]");
+			bb.flip();
 			
-			if(i > 0){
+			if(messageBuffer.append(bb) > 0) {
 				process();
 			}
-			
 			bb.clear();
 		}
 	}
 
-	public void write(ByteBuffer bb, String name) {
-
-		byte data[] = this.buffer.substring(0, this.toWrite).getBytes();
-
-		int i = 0;
-		for( ; i < data.length && bb.position() < bb.limit(); i++) {
-			bb.put(data[i]);
-		}
-		
-		this.buffer = new StringBuilder(this.buffer.substring(i, this.buffer.length()));		
-		System.out.println("Write[" + name + "][" + i + "][" + this.buffer.length() + "]");
-		
-		this.consumed += i;
-
-		this.toWrite -= i;
-		this.processed -= i;
-
-		if(this.reset && this.toWrite == 0) {
+	/**
+	 * En caso de que el byteBuffer sea nulo, devuelve un ByteBuffer con los datos
+	 * listos para escribir; en caso de que se pase un byteBuffer se añaden la cantidad
+	 * de bytes que se pueda a este mismo.
+	 * @param byteBuffer null o byteBuffer que se esté utilizando para escribir
+	 * @param name
+	 * @return
+	 */
+	public ByteBuffer write(ByteBuffer byteBuffer, String name) {
+		ByteBuffer ret = this.messageBuffer.write(byteBuffer);
+		if(this.reset && !this.messageBuffer.hasToWrite()) {
 			this.resetReader();
 		}
-		
-		// Lo dejo listo para leer
-		bb.flip();
+		return ret;
 	}
 
 	private AsyncInputFeeder getFeeder() {
 		return asyncReader.getInputFeeder();
 	}
 
+	/**
+	 * Procesa los últimos ingresados al buffer y maneja los eventos
+	 * XML correspondientes.
+	 */
 	private void process() {
 		try {
 			byte[] data;
-			if (getFeeder().needMoreInput()) {				
-				data = buffer.substring(processed, buffer.length()).getBytes();
+			if (getFeeder().needMoreInput()) {		
+				data = this.messageBuffer.getNotProcessedData();
 				getFeeder().feedInput(data, 0, data.length);
-				this.total += this.buffer.length() - this.processed;
-				this.processed += data.length;
 			} else {
 				throw new IllegalStateException("No need input");
 			}
@@ -119,18 +105,19 @@ public abstract class XMPPMessageProcessor {
 					switch (event) {
 					case AsyncXMLStreamReader.START_DOCUMENT:
 						handleStartDocument(getCurrentLocation());
-						markLastEvent(getCurrentLocation());
+						this.messageBuffer.markLastEvent(getCurrentLocation());
 						break;
 					case AsyncXMLStreamReader.START_ELEMENT:
 						handleStartElement(getCurrentLocation());
-						markLastEvent(getCurrentLocation());
+						this.messageBuffer.markLastEvent(getCurrentLocation());
 						break;
 					case AsyncXMLStreamReader.END_ELEMENT:
 						handleEndElement(getCurrentLocation());
+						this.messageBuffer.markLastEvent(getCurrentLocation());
 						break;
 					case AsyncXMLStreamReader.ATTRIBUTE:
 						handleAttribute(getCurrentLocation());
-						markLastEvent(getCurrentLocation());
+						this.messageBuffer.markLastEvent(getCurrentLocation());
 						break;
 					case AsyncXMLStreamReader.CHARACTERS:
 						handleAttribute(getCurrentLocation());
@@ -153,10 +140,10 @@ public abstract class XMPPMessageProcessor {
 							System.out.println(this.buffer.charAt(this.buffer.length() - this.cant + position - 1));
 							System.out.println(this.buffer.length() - this.cant + position - 1 + str.length());*/
 							
-							int start = this.buffer.length() - this.total + position - 1;
-							int end = start + bodyText.length();
-
-							this.buffer.replace(start, end, L33tFilter.transform(bodyText));
+//							int start = this.buffer.length() - this.total + position - 1;
+//							int end = start + bodyText.length();
+//
+//							this.buffer.replace(start, end, L33tFilter.transform(bodyText));
 						}
 						//System.out.println("buffer despues: " + this.buffer.toString());
 						
@@ -165,12 +152,13 @@ public abstract class XMPPMessageProcessor {
 						if (this.jidFlag)
 							System.out.println(getReader().getText());
 						
-						
-						markLastEvent(getCurrentLocation());
+						this.messageBuffer.markLastEvent(getCurrentLocation());
+//						markLastEvent(getCurrentLocation());
 						break;
 					default:
 						handleAnyOtherEvent(getCurrentLocation());
-						markLastEvent(getCurrentLocation());
+						this.messageBuffer.markLastEvent(getCurrentLocation());
+//						markLastEvent(getCurrentLocation());
 					}
 				}
 			}
@@ -182,76 +170,106 @@ public abstract class XMPPMessageProcessor {
 
 	}
 
+	/**
+	 * Resetea el processor, si es que todavía no hay datos marcados para escribir.
+	 */
 	private void tryToReset() {
-		System.out.println("Intenta");
-		if(this.toWrite == 0) {
+		if(!this.messageBuffer.hasToWrite()) {
 			this.resetReader();
 		}
 	}
 	
+	/**
+	 * Posición actual del XMLReader
+	 * @return
+	 */
 	private int getCurrentLocation() {
 		return asyncReader.getLocation().getCharacterOffset();
 	}
 
-	public String getEventString(int vLocation) {
-		return this.buffer.substring(normalizeLocation(this.lastEvent),
-				normalizeLocation(vLocation));
-	}
-
-	private void markLastEvent(int vLocation) {
-		this.lastEvent = vLocation;
-	}
-
-	protected void sendEvent(int vLocation) {
-		this.toWrite = normalizeLocation(vLocation);
-	}
-
+	/**
+	 * Indica si el processor tiene datos para escribir.
+	 * @return true/false
+	 */
 	public boolean needToWrite() {
-		return this.toWrite != 0;
+		return this.messageBuffer.hasToWrite();
 	}
 
-	private int normalizeLocation(int location) {
-		return location - this.consumed;
-	}
-
+	/**
+	 * Marca que es necesario resetear el processor.
+	 */
 	public void markToReset() {
 		this.reset = true;
 	}
 	
+	/**
+	 * Indica si hay mensajes de reset.
+	 * @return
+	 */
 	public boolean hasResetMessage() {
 		return false;
 	}
 	
+	/**
+	 * Indica si el processor necesita reseearse.
+	 * @return
+	 */
 	public boolean needToReset() {
 		return this.reset;
 	}
 	
+	/**
+	 * Resetea el processor
+	 */
 	private void resetReader() {
-		System.out.println("Resetea!");
-		this.buffer = new StringBuilder(this.buffer.substring(normalizeLocation(getCurrentLocation())));
-		this.toWrite = this.processed = this.consumed = this.total = 0;
+		this.messageBuffer.reset(getCurrentLocation());
 		this.asyncReader = readerFactory.newAsyncReader();
 		this.reset = false;
 	}
 
+	/**
+	 * Devuelve el XML Reader.
+	 * @return
+	 */
 	protected AsyncXMLStreamReader getReader() {
 		return this.asyncReader;
 	}
 
+	/**
+	 * Indica el tipo de elemento XML.
+	 * @param localPart
+	 * @return
+	 */
 	protected TagType getTagType(String localPart) {
 		if (localPart.equalsIgnoreCase("message")) {
 			return TagType.MESSAGE;
 		} else if (localPart.equalsIgnoreCase("success")) {
 			return TagType.SUCCESS;
+		} else if (localPart.equalsIgnoreCase("iq")) {
+			return TagType.IQ;
+		} else if (localPart.equalsIgnoreCase("body")) {
+			return TagType.BODY;
+		} else if (localPart.equalsIgnoreCase("query")) {
+			return TagType.QUERY;
 		} else {
 			return TagType.OTHER;
 		}
 	}
 
+	/**
+	 * Maneja el evento de comienzo de Stream XML.
+	 * Ejemplo: <?xml version="1.0" encoding="UTF-8"?>
+	 * @param vLocation
+	 */
 	protected void handleStartDocument(int vLocation) {
-		sendEvent(vLocation);
+		this.messageBuffer.setCharset(Charset.forName(this.asyncReader.getEncoding()));
+		this.messageBuffer.markEventToSend(vLocation);
 	}
 	
+	/**
+	 * Maneja el evento de comienzo de una tag.
+	 * @param vLocation
+	 */
 	protected void handleStartElement(int vLocation) {
 		if (getReader().getName().getLocalPart().equalsIgnoreCase("message"))
 			this.messageFlag = true;
@@ -266,9 +284,13 @@ public abstract class XMPPMessageProcessor {
 		else if (getReader().getName().getLocalPart().equalsIgnoreCase("jid"))
 			this.jidFlag = true;
 		
-		sendEvent(vLocation);
+		this.messageBuffer.markEventToSend(vLocation);
 	}
 
+	/**
+	 * Menaje el evento de finalización de una tag.
+	 * @param vLocation
+	 */
 	protected void handleEndElement(int vLocation) {
 		if (getReader().getName().getLocalPart().equalsIgnoreCase("message"))
 			this.messageFlag = false;
@@ -283,15 +305,23 @@ public abstract class XMPPMessageProcessor {
 		else if (getReader().getName().getLocalPart().equalsIgnoreCase("jid"))
 			this.jidFlag = false;
 		
-		sendEvent(vLocation);
+		this.messageBuffer.markEventToSend(vLocation);
 	}
 
+	/**
+	 * Maneja el evento de un atributo XML.
+	 * @param vLocation
+	 */
 	protected void handleAttribute(int vLocation) {
-		sendEvent(vLocation);
+		this.messageBuffer.markEventToSend(vLocation);
 	}
 
+	/**
+	 * Maneja cualquier otro evento.
+	 * @param vLocation
+	 */
 	protected void handleAnyOtherEvent(int vLocation) {
-		sendEvent(vLocation);
+		this.messageBuffer.markEventToSend(vLocation);
 	}
 
 }

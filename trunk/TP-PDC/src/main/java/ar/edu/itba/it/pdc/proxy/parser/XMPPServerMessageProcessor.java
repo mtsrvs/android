@@ -18,9 +18,11 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 		case SUCCESS:
 			System.out.println("Se marca server para resetear");
 			this.markToReset();
-			sendEvent(vLocation);break;
+			this.messageBuffer.markEventToSend(vLocation);break;
+//			sendEvent(vLocation);break;
 		default:
-			sendEvent(vLocation);
+			this.messageBuffer.markEventToSend(vLocation);
+//			sendEvent(vLocation);
 		}
 		
 	}
