@@ -35,6 +35,18 @@ public class ConfigLoaderUtils {
 		}
 	}
 	
+	public List<InetAddress> getInetAddressList(String property){
+		try {
+			if(property != null) {
+				return mapper.readValue(property, new TypeReference<List<InetAddress>>() {});
+			} else {
+				return new ArrayList<InetAddress>();
+			}
+		} catch (Exception e) {
+			throw new ConfigurationFileException();
+		}
+	}
+	
 	public Map<String,TimeRange> getTimeRangesMap(String property){
 		Map<String,TimeRange> timeRanges = new HashMap<String, TimeRange>();
 		if(property != null) {
