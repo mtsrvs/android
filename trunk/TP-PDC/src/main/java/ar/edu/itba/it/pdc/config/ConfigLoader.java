@@ -64,8 +64,11 @@ public class ConfigLoader {
 	 */
 	public void setProperty(String prop, String value) {
 		config.setProperty(prop, value);
+	}
+	
+	public void commit() {
 		try {
-			//TODO modificar
+			//TODO modificar el src/main/resources/
 			//TODO porque me pone las barras en el .properties?
 			FileOutputStream fos = new FileOutputStream("src/main/resources/" + fullConfigPath);
 			config.store(fos, null);
@@ -139,8 +142,8 @@ public class ConfigLoader {
 	 * Lista de IPs en la lista negra.
 	 * @return List<String>
 	 */
-	public List<String> getIPBlacklist() {
-		return configLoaderUtils.getStringList(config.getProperty("ipBlacklist"));
+	public List<InetAddress> getIPBlacklist() {
+		return configLoaderUtils.getInetAddressList(config.getProperty("ipBlacklist"));
 	}
 	
 	/**
