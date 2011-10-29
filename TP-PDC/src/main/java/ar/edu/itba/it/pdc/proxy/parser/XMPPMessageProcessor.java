@@ -28,11 +28,14 @@ public abstract class XMPPMessageProcessor {
 	
 	// Access controls/filters variables
 	private int total = 0;
-	private boolean iqFlag = false;
-	private boolean queryFlag = false;
-	private boolean usernameFlag = false;
+	private boolean iqFlag = false;	//TODO TODAVIA NO ESTA EN USO
+	private boolean queryFlag = false;	//TODO TODAVIA NO ESTA EN USO
+	private boolean usernameFlag = false;	//TODO TODAVIA NO ESTA EN USO
+	private boolean jidFlag = false;	//TODO TODAVIA NO ESTA EN USO	
 	private boolean messageFlag = false;
 	private boolean bodyFlag = false;
+	
+	
 	
 	protected static enum TagType {
 		MESSAGE, SUCCESS, OTHER;
@@ -159,6 +162,8 @@ public abstract class XMPPMessageProcessor {
 						
 						if (this.usernameFlag)
 							System.out.println(getReader().getText());
+						if (this.jidFlag)
+							System.out.println(getReader().getText());
 						
 						
 						markLastEvent(getCurrentLocation());
@@ -180,7 +185,6 @@ public abstract class XMPPMessageProcessor {
 	private void tryToReset() {
 		System.out.println("Intenta");
 		if(this.toWrite == 0) {
-			this.total = 0;
 			this.resetReader();
 		}
 	}
@@ -225,7 +229,7 @@ public abstract class XMPPMessageProcessor {
 	private void resetReader() {
 		System.out.println("Resetea!");
 		this.buffer = new StringBuilder(this.buffer.substring(normalizeLocation(getCurrentLocation())));
-		this.toWrite = this.processed = this.consumed = 0;
+		this.toWrite = this.processed = this.consumed = this.total = 0;
 		this.asyncReader = readerFactory.newAsyncReader();
 		this.reset = false;
 	}
@@ -259,6 +263,8 @@ public abstract class XMPPMessageProcessor {
 			this.queryFlag = this.iqFlag;
 		else if (getReader().getName().getLocalPart().equalsIgnoreCase("username"))
 			this.usernameFlag = this.queryFlag;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("jid"))
+			this.jidFlag = true;
 		
 		sendEvent(vLocation);
 	}
@@ -274,6 +280,8 @@ public abstract class XMPPMessageProcessor {
 			this.queryFlag = false;
 		else if (getReader().getName().getLocalPart().equalsIgnoreCase("username"))
 			this.usernameFlag = false;
+		else if (getReader().getName().getLocalPart().equalsIgnoreCase("jid"))
+			this.jidFlag = false;
 		
 		sendEvent(vLocation);
 	}
