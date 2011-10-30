@@ -10,8 +10,8 @@ public class MessageBuffer {
 	private int consumed = 0;
 	private int processed = 0;
 	private int lastEvent = 0;
-	private int append = 0;
-
+	private int decOffset = 0;
+	
 	private int toWrite = 0;
 	
 	private Charset charset = Charset.defaultCharset();
@@ -29,6 +29,7 @@ public class MessageBuffer {
 	 * @param charset
 	 */
 	public void setCharset(Charset charset) {
+		System.out.println("Encoding: " + charset.name());
 		this.charset = charset;
 	}
 
@@ -71,7 +72,6 @@ public class MessageBuffer {
 	 */
 	public int append(ByteBuffer data) {
 		byte[] b = new byte[data.remaining()];
-		this.append += b.length;
 		data.get(b, 0, b.length);
 		return this.append(b);
 	}
@@ -95,7 +95,8 @@ public class MessageBuffer {
 	 */
 	public ByteBuffer write(ByteBuffer byteBuffer) {
 		int w;
-		byte[] data = this.buffer.substring(0, this.toWrite).getBytes(this.charset);
+		byte[] data = this.buffer.substring(0, Math.min(this.toWrite, this.buffer.length())).getBytes(this.charset);
+		System.out.println("Data: " + new String(data, this.charset));
 		if(byteBuffer == null) {
 			byteBuffer = ByteBuffer.wrap(data);
 			w = byteBuffer.limit();
@@ -163,7 +164,7 @@ public class MessageBuffer {
 	 * @return
 	 */
 	public int nl(int vLocation) {
-		return vLocation - this.consumed;
+		return vLocation - this.consumed - this.decOffset;
 	}
 	
 	/**
