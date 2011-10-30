@@ -16,15 +16,11 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	protected void handleStartElement(int vLocation) {
 		switch(getTagType(getReader().getName().getLocalPart())) {
 		case SUCCESS:
-			System.out.println("Se marca server para resetear");
 			this.markToReset();
 			this.messageBuffer.markEventToSend(vLocation);break;
-//			sendEvent(vLocation);break;
 		default:
 			this.messageBuffer.markEventToSend(vLocation);
-//			sendEvent(vLocation);
 		}
-		
 	}
 
 	@Override
