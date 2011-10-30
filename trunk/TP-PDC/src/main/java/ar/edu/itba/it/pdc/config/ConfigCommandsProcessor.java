@@ -5,10 +5,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +41,7 @@ public class ConfigCommandsProcessor {
 
 	@SuppressWarnings("unchecked")
 	public void process(SelectionKey key, ByteBuffer buf, String req) {
-		HashMap<String, Object> request = new HashMap<String, Object>();
+		Map<String, Object> request = new HashMap<String, Object>();
 		boolean success = true;
 			try {
 				request = mapper.readValue(req, new TypeReference<Map<String, Object>>() {});
@@ -50,7 +50,8 @@ public class ConfigCommandsProcessor {
 					if (request.get("type").equals("query")) {
 						validator.validateQuery(request);
 						printQuery(key, buf, (String) request.get("parameter"));
-					} else if (request.get("type").equals("assignation")) {
+					} else if (request.get("type").equals("assignation") ||
+							request.get("type").equals("delete")) {
 						if (request.containsKey("caccess")) {
 							success &= caccessCommand(key, buf, request);
 						}
@@ -108,7 +109,7 @@ public class ConfigCommandsProcessor {
 		sendResponse(key, buf, resp);
 	}
 
-	private boolean caccessCommand(SelectionKey key, ByteBuffer buf, HashMap<String, Object> request) {
+	private boolean caccessCommand(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 		// {"auth":["admin","admin"],"type":"assignation", "caccess":["user","qty"]}
 		validator.validateCaccessCommand(request);
 		
@@ -116,8 +117,12 @@ public class ConfigCommandsProcessor {
 		
 		try {
 			currentCaccess = configLoader.getCaccess();
-			List<String> accessControl = (List<String>) request.get("caccess");
-			currentCaccess.put(accessControl.get(0), Integer.valueOf(accessControl.get(1)));
+			if(request.get("type").equals("assignation")) {
+				List<String> accessControl = (List<String>) request.get("caccess");
+				currentCaccess.put(accessControl.get(0), Integer.valueOf(accessControl.get(1)));
+			} else if(request.get("type").equals("delete")) {
+				currentCaccess.remove((String) request.get("caccess"));
+			}
 			String newCaccess = mapper.writeValueAsString(currentCaccess);
 			configLoader.setProperty("caccess", newCaccess);
 		} catch (Exception e) {
@@ -126,7 +131,7 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 
-	private boolean multiplexCommand(SelectionKey key, ByteBuffer buf, HashMap<String, Object> request) {
+	private boolean multiplexCommand(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "multiplex":["jid","serverto"]}
 		validator.validateMultiplexCommand(request);
 		
@@ -134,8 +139,12 @@ public class ConfigCommandsProcessor {
 
 		try {
 			currentMultiplex = configLoader.getMultiplex();
-			List<String> multiplex = (List<String>) request.get("multiplex");
-			currentMultiplex.put(multiplex.get(0), InetAddress.getByName(multiplex.get(1)));
+			if(request.get("type").equals("assignation")) {
+				List<String> multiplex = (List<String>) request.get("multiplex");
+				currentMultiplex.put(multiplex.get(0), InetAddress.getByName(multiplex.get(1)));
+			} else if(request.get("type").equals("delete")) {
+				currentMultiplex.remove((String) request.get("multiplex"));
+			}
 			String newMultiplex = mapper.writeValueAsString(currentMultiplex);
 			configLoader.setProperty("multiplex", newMultiplex);
 		} catch (Exception e) {
@@ -143,9 +152,9 @@ public class ConfigCommandsProcessor {
 		}
 		return true;
 	}
-
+	
 	private boolean silenceCommand(SelectionKey key, ByteBuffer buf,
-			HashMap<String, Object> request) {
+			Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "silence":"user"}
 		validator.validateSilenceCommand(request);
 		
@@ -153,8 +162,13 @@ public class ConfigCommandsProcessor {
 
 		try {
 			currentSilence = configLoader.getSilence();
-			String silence = (String) request.get("silence");
-			currentSilence.add(silence);
+			if(request.get("type").equals("assignation")) {
+				if(!currentSilence.contains((String) request.get("silence"))) {
+					currentSilence.add((String) request.get("silence"));
+				}
+			} else if(request.get("type").equals("delete")) {
+				currentSilence.remove((String) request.get("silence"));
+			}
 			String newSilence = mapper.writeValueAsString(currentSilence);
 			configLoader.setProperty("silence", newSilence);
 		} catch (Exception e) {
@@ -162,9 +176,9 @@ public class ConfigCommandsProcessor {
 		}
 		return true;
 	}
-
+	
 	private boolean filterCommand(SelectionKey key, ByteBuffer buf,
-			HashMap<String, Object> request) {
+			Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "filter":["leet/hash", "user", "on/off"]}
 		validator.validateFilterCommand(request);
 		
@@ -176,7 +190,12 @@ public class ConfigCommandsProcessor {
 			} else if(filter.get(0).equals("hash")) {
 				currentFilter = configLoader.getHash();
 			}
-			currentFilter.put(filter.get(1), filter.get(2));
+			if(request.get("type").equals("assignation")) {
+				currentFilter.put(filter.get(1), filter.get(2));
+			} else if(request.get("type").equals("delete")) {
+//		{"auth":["admin","admin"],"type":"delete", "filter":["leet/hash", "user"]}
+				currentFilter.remove(filter.get(1));
+			}
 			String newFilter = mapper.writeValueAsString(currentFilter);
 			configLoader.setProperty(filter.get(0), newFilter);
 			
@@ -187,30 +206,31 @@ public class ConfigCommandsProcessor {
 	}
 	
 	private boolean blacklistCommand(SelectionKey key, ByteBuffer buf,
-			HashMap<String, Object> request) {
+			Map<String, Object> request) {
 		boolean success = true;
 		validator.validateBlacklistCommand(request);
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
 		List<String> blacklistCommand = (List<String>) request.get("blacklist");
 		if(blacklistCommand.get(0).equals("range")) {
-			success &= rangeBlacklist(key, buf, blacklistCommand);
+			success &= rangeBlacklist(key, buf, request);
 		}
 		if(blacklistCommand.get(0).equals("logins")) {
-			success &= loginsBlacklist(key, buf, blacklistCommand);
+			success &= loginsBlacklist(key, buf, request);
 		}
 		if(blacklistCommand.get(0).equals("ip")) {
-			success &= ipBlacklist(key, buf, blacklistCommand);
+			success &= ipBlacklist(key, buf, request);
 		}
 		if(blacklistCommand.get(0).equals("net")) {
-			success &= netBlacklist(key, buf, blacklistCommand);
+			success &= netBlacklist(key, buf, request);
 		}
 		return success;
 	}
 
-	private boolean rangeBlacklist(SelectionKey key, ByteBuffer buf, List<String> blacklistCommand) {
+	private boolean rangeBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
 //		rangeBlacklist = {"user":["from","server"]}
-		HashMap<String, List<String>> currentRangeBlacklist = new HashMap<String, List<String>>();
+		List<String> blacklistCommand = (List<String>) request.get("blacklist");
+		Map<String, List<String>> currentRangeBlacklist = new HashMap<String, List<String>>();
 
 		try {
 			//TODO levantar del configloader, perderia el from y el to?
@@ -218,10 +238,14 @@ public class ConfigCommandsProcessor {
 			if(prop != null) {
 				currentRangeBlacklist = mapper.readValue(prop, new TypeReference<Map<String, List<String>>>() {});
 			}
-			List<String> userRange = new ArrayList<String>();
-			userRange.add(blacklistCommand.get(2));
-			userRange.add(blacklistCommand.get(3));
-			currentRangeBlacklist.put(blacklistCommand.get(1), userRange);
+			if(request.get("type").equals("assignation")) {
+				List<String> userRange = new ArrayList<String>();
+				userRange.add(blacklistCommand.get(2));
+				userRange.add(blacklistCommand.get(3));
+				currentRangeBlacklist.put(blacklistCommand.get(1), userRange);
+			} else if(request.get("type").equals("delete")) {
+				currentRangeBlacklist.remove(blacklistCommand.get(1));
+			}
 			String newRangeBlacklist = mapper.writeValueAsString(currentRangeBlacklist);
 			configLoader.setProperty("rangeBlacklist", newRangeBlacklist);
 		} catch (Exception e) {
@@ -230,14 +254,19 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
-	private boolean loginsBlacklist(SelectionKey key, ByteBuffer buf, List<String> blacklistCommand) {
+	private boolean loginsBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["logins","user","qty"]}
 //		loginsBlacklist = {"user":"qty"}
+		List<String> blacklistCommand = (List<String>) request.get("blacklist");
 		Map<String, String> currentLoginsBlacklist = new HashMap<String, String>();
 
 		try {
 			currentLoginsBlacklist = configLoader.getLoginsBlacklist();
-			currentLoginsBlacklist.put(blacklistCommand.get(1), blacklistCommand.get(2));
+			if(request.get("type").equals("assignation")) {
+				currentLoginsBlacklist.put(blacklistCommand.get(1), blacklistCommand.get(2));
+			} else if(request.get("type").equals("delete")) {
+				currentLoginsBlacklist.remove(blacklistCommand.get(1));
+			}
 			String newLoginsBlacklist = mapper.writeValueAsString(currentLoginsBlacklist);
 			configLoader.setProperty("loginsBlacklist", newLoginsBlacklist);
 		} catch (Exception e) {
@@ -246,15 +275,20 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
-	private boolean ipBlacklist(SelectionKey key, ByteBuffer buf, List<String> blacklistCommand) {
+	private boolean ipBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["ip","dir"]}
 //		ipBlacklist = ["ip"]
+		List<String> blacklistCommand = (List<String>) request.get("blacklist");
 		List<InetAddress> currentIpBlacklist = new ArrayList<InetAddress>();
 
 		try {
 			currentIpBlacklist = configLoader.getIPBlacklist();
-			if(!currentIpBlacklist.contains(blacklistCommand.get(1))) {
-				currentIpBlacklist.add(InetAddress.getByName(blacklistCommand.get(1)));
+			if(request.get("type").equals("assignation")) {
+				if(!currentIpBlacklist.contains(blacklistCommand.get(1))) {
+					currentIpBlacklist.add(InetAddress.getByName(blacklistCommand.get(1)));
+				}
+			} else if(request.get("type").equals("delete")) {
+				currentIpBlacklist.remove(InetAddress.getByName(blacklistCommand.get(1)));
 			}
 			String newIpBlacklist = mapper.writeValueAsString(currentIpBlacklist);
 			configLoader.setProperty("ipBlacklist", newIpBlacklist);
@@ -264,9 +298,10 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
-	private boolean netBlacklist(SelectionKey key, ByteBuffer buf, List<String> blacklistCommand) {
+	private boolean netBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["net","netid", "netmask"]}
 //		netBlacklist = {["origin","port"]}
+		List<String> blacklistCommand = (List<String>) request.get("blacklist");
 		boolean netIsNew = true;
 		List<List<String>> currentNetBlacklist = new ArrayList<List<String>>();
 
@@ -279,13 +314,26 @@ public class ConfigCommandsProcessor {
 			List<String> newBlackNet = new ArrayList<String>();
 			newBlackNet.add(blacklistCommand.get(1));
 			newBlackNet.add(blacklistCommand.get(2));
-			for(List<String> net : currentNetBlacklist) {
-				if(net.get(0).equals(newBlackNet.get(0)) && net.get(1).equals(newBlackNet.get(1))) {
-					netIsNew = false;
+			if(request.get("type").equals("assignation")) {
+				for(List<String> net : currentNetBlacklist) {
+					if(net.get(0).equals(newBlackNet.get(0)) && net.get(1).equals(newBlackNet.get(1))) {
+						netIsNew = false;
+					}
+				}
+				if(netIsNew) {
+					currentNetBlacklist.add(newBlackNet);
+				}
+			} else if(request.get("type").equals("delete")) {
+//	{"auth":["admin","admin"],"type":"delete", "blacklist":["net","netid","netmask"]}
+				Iterator<List<String>> it = currentNetBlacklist.iterator();
+				while(it.hasNext()) {
+					List<String> next = it.next();
+					if(next.get(0).equals(newBlackNet.get(0)) && next.get(1).equals(newBlackNet.get(1))) {
+						it.remove();
+					}
 				}
 			}
 			if(netIsNew) {
-				currentNetBlacklist.add(newBlackNet);
 				String newNetBlacklist = mapper.writeValueAsString(currentNetBlacklist);
 				configLoader.setProperty("netBlacklist", newNetBlacklist);
 			}
@@ -294,5 +342,4 @@ public class ConfigCommandsProcessor {
 		}
 		return true;
 	}
-	
 }
