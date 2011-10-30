@@ -68,18 +68,18 @@ public class ConfigCommandsProcessor {
 						}
 					}
 				} else {
-					sendResponse(key, buf, "{\"status\":\"ERR\",\"data\":\"Wrong authentication.\"}\n");
+					success = false;
+//					sendResponse(key, buf, "{\"status\":\"ERR\",\"data\":\"Wrong authentication.\"}\n");
 				}
-			} catch (JsonParseException e) {
-				success = false;
 			} catch (Throwable e) {
 				success = false;
 			} 
 			
 			if(success) {
-				sendResponse(key, buf, Msg.OK.getValue());
 				configLoader.commit();
+				sendResponse(key, buf, Msg.OK.getValue());
 			} else {
+				configLoader.revert();
 				sendResponse(key, buf, Msg.ERR.getValue());
 			}
 	}

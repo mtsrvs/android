@@ -79,6 +79,10 @@ public class ConfigLoader {
 		}
 	}
 	
+	public void revert() {
+		this.updateConfig();
+	}
+	
 	/**
 	 * Devuelve una InetSocketAddress donde debe bindearse el proxy
 	 * @return
