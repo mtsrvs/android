@@ -37,7 +37,6 @@ public abstract class XMPPHandler implements TCPHandler {
 		processor.read(buf,r,getName());
 		
 		if(processor.hasResetMessage()) {
-			System.out.println("Se marca el otro para resetear");
 			getProcessor(key, Opt.WRITE).markToReset();
 		}
 		
@@ -62,13 +61,10 @@ public abstract class XMPPHandler implements TCPHandler {
 			if(buf.hasRemaining()) {
 				buf.compact();
 			}else{
-//				buf.clear();
 				this.setWriteBuffer(key, null);
 			}
-			//Sigue prendido el write
 		}else{
 			buf.clear();
-			System.out.println("Stop write " + getName() + "\n");
 			key.interestOps(SelectionKey.OP_READ);
 		}
 	}

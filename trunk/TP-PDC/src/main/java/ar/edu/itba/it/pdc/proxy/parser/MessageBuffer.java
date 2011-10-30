@@ -1,7 +1,6 @@
 package ar.edu.itba.it.pdc.proxy.parser;
 
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 
 public class MessageBuffer {
@@ -11,6 +10,7 @@ public class MessageBuffer {
 	private int consumed = 0;
 	private int processed = 0;
 	private int lastEvent = 0;
+	private int append = 0;
 
 	private int toWrite = 0;
 	
@@ -65,20 +65,15 @@ public class MessageBuffer {
 	}
 	
 	/**
-	 * Decodifica y appendea los bytes al buffer.
-	 * @param data
-	 */
-	public void append(byte[] data) {
-		this.append(decode(data));
-	}
-	
-	/**
 	 * Decodifica y appendea el buffer los datos del ByteBuffer.
 	 * @param data
 	 * @return
 	 */
 	public int append(ByteBuffer data) {
-		return this.append(decode(data));
+		byte[] b = new byte[data.remaining()];
+		this.append += b.length;
+		data.get(b, 0, b.length);
+		return this.append(b);
 	}
 	
 	/**
@@ -86,29 +81,9 @@ public class MessageBuffer {
 	 * @param data
 	 * @return
 	 */
-	private int append(CharBuffer data) {
-		while(data.hasRemaining()) {
-			this.buffer.append(data.get());
-		}
-		return data.limit();
-	}
-
-	/**
-	 * Decodifica el buffer utilizando el charset actual.
-	 * @param bb
-	 * @return
-	 */
-	private CharBuffer decode(ByteBuffer bb) {
-		return this.charset.decode(bb);
-	}
-	
-	/**
-	 * Decodifica los bytes utilizando el charset actual.
-	 * @param data
-	 * @return
-	 */
-	private CharBuffer decode(byte[] data) {
-		return decode(ByteBuffer.wrap(data));
+	private int append(byte[] data) {
+		this.buffer.append(new String(data, this.charset));
+		return data.length;
 	}
 
 	/**
@@ -120,7 +95,7 @@ public class MessageBuffer {
 	 */
 	public ByteBuffer write(ByteBuffer byteBuffer) {
 		int w;
-		byte[] data = this.buffer.substring(0, this.toWrite).getBytes();
+		byte[] data = this.buffer.substring(0, this.toWrite).getBytes(this.charset);
 		if(byteBuffer == null) {
 			byteBuffer = ByteBuffer.wrap(data);
 			w = byteBuffer.limit();
@@ -152,7 +127,7 @@ public class MessageBuffer {
 	 * @return
 	 */
 	public byte[] getNotProcessedData() {
-		byte[] ret = this.buffer.substring(this.processed).getBytes();
+		byte[] ret = this.buffer.substring(this.processed, this.buffer.length()).getBytes(this.charset);
 		this.processed += ret.length;
 		return ret;
 	}
@@ -178,8 +153,8 @@ public class MessageBuffer {
 	 * @param vLocation posición actual
 	 * @return String texto del evento
 	 */
-	public String getEventString(int vLocation) {
-		return this.buffer.substring(nl(this.lastEvent), nl(vLocation));
+	public byte[] getEventData(int vLocation) {
+		return this.buffer.substring(nl(this.lastEvent), nl(vLocation)).getBytes(this.charset);
 	}
 	
 	/**
@@ -200,5 +175,5 @@ public class MessageBuffer {
 		this.buffer.delete(0, nl(vLocation));
 		this.toWrite = this.processed = this.lastEvent = this.consumed = 0;
 	}
-	
+
 }
