@@ -96,7 +96,6 @@ public class MessageBuffer {
 	public ByteBuffer write(ByteBuffer byteBuffer) {
 		int w;
 		byte[] data = this.buffer.substring(0, Math.min(this.toWrite, this.buffer.length())).getBytes(this.charset);
-		System.out.println("\nData:\n" + new String(data, this.charset));
 		if(byteBuffer == null) {
 			byteBuffer = ByteBuffer.wrap(data);
 			w = byteBuffer.limit();
