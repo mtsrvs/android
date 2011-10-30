@@ -27,14 +27,16 @@ public abstract class XMPPHandler implements TCPHandler {
 		}
 		
 		if(r < 0) {
-			sc.close();
-			key.cancel();
-			endPointKey.channel().close();
-			endPointKey.cancel();
+			closePair(key, endPointKey);
 			return;
 		}
 
-		processor.read(buf,r,getName());
+		try {
+			processor.read(buf,r,getName());
+		}catch(Exception e) {
+			closePair(key, endPointKey);
+			return;
+		}
 		
 		if(processor.hasResetMessage()) {
 			getProcessor(key, Opt.WRITE).markToReset();
@@ -42,6 +44,20 @@ public abstract class XMPPHandler implements TCPHandler {
 		
 		if(processor.needToWrite()) {
 			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		}
+		
+	}
+	
+	private void closePair(SelectionKey k, SelectionKey ke) {
+		SocketChannel sc = (SocketChannel) k.channel();
+		try {
+			sc.close();
+			k.channel().close();
+			ke.channel().close();
+			k.cancel();
+			ke.cancel();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 		
 	}
