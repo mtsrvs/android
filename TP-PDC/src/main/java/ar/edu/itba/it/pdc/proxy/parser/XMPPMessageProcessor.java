@@ -3,11 +3,11 @@ package ar.edu.itba.it.pdc.proxy.parser;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
-import javax.xml.stream.Location;
 import javax.xml.stream.XMLStreamException;
 
-import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
+import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
+import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 import com.fasterxml.aalto.AsyncInputFeeder;
 import com.fasterxml.aalto.AsyncXMLStreamReader;
@@ -16,32 +16,29 @@ import com.fasterxml.aalto.WFCException;
 public abstract class XMPPMessageProcessor {
 
 	//Parser variables
-	private ConfigLoader configLoader;
 	private ReaderFactory readerFactory;
-	private FilterControls filterControls;
+	protected FilterControls filterControls;
 	private AsyncXMLStreamReader asyncReader;
+	protected XMPPProcessorMap xmppProcessorMap;
 	
+	protected JID jid;
 	protected MessageBuffer messageBuffer = new MessageBuffer();
+
+	protected boolean digestMD5Flag = false;
+	protected boolean nonSASLFlag = false;
 	
 	private boolean reset = false;
 	
-	private boolean iqFlag = false;	//TODO TODAVIA NO ESTA EN USO
-	private boolean queryFlag = false;	//TODO TODAVIA NO ESTA EN USO
-	private boolean usernameFlag = false;	//TODO TODAVIA NO ESTA EN USO
-	private boolean jidFlag = false;	//TODO TODAVIA NO ESTA EN USO	
-	private boolean messageFlag = false;
-	private boolean bodyFlag = false;
-	
 	protected static enum TagType {
-		MESSAGE, BODY, IQ, SUCCESS, QUERY, OTHER;
+		MESSAGE, BODY, IQ, SUCCESS, QUERY, JID, AUTH, USERNAME, RESOURCE, STREAM, OTHER;
 	}
 
-	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory, FilterControls filterControls) {
+	public XMPPMessageProcessor(ReaderFactory readerFactory, FilterControls filterControls, XMPPProcessorMap xmppProcessorMap) {
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
 		this.asyncReader = this.readerFactory.newAsyncReader();
-		
-		this.configLoader = configLoader;
+		this.jid = null;
+		this.xmppProcessorMap = xmppProcessorMap;
 	}
 
 	/**
@@ -102,13 +99,20 @@ public abstract class XMPPMessageProcessor {
 			} else {
 				int event;
 				while ((event = asyncReader.next()) != AsyncXMLStreamReader.EVENT_INCOMPLETE) {
+					/*System.out.println("EVENTO: " + event);
+					System.out.println(AsyncXMLStreamReader.START_DOCUMENT);
+					System.out.println(AsyncXMLStreamReader.END_DOCUMENT);
+					System.out.println(AsyncXMLStreamReader.START_ELEMENT);
+					System.out.println(AsyncXMLStreamReader.END_ELEMENT);
+					System.out.println(AsyncXMLStreamReader.ATTRIBUTE);
+					System.out.println(AsyncXMLStreamReader.CHARACTERS);*/
 					switch (event) {
 					case AsyncXMLStreamReader.START_DOCUMENT:
 						handleStartDocument(getCurrentLocation());
 						this.messageBuffer.markLastEvent(getCurrentLocation());
 						break;
 					case AsyncXMLStreamReader.START_ELEMENT:
-						handleStartElement(getCurrentLocation());
+						handleStartElement(getCurrentLocation());						
 						this.messageBuffer.markLastEvent(getCurrentLocation());
 						break;
 					case AsyncXMLStreamReader.END_ELEMENT:
@@ -120,45 +124,12 @@ public abstract class XMPPMessageProcessor {
 						this.messageBuffer.markLastEvent(getCurrentLocation());
 						break;
 					case AsyncXMLStreamReader.CHARACTERS:
-						handleAttribute(getCurrentLocation());
-						Location location = getReader().getLocation();
-						int position = location.getCharacterOffset();
-										
-						/*// Prints de testeo
-						System.out.println("no tChars: " + getReader().getText());
-						System.out.println("buffer: " + this.buffer.toString());
-						System.out.println("cant: " + this.cant);
-						System.out.println("pos: " + position);	
-						System.out.println("buffer size: " + this.buffer.length());*/
-						
-						//TODO ESTA CABLEADO A USER
-						if(this.bodyFlag && this.filterControls.l33t("user")){
-							String bodyText = getReader().getText();
-							
-							/*// Prints de testeo
-							System.out.println(this.buffer.length() - this.cant + position - 1);
-							System.out.println(this.buffer.charAt(this.buffer.length() - this.cant + position - 1));
-							System.out.println(this.buffer.length() - this.cant + position - 1 + str.length());*/
-							
-//							int start = this.buffer.length() - this.total + position - 1;
-//							int end = start + bodyText.length();
-//
-//							this.buffer.replace(start, end, L33tFilter.transform(bodyText));
-						}
-						//System.out.println("buffer despues: " + this.buffer.toString());
-						
-						if (this.usernameFlag)
-							System.out.println(getReader().getText());
-						if (this.jidFlag)
-							System.out.println(getReader().getText());
-						
+						handleCharacters(getCurrentLocation());
 						this.messageBuffer.markLastEvent(getCurrentLocation());
-//						markLastEvent(getCurrentLocation());
 						break;
 					default:
 						handleAnyOtherEvent(getCurrentLocation());
 						this.messageBuffer.markLastEvent(getCurrentLocation());
-//						markLastEvent(getCurrentLocation());
 					}
 				}
 			}
@@ -247,10 +218,20 @@ public abstract class XMPPMessageProcessor {
 			return TagType.SUCCESS;
 		} else if (localPart.equalsIgnoreCase("iq")) {
 			return TagType.IQ;
+		} else if (localPart.equalsIgnoreCase("jid")) {
+			return TagType.JID;
 		} else if (localPart.equalsIgnoreCase("body")) {
 			return TagType.BODY;
 		} else if (localPart.equalsIgnoreCase("query")) {
 			return TagType.QUERY;
+		} else if (localPart.equalsIgnoreCase("auth")) {
+			return TagType.AUTH;
+		} else if (localPart.equalsIgnoreCase("username")) {
+			return TagType.USERNAME;
+		} else if (localPart.equalsIgnoreCase("resource")) {
+			return TagType.RESOURCE;
+		} else if (localPart.equalsIgnoreCase("stream")) {
+			return TagType.STREAM;
 		} else {
 			return TagType.OTHER;
 		}
@@ -270,20 +251,7 @@ public abstract class XMPPMessageProcessor {
 	 * Maneja el evento de comienzo de una tag.
 	 * @param vLocation
 	 */
-	protected void handleStartElement(int vLocation) {
-		if (getReader().getName().getLocalPart().equalsIgnoreCase("message"))
-			this.messageFlag = true;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("body"))
-			this.bodyFlag = this.messageFlag;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("iq"))
-			this.iqFlag = true;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("query"))
-			this.queryFlag = this.iqFlag;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("username"))
-			this.usernameFlag = this.queryFlag;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("jid"))
-			this.jidFlag = true;
-		
+	protected void handleStartElement(int vLocation) {		
 		this.messageBuffer.markEventToSend(vLocation);
 	}
 
@@ -291,20 +259,7 @@ public abstract class XMPPMessageProcessor {
 	 * Menaje el evento de finalización de una tag.
 	 * @param vLocation
 	 */
-	protected void handleEndElement(int vLocation) {
-		if (getReader().getName().getLocalPart().equalsIgnoreCase("message"))
-			this.messageFlag = false;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("body"))
-			this.bodyFlag = false;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("iq"))
-			this.iqFlag = false;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("query"))
-			this.queryFlag = false;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("username"))
-			this.usernameFlag = false;
-		else if (getReader().getName().getLocalPart().equalsIgnoreCase("jid"))
-			this.jidFlag = false;
-		
+	protected void handleEndElement(int vLocation) {		
 		this.messageBuffer.markEventToSend(vLocation);
 	}
 
@@ -315,6 +270,14 @@ public abstract class XMPPMessageProcessor {
 	protected void handleAttribute(int vLocation) {
 		this.messageBuffer.markEventToSend(vLocation);
 	}
+	
+	/**
+	 * Maneja un evento orientado a caracteres.
+	 * @param vLocation
+	 */
+	protected void handleCharacters(int vLocation) {
+		this.messageBuffer.markEventToSend(vLocation);
+	}
 
 	/**
 	 * Maneja cualquier otro evento.
@@ -323,5 +286,5 @@ public abstract class XMPPMessageProcessor {
 	protected void handleAnyOtherEvent(int vLocation) {
 		this.messageBuffer.markEventToSend(vLocation);
 	}
-
+	
 }

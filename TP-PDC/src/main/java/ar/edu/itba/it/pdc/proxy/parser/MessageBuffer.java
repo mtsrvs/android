@@ -176,4 +176,11 @@ public class MessageBuffer {
 		this.toWrite = this.processed = this.lastEvent = this.consumed = 0;
 	}
 
+	public StringBuilder replace(int start, int end, String str) throws StringIndexOutOfBoundsException {
+		return this.buffer.replace(start, end, str);
+	}
+	
+	public String toString(){
+		return this.buffer.toString();
+	}
 }
