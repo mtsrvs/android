@@ -9,7 +9,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
 /**
- * Mapa que matiene la relación bidireccional entre los sockets.
+ * Mapa que mantiene la relación bidireccional entre los sockets.
  */
 @Component
 public class ConnectionMap {

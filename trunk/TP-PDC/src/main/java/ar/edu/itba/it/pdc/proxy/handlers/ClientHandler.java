@@ -13,6 +13,7 @@ import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
+import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
 
@@ -26,13 +27,15 @@ public class ClientHandler extends XMPPHandler {
 	private ConnectionMap connectionMap;
 	private ReaderFactory readerFactory;
 	private FilterControls filterControls;
+	private XMPPProcessorMap xmppProcessorMap;
 	
 	@Autowired
-	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls) {
+	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls, XMPPProcessorMap xmppProcessorMap) {
 		this.configLoader = configLoader;
 		this.connectionMap = connectionMap;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
+		this.xmppProcessorMap = xmppProcessorMap;
 	}
 
 	public void accept(SelectionKey key) throws IOException {
@@ -45,7 +48,7 @@ public class ClientHandler extends XMPPHandler {
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls);
+		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.xmppProcessorMap);
 		sc.register(key.selector(), SelectionKey.OP_READ, attach);
 		ss.register(key.selector(), SelectionKey.OP_READ, attach);
 	}

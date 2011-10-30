@@ -190,7 +190,7 @@ public class ConfigCommandsProcessor {
 			HashMap<String, Object> request) {
 		boolean success = true;
 		validator.validateBlacklistCommand(request);
-//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","to"]}
+//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
 		List<String> blacklistCommand = (List<String>) request.get("blacklist");
 		if(blacklistCommand.get(0).equals("range")) {
 			success &= rangeBlacklist(key, buf, blacklistCommand);
@@ -208,8 +208,8 @@ public class ConfigCommandsProcessor {
 	}
 
 	private boolean rangeBlacklist(SelectionKey key, ByteBuffer buf, List<String> blacklistCommand) {
-//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","to"]}
-//		rangeBlacklist = {"user":["from","to"]}
+//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
+//		rangeBlacklist = {"user":["from","server"]}
 		HashMap<String, List<String>> currentRangeBlacklist = new HashMap<String, List<String>>();
 
 		try {

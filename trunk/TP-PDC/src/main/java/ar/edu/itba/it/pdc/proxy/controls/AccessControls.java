@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.config.TimeRange;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
+import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 @Component
 public class AccessControls {
@@ -35,8 +36,8 @@ public class AccessControls {
 				throw new AccessControlException("Network blacklisted!");
 	}
 	
-	public void range(String username) throws AccessControlException {
-		TimeRange timeRange = this.configLoader.getTimeRanges().get(username);
+	public void range(JID jid) throws AccessControlException {
+		TimeRange timeRange = this.configLoader.getTimeRanges().get(jid.getUsername());
 		
 		if (timeRange != null && !timeRange.isInRange(DateTime.now()))
 			throw new AccessControlException("You are not allowed to login at this time.");

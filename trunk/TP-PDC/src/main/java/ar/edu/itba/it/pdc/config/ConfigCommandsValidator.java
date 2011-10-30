@@ -90,7 +90,7 @@ public class ConfigCommandsValidator {
 	}
 	
 	public void validateBlacklistCommand(HashMap<String, Object> command) {
-//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","to"]}
+//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
 		List<String> blacklistCommand = (List<String>) command.get("blacklist");
 		
 		if(blacklistCommand.get(0).equals("range")) {
@@ -107,7 +107,7 @@ public class ConfigCommandsValidator {
 	}
 	
 	private void validateRangeBlacklist(List<String> command) {
-//		- {"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","to"]}
+//		- {"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
 		
 		LocalTime.parse(command.get(2));
 		LocalTime.parse(command.get(3));
