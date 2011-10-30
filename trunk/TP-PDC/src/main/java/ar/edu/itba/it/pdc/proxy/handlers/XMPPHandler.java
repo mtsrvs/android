@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 
+import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
 
@@ -13,6 +14,9 @@ public abstract class XMPPHandler implements TCPHandler {
 	protected static enum Opt {
 		READ, WRITE;
 	}
+	
+	private int read = 0;
+	private int write = 0;
 	
 	public void read(SelectionKey key, SelectionKey endPointKey)
 			throws IOException {
@@ -25,6 +29,8 @@ public abstract class XMPPHandler implements TCPHandler {
 		if(!processor.needToReset()) {
 			r =  sc.read(buf);
 		}
+		
+		this.read += r;
 		
 		if(r < 0) {
 			closePair(key, endPointKey);
@@ -49,6 +55,7 @@ public abstract class XMPPHandler implements TCPHandler {
 	}
 	
 	private void closePair(SelectionKey k, SelectionKey ke) {
+		Isecu.log.info("Connection close. (Sent Bytes: " + this.read + " Received Bytes: " + this.write + ")");
 		SocketChannel sc = (SocketChannel) k.channel();
 		try {
 			sc.close();
@@ -70,7 +77,7 @@ public abstract class XMPPHandler implements TCPHandler {
 		
 		buf = processor.write(getWriteBuffer(key), getName());
 		this.setWriteBuffer(key, buf);
-		sc.write(buf);
+		this.write += sc.write(buf);
 
 		
 		if(processor.needToWrite() || buf.hasRemaining()) {

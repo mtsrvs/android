@@ -29,7 +29,6 @@ public class MessageBuffer {
 	 * @param charset
 	 */
 	public void setCharset(Charset charset) {
-		System.out.println("Encoding: " + charset.name());
 		this.charset = charset;
 	}
 

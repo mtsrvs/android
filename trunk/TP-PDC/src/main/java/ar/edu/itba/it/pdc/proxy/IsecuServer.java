@@ -11,9 +11,8 @@ import java.util.Iterator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
-import ar.edu.itba.it.pdc.exception.AccessControlException;
-import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 import ar.edu.itba.it.pdc.proxy.handlers.HandlerUtils;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.protocol.Protocol;
@@ -57,12 +56,11 @@ public class IsecuServer {
 		configChannel.socket().bind(configLoader.getConfigAddress());
 		configChannel.register(selector, ACCEPT);
 
-		System.out.println("Servidor isecu inicializado en: "
-				+ configLoader.getProxyAddress());
+		Isecu.log.info("Isecu service initialized at: " + configLoader.getProxyAddress());
+		Isecu.log.info("Isecu configuration service initilized at: " + configLoader.getConfigAddress());
 		
-		System.out.println("Servidor de configuracion inicializado en: "
-				+ configLoader.getConfigAddress() + "\n");
-
+		System.out.println("Services were initiated.\t[OK]");
+		
 		while (true) {
 
 			selector.select();
@@ -90,7 +88,7 @@ public class IsecuServer {
 						iterator.remove();
 					}
 				} catch(CancelledKeyException e) {
-					System.out.println("Se cerró conexión");
+					
 				}
 			}
 		}
@@ -100,8 +98,7 @@ public class IsecuServer {
 		try {
 			protocolUtils.getHandler(key).write(key);
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("Handle write error");
+			Isecu.log.error("Write handler error");
 		}
 	}
 
@@ -117,8 +114,7 @@ public class IsecuServer {
 			protocolUtils.getHandler(key).read(key,
 					HandlerUtils.getKey(endPoint, key.selector()));
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("Handler read error");
+			Isecu.log.error("Read handler error");
 		}
 	}
 
@@ -130,15 +126,8 @@ public class IsecuServer {
 	private void handleAccept(SelectionKey key) {
 		try {			
 			protocolUtils.getHandler(key).accept(key);
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("Handle accept error");
-		} catch (ConfigurationFileException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (AccessControlException e) {
-			System.out.println(e.getMessage());
-			e.printStackTrace();
+		} catch (Exception e) {
+			Isecu.log.error("Accept handler error");
 		}
 	}
 
