@@ -4,15 +4,14 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 
 import javax.xml.stream.Location;
-import javax.xml.stream.XMLStreamException;
 
+import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 import com.fasterxml.aalto.AsyncInputFeeder;
 import com.fasterxml.aalto.AsyncXMLStreamReader;
-import com.fasterxml.aalto.WFCException;
 
 public abstract class XMPPMessageProcessor {
 
@@ -196,10 +195,8 @@ public abstract class XMPPMessageProcessor {
 					}
 				}
 			}
-		} catch (WFCException e) {
-			e.printStackTrace();
-		} catch (XMLStreamException e) {
-			e.printStackTrace();
+		} catch (Exception e) {
+			throw new InvalidProtocolException("This is not XMPP");
 		}
 
 	}

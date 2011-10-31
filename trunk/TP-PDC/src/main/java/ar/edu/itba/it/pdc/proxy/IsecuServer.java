@@ -94,6 +94,10 @@ public class IsecuServer {
 		}
 	}
 
+	/**
+	 * Obtiene el manejador de escritura correspondiente al socket y lo ejecuta.
+	 * @param key
+	 */
 	private void handleWrite(SelectionKey key) {
 		try {
 			protocolUtils.getHandler(key).write(key);
@@ -102,6 +106,10 @@ public class IsecuServer {
 		}
 	}
 
+	/**
+	 * Obtiene el manejador de lectura correspondiente al socket y lo ejecuta.
+	 * @param key
+	 */
 	private void handleRead(SelectionKey key) {
 		Protocol p = protocolUtils.expectedProtocol(key);
 		SocketChannel endPoint = null;
@@ -119,7 +127,7 @@ public class IsecuServer {
 	}
 
 	/**
-	 * Acepta conexiones
+	 * Obtiene el manejador de accept correspondiente al socket y lo ejecuta.
 	 * 
 	 * @param key
 	 */
