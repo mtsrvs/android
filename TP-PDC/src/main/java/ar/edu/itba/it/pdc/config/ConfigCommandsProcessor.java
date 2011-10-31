@@ -22,7 +22,9 @@ public class ConfigCommandsProcessor {
 	private ConfigCommandsValidator validator;
 	
 	protected static enum Msg {
-		OK("{\"status\":\"OK\"}\n"), ERR("{\"status\":\"ERR\"}\n");
+		OK("{\"status\":\"OK\"}\n"), 
+		ERR("{\"status\":\"ERR\"}\n"),
+		WRONG_AUTH("{\"status\":\"ERR\",\"data\":\"Wrong authentication.\"}\n");
 		private String value;
 		private Msg(String value) {
 			this.value = value;
@@ -67,22 +69,22 @@ public class ConfigCommandsProcessor {
 						if (request.containsKey("blacklist")) {
 							success &= blacklistCommand(key, buf, request);
 						}
+						
+						if(success) {
+							configLoader.commit();
+							sendResponse(key, buf, Msg.OK.getValue());
+						} else {
+							configLoader.revert();
+							sendResponse(key, buf, Msg.ERR.getValue());
+						}
 					}
 				} else {
-					success = false;
-//					sendResponse(key, buf, "{\"status\":\"ERR\",\"data\":\"Wrong authentication.\"}\n");
+					sendResponse(key, buf, Msg.WRONG_AUTH.getValue());
 				}
 			} catch (Throwable e) {
-				success = false;
-			} 
-			
-			if(success) {
-				configLoader.commit();
-				sendResponse(key, buf, Msg.OK.getValue());
-			} else {
 				configLoader.revert();
 				sendResponse(key, buf, Msg.ERR.getValue());
-			}
+			} 
 	}
 
 	public void sendResponse(SelectionKey key, ByteBuffer buf, String response) {
