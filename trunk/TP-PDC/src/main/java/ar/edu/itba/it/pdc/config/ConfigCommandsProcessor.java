@@ -82,7 +82,6 @@ public class ConfigCommandsProcessor {
 					sendResponse(key, buf, Msg.WRONG_AUTH.getValue());
 				}
 			} catch (Throwable e) {
-				e.printStackTrace();
 				configLoader.revert();
 				sendResponse(key, buf, Msg.ERR.getValue());
 			} 
