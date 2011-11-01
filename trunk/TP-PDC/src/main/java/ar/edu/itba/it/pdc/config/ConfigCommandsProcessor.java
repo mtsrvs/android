@@ -5,10 +5,10 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.net.util.SubnetUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,6 +82,7 @@ public class ConfigCommandsProcessor {
 					sendResponse(key, buf, Msg.WRONG_AUTH.getValue());
 				}
 			} catch (Throwable e) {
+				e.printStackTrace();
 				configLoader.revert();
 				sendResponse(key, buf, Msg.ERR.getValue());
 			} 
@@ -235,7 +236,6 @@ public class ConfigCommandsProcessor {
 		Map<String, List<String>> currentRangeBlacklist = new HashMap<String, List<String>>();
 
 		try {
-			//TODO levantar del configloader, perderia el from y el to?
 			String prop = configLoader.getProperty("rangeBlacklist");
 			if(prop != null) {
 				currentRangeBlacklist = mapper.readValue(prop, new TypeReference<Map<String, List<String>>>() {});
@@ -301,47 +301,30 @@ public class ConfigCommandsProcessor {
 	}
 	
 	private boolean netBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
-//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["net","netid", "netmask"]}
-//		netBlacklist = {["origin","port"]}
+//		{"auth":["admin","admin"],"type":"assignation", "blacklist":["net","net"]}
+//		netBlacklist = {["origin/port"]}
 		List<String> blacklistCommand = (List<String>) request.get("blacklist");
-		boolean netIsNew = true;
-		List<List<String>> currentNetBlacklist = new ArrayList<List<String>>();
-
+		List<String> netsString = new ArrayList<String>();
 		try {
-			//TODO obtener la currentNetBlacklist del configloader cuando se modifique el loader
-			String prop = configLoader.getProperty("netBlacklist");
-			if(prop != null) {
-				currentNetBlacklist = mapper.readValue(prop, new TypeReference<List<List<String>>>() {});
+			List<SubnetUtils> currentNetBlacklist = configLoader.getNetworkBlacklist();
+			for(SubnetUtils net : currentNetBlacklist) {
+				netsString.add(net.getInfo().getCidrSignature());
 			}
-			List<String> newBlackNet = new ArrayList<String>();
-			newBlackNet.add(blacklistCommand.get(1));
-			newBlackNet.add(blacklistCommand.get(2));
+			SubnetUtils net = new SubnetUtils(blacklistCommand.get(1));
 			if(request.get("type").equals("assignation")) {
-				for(List<String> net : currentNetBlacklist) {
-					if(net.get(0).equals(newBlackNet.get(0)) && net.get(1).equals(newBlackNet.get(1))) {
-						netIsNew = false;
-					}
-				}
-				if(netIsNew) {
-					currentNetBlacklist.add(newBlackNet);
+				if(!netsString.contains(net.getInfo().getCidrSignature())) {
+					netsString.add(net.getInfo().getCidrSignature());
 				}
 			} else if(request.get("type").equals("delete")) {
-//	{"auth":["admin","admin"],"type":"delete", "blacklist":["net","netid","netmask"]}
-				Iterator<List<String>> it = currentNetBlacklist.iterator();
-				while(it.hasNext()) {
-					List<String> next = it.next();
-					if(next.get(0).equals(newBlackNet.get(0)) && next.get(1).equals(newBlackNet.get(1))) {
-						it.remove();
-					}
-				}
+//	{"auth":["admin","admin"],"type":"delete", "blacklist":["net","netid/netmask"]}
+				netsString.remove(net.getInfo().getCidrSignature());
 			}
-			if(netIsNew) {
-				String newNetBlacklist = mapper.writeValueAsString(currentNetBlacklist);
-				configLoader.setProperty("netBlacklist", newNetBlacklist);
-			}
+			String newNetBlacklist = mapper.writeValueAsString(netsString);
+			configLoader.setProperty("netBlacklist", newNetBlacklist);
 		} catch (Exception e) {
 			return false;
 		}
 		return true;
 	}
+	
 }

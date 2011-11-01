@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.net.util.SubnetUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.joda.time.LocalTime;
@@ -114,4 +115,21 @@ public class ConfigLoaderUtils {
 		}
 		return multiplex;
 	}
+	
+	public List<SubnetUtils> getNetList(String property) {
+		List<SubnetUtils> nets = new ArrayList<SubnetUtils>();
+		List<String> currentNets = new ArrayList<String>();
+		if(property != null) {
+			try {
+				currentNets = mapper.readValue(property, new TypeReference<List<String>>() {});
+				for(String net : currentNets) {
+					nets.add(new SubnetUtils(net));
+				}
+			} catch (Exception e) {
+				throw new ConfigurationFileException();
+			}
+		}
+		return nets;
+	}
+	
 }
