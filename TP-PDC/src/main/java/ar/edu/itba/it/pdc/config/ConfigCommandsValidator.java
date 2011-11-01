@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.net.util.SubnetUtils;
 import org.joda.time.LocalTime;
 import org.springframework.stereotype.Component;
 
@@ -187,14 +188,13 @@ public class ConfigCommandsValidator {
 	}
 	
 	private void validateNetBlacklist(List<String> command) {
-//		- {"auth":["admin","admin"],"type":"assignation", "blacklist":["net","netid", "netmask"]}
+//		- {"auth":["admin","admin"],"type":"assignation", "blacklist":["net","netid/netmask"]}
 		try {
-			InetAddress.getByName(command.get(1));
-		} catch (UnknownHostException e) {
+			new SubnetUtils(command.get(1));
+		} catch (Exception e) {
 			throw new CommandValidationException();
 		}
-		Integer netmask = Integer.valueOf(command.get(2));
-		if(command.size() != 3 || (netmask < 0 || netmask > 255)) {
+		if(command.size() != 2) {
 			throw new CommandValidationException();
 		}
 	}

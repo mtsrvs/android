@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.net.util.SubnetUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -154,9 +155,8 @@ public class ConfigLoader {
 	 * Lista de redes en la lista negra.
 	 * @return List<String>
 	 */
-	public List<String> getNetworkBlacklist() {
-		//TODO ver como modelar una red
-		return configLoaderUtils.getStringList(config.getProperty("netBlacklist"));
+	public List<SubnetUtils> getNetworkBlacklist() {
+		return configLoaderUtils.getNetList(config.getProperty("netBlacklist"));
 	}
 	
 	/**

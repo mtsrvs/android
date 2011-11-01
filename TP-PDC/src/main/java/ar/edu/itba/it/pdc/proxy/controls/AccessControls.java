@@ -31,8 +31,8 @@ public class AccessControls {
 	public void network(InetAddress iaddr) throws AccessControlException {
 		String addr = iaddr.getHostAddress();
 		
-		for(String net: this.configLoader.getNetworkBlacklist())
-			if (new SubnetUtils(net).getInfo().isInRange(addr))
+		for(SubnetUtils net: this.configLoader.getNetworkBlacklist())
+			if (net.getInfo().isInRange(addr))
 				throw new AccessControlException("Network blacklisted!");
 	}
 	
