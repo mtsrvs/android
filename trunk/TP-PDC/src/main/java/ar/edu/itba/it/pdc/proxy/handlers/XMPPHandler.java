@@ -33,17 +33,22 @@ public abstract class XMPPHandler implements TCPHandler {
 		this.read += r;
 		
 		if(r < 0) {
-			closePair(key, endPointKey);
+			closePair(key, endPointKey, "The client closed the connection");
 			return;
 		}
 
 		try {
-			processor.read(buf,r,getName());
+			if(processor.read(buf,r) == r) {
+				buf.clear();
+			}else{
+				buf.compact();
+			}
 		}catch(Exception e) {
-			closePair(key, endPointKey);
+			closePair(key, endPointKey, "Invalid protocol");
 			return;
 		}
 		
+		//Se avisa al otro processor que debe reiniciar
 		if(processor.hasResetMessage()) {
 			getProcessor(key, Opt.WRITE).markToReset();
 		}
@@ -54,8 +59,8 @@ public abstract class XMPPHandler implements TCPHandler {
 		
 	}
 	
-	private void closePair(SelectionKey k, SelectionKey ke) {
-		Isecu.log.info("Connection close. (Sent Bytes: " + this.read + " Received Bytes: " + this.write + ")");
+	private void closePair(SelectionKey k, SelectionKey ke, String reason) {
+		Isecu.log.info("Connection close[" + reason + "]. (Sent Bytes: " + this.read + " Received Bytes: " + this.write + ")");
 		SocketChannel sc = (SocketChannel) k.channel();
 		try {
 			sc.close();
@@ -75,21 +80,18 @@ public abstract class XMPPHandler implements TCPHandler {
 		
 		XMPPMessageProcessor processor = getProcessor(key, Opt.WRITE);
 		
-		buf = processor.write(getWriteBuffer(key), getName());
+		buf = processor.write(getWriteBuffer(key));
 		this.setWriteBuffer(key, buf);
-		this.write += sc.write(buf);
-
-		
-		if(processor.needToWrite() || buf.hasRemaining()) {
-			if(buf.hasRemaining()) {
-				buf.compact();
-			}else{
+		if(buf != null) {
+			this.write += sc.write(buf);
+			if(!buf.hasRemaining()) {
 				this.setWriteBuffer(key, null);
 			}
-		}else{
-			buf.clear();
+		}
+		if(!processor.needToWrite()) {
 			key.interestOps(SelectionKey.OP_READ);
 		}
+
 	}
 
 	protected abstract XMPPMessageProcessor getProcessor(SelectionKey key, Opt opt);

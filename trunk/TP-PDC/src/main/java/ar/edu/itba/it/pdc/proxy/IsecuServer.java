@@ -102,6 +102,7 @@ public class IsecuServer {
 		try {
 			protocolUtils.getHandler(key).write(key);
 		} catch (Exception e) {
+			e.printStackTrace();
 			Isecu.log.error("Write handler error");
 		}
 	}
