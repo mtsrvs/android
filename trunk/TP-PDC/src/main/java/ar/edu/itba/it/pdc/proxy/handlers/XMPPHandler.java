@@ -7,7 +7,7 @@ import java.nio.channels.SocketChannel;
 
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
-import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
 
 public abstract class XMPPHandler implements TCPHandler {
 

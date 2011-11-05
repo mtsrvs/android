@@ -16,7 +16,7 @@ import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
-import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
 
 /**
  * Manejador de los eventos del socket a cliente.

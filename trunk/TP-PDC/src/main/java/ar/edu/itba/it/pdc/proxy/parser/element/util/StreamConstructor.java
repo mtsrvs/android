@@ -1,4 +1,4 @@
-package ar.edu.itba.it.pdc.proxy.parser.element;
+package ar.edu.itba.it.pdc.proxy.parser.element.util;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,6 +6,14 @@ import java.util.Map;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.filters.L33tFilter;
+import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
+import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
+import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
+import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
+import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.StartDocumentElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 import com.fasterxml.aalto.AsyncXMLStreamReader;
@@ -119,7 +127,7 @@ public class StreamConstructor {
 	 */
 	public XMPPElement handleEndElement(AsyncXMLStreamReader r) {
 		SimpleElement ret = this.currentElement;
-		this.currentElement = this.currentElement.getParent();
+		this.currentElement = this.currentElement != null ? this.currentElement.getParent() : null;
 		if(this.currentElement == null) {
 			return ret;
 		} else {
