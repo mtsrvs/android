@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
+import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
@@ -27,14 +28,16 @@ public class ClientHandler extends XMPPHandler {
 	private ConnectionMap connectionMap;
 	private ReaderFactory readerFactory;
 	private FilterControls filterControls;
+	private AccessControls accessControls;
 	private XMPPProcessorMap xmppProcessorMap;
 	
 	@Autowired
-	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls, XMPPProcessorMap xmppProcessorMap) {
+	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls, AccessControls accessControls, XMPPProcessorMap xmppProcessorMap) {
 		this.configLoader = configLoader;
 		this.connectionMap = connectionMap;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
+		this.accessControls = accessControls;
 		this.xmppProcessorMap = xmppProcessorMap;
 	}
 
@@ -48,7 +51,7 @@ public class ClientHandler extends XMPPHandler {
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.xmppProcessorMap);
+		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.accessControls, this.xmppProcessorMap);
 		sc.register(key.selector(), SelectionKey.OP_READ, attach);
 		ss.register(key.selector(), SelectionKey.OP_READ, attach);
 	}

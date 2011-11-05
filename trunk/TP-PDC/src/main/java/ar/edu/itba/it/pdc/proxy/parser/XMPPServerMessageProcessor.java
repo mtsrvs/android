@@ -1,6 +1,8 @@
 package ar.edu.itba.it.pdc.proxy.parser;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.AccessControlException;
+import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
@@ -16,8 +18,8 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	public XMPPServerMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
-			XMPPProcessorMap xmppProcessorMap) {
-		super(configLoader, readerFactory, filterControls, xmppProcessorMap);
+			AccessControls accessControls, XMPPProcessorMap xmppProcessorMap) {
+		super(configLoader, readerFactory, filterControls, accessControls, xmppProcessorMap);
 	}
 
 	@Override
@@ -34,24 +36,33 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			StartElement s = e.getStartElement();
 			String typeValue = s.getAttributes().get("type");
 			XMPPClientMessageProcessor cmp = xmppProcessorMap.getXMPPClientProcessor(this);
-			if (typeValue != null && e.getBody().isEmpty()
-					&& typeValue.equalsIgnoreCase("result")
-					&& cmp.getNonSASLFlag()){
-				handleNonSASLSession(e);
-				cmp.setNonSASLFlag(false);
-			} else {
-				handleSASLSession(e);
+			
+			try {
+				if (typeValue != null && e.getBody().isEmpty()
+						&& typeValue.equalsIgnoreCase("result")
+						&& cmp.getNonSASLFlag()){
+					handleNonSASLSession(e);
+					cmp.setNonSASLFlag(false);
+				} else {
+					handleSASLSession(e);
+				}
+			} catch(AccessControlException acx){
+				acx.printStackTrace();
 			}
 		}
 	}
 	
-	private void handleNonSASLSession(SimpleElement e){
+	private void handleNonSASLSession(SimpleElement e) throws AccessControlException {
 		XMPPClientMessageProcessor cmp = this.xmppProcessorMap.getXMPPClientProcessor(this);
-		this.jid = new JID(cmp.getUsername(), cmp.getServer(), cmp.getResource());
-		cmp.jid = this.jid;
+		JID j = new JID(cmp.getUsername(), cmp.getServer(), cmp.getResource());
+		
+		accessControl(j);
+		
+		this.jid = j;
+		cmp.jid = j;
 	}
 	
-	private void handleSASLSession(SimpleElement e){
+	private void handleSASLSession(SimpleElement e) throws AccessControlException {
 		for (XMPPElement elem1 : e.getBody())
 			if (elem1.isSimpleElement()){
 				SimpleElement e1 = ((SimpleElement) elem1);
@@ -63,9 +74,12 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 								for (XMPPElement elem3 : e2.getBody())
 									if (elem3.isRawData()){
 										RawData rd = (RawData) elem3;
-										System.out.println("HOLAAAAAAAA");
-										this.jid = new JID(rd.getData());System.out.println(jid);
-										this.xmppProcessorMap.getXMPPClientProcessor(this).jid = this.jid;
+										JID j = new JID(rd.getData());
+										
+										accessControl(j);
+										
+										this.jid = j;
+										this.xmppProcessorMap.getXMPPClientProcessor(this).jid = j;
 									}
 						}
 			}
