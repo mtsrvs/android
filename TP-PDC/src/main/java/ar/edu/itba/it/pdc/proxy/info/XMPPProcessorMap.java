@@ -2,8 +2,8 @@ package ar.edu.itba.it.pdc.proxy.info;
 
 import org.springframework.stereotype.Component;
 
-import ar.edu.itba.it.pdc.proxy.parser.XMPPClientMessageProcessor;
-import ar.edu.itba.it.pdc.proxy.parser.XMPPServerMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPClientMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPServerMessageProcessor;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

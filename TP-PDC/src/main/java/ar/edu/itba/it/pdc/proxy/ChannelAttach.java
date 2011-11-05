@@ -7,9 +7,9 @@ import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
-import ar.edu.itba.it.pdc.proxy.parser.XMPPClientMessageProcessor;
-import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
-import ar.edu.itba.it.pdc.proxy.parser.XMPPServerMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPClientMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPServerMessageProcessor;
 
 /**
  * Información que se attachea al socketChannel

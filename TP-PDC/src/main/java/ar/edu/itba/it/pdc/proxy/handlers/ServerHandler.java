@@ -7,7 +7,7 @@ import java.nio.channels.SelectionKey;
 
 import org.springframework.stereotype.Component;
 
-import ar.edu.itba.it.pdc.proxy.parser.XMPPMessageProcessor;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
 
 @Component
 public class ServerHandler extends XMPPHandler {
