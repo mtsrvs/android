@@ -30,8 +30,8 @@ public class ChannelAttach {
 		this.readClientBuf = ByteBuffer.allocate(bufferSize);
 		this.readServerBuf = ByteBuffer.allocate(bufferSize);
 		
-		this.clientProcessor = new XMPPClientMessageProcessor(configLoader, readerFactory, filterControls, accessControls, xmppProcessorMap);
-		this.serverProcessor = new XMPPServerMessageProcessor(configLoader, readerFactory, filterControls, accessControls, xmppProcessorMap);
+		this.clientProcessor = new XMPPClientMessageProcessor(configLoader, readerFactory, filterControls, xmppProcessorMap);
+		this.serverProcessor = new XMPPServerMessageProcessor(configLoader, readerFactory, filterControls, xmppProcessorMap);
 		
 		xmppProcessorMap.put(this.serverProcessor, this.clientProcessor);
 	}
