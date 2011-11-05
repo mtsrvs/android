@@ -17,6 +17,14 @@ public class StartElement extends XMPPElement {
 		this.attributes = attributes;
 	}
 
+	public String getName() {
+		if(this.prefix != null && !this.prefix.isEmpty()) {
+			return this.prefix + ":" + this.name;
+		} else {
+			return this.name;
+		}
+	}
+
 	@Override
 	protected void appendDataToWrite(StringBuilder builder) {
 		if(this.prefix != null && !this.prefix.isEmpty()) {
@@ -32,13 +40,18 @@ public class StartElement extends XMPPElement {
 		}
 		builder.append(">");
 	}
-
-	public String getName() {
-		if(this.prefix != null && !this.prefix.isEmpty()) {
-			return this.prefix + ":" + this.name;
-		}else{
-			return this.name;
-		}
+	
+	public Map<String,String> getAttributes(){
+		return this.attributes;
+	}
+	
+	public Map<String,String> getNamespaces(){
+		return this.namespaces;
+	}
+	
+	@Override
+	public boolean isStartElement(){
+		return true;
 	}
 	
 }

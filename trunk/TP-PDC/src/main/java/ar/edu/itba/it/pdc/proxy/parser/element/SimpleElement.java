@@ -38,6 +38,21 @@ public class SimpleElement extends XMPPElement {
 		return this.selement.getName();
 	}
 	
+	public StartElement getStartElement(){
+		return this.selement;
+	}
 	
+	public List<XMPPElement> getBody(){
+		return this.body;
+	}
+	
+	@Override
+	public boolean isSimpleElement(){
+		return true;
+	}
+	
+	public boolean isStanza(){
+		return false;
+	}
 
 }

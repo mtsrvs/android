@@ -20,4 +20,9 @@ public class StartDocumentElement extends XMPPElement {
 		builder.append("?>");
 	}
 	
+	@Override
+	public boolean isStartDocumentElement(){
+		return true;
+	}
+	
 }
