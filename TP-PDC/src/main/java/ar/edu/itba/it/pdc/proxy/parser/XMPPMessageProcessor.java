@@ -5,7 +5,9 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
+import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
@@ -22,6 +24,7 @@ public abstract class XMPPMessageProcessor {
 	// Parser variables
 	protected ConfigLoader configLoader;
 	private ReaderFactory readerFactory;
+	protected AccessControls accessControls;
 	protected FilterControls filterControls;
 	private AsyncXMLStreamReader asyncReader;
 	private StreamConstructor sc;
@@ -36,10 +39,12 @@ public abstract class XMPPMessageProcessor {
 	public XMPPMessageProcessor(ConfigLoader configLoader,
 								ReaderFactory readerFactory,
 								FilterControls filterControls,
+								AccessControls accessControls,
 								XMPPProcessorMap xmppProcessorMap) {
 		this.configLoader = configLoader;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
+		this.accessControls = accessControls;
 		this.asyncReader = this.readerFactory.newAsyncReader();
 		this.xmppProcessorMap = xmppProcessorMap;
 		this.sc = new StreamConstructor(this.filterControls);
@@ -219,6 +224,10 @@ public abstract class XMPPMessageProcessor {
 	
 	public boolean isServerProcessor(){
 		return false;
+	}
+	
+	protected void accessControl(JID jid) throws AccessControlException {
+		this.accessControls.range(jid);
 	}
 
 }
