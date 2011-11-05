@@ -7,7 +7,7 @@ public abstract class XMPPElement {
 
 	public static Charset charset = Charset.forName("UTF-8");
 	
-	private SimpleElement parent;
+	protected SimpleElement parent;
 	private byte[] data;
 	private int written = 0;
 	
@@ -48,4 +48,24 @@ public abstract class XMPPElement {
 	}
 	
 	protected abstract void appendDataToWrite(StringBuilder builder);
+	
+	public boolean isXMPPElement(){
+		return true;
+	}
+	
+	public boolean isSimpleElement(){
+		return false;
+	}
+	
+	public boolean isRawData(){
+		return false;
+	}
+	
+	public boolean isStartDocumentElement(){
+		return false;
+	}
+	
+	public boolean isStartElement(){
+		return false;
+	}
 }

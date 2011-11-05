@@ -4,12 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
+import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
+import ar.edu.itba.it.pdc.proxy.filters.L33tFilter;
+import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 import com.fasterxml.aalto.AsyncXMLStreamReader;
 
 public class StreamConstructor {
 
 	private SimpleElement currentElement;
+	private FilterControls filterControls;
+	
+	public StreamConstructor(FilterControls filterControls){
+		this.filterControls = filterControls;
+	}
 	
 	/**
 	 * Maneja el evento de inicio de documento.
@@ -41,16 +49,30 @@ public class StreamConstructor {
 		if(isStreamStarter(r)) {
 			return se;
 		}else{
-			this.currentElement = isStanza(r) ? new Stanza((SimpleElement)this.currentElement, se) : new SimpleElement((SimpleElement)this.currentElement, se);
+			SimpleElement e = (SimpleElement)this.currentElement;
+			if (isMessageStanza(r))
+				this.currentElement = new MessageStanza(e, se);
+			else if (isIQStanza(r))
+				this.currentElement = new IQStanza(e, se);
+			else if (isPresenceStanza(r))
+				this.currentElement = new PresenceStanza(e, se);
+			else
+				this.currentElement = new SimpleElement(e, se);
 		}
 		return null;
 		
 	}
 	
-	private boolean isStanza(AsyncXMLStreamReader r) {
-		return r.getName().getLocalPart().equalsIgnoreCase("message") ||
-		r.getName().getLocalPart().equalsIgnoreCase("iq") ||
-		r.getName().getLocalPart().equalsIgnoreCase("presence");
+	private boolean isMessageStanza(AsyncXMLStreamReader r) {
+		return r.getName().getLocalPart().equalsIgnoreCase("message");
+	}
+	
+	private boolean isIQStanza(AsyncXMLStreamReader r) {
+		return r.getName().getLocalPart().equalsIgnoreCase("iq");
+	}
+	
+	private boolean isPresenceStanza(AsyncXMLStreamReader r) {
+		return r.getName().getLocalPart().equalsIgnoreCase("presence");
 	}
 	
 	private boolean isStreamStarter(AsyncXMLStreamReader r) {
@@ -100,19 +122,29 @@ public class StreamConstructor {
 		this.currentElement = this.currentElement.getParent();
 		if(this.currentElement == null) {
 			return ret;
-		}else{
+		} else {
 			this.currentElement.appendBody(ret);
 			return null;
 		}
 	}
 	
-	public XMPPElement handleCharacters(AsyncXMLStreamReader r) {
+	/**
+	 * Maneja el evento de caracteres.
+	 * @param r
+	 * @return
+	 */
+	public XMPPElement handleCharacters(JID jid, AsyncXMLStreamReader r, boolean isClientProcessor) {
 		String text = r.getText();
 		if(text != null && !text.isEmpty()) {
 			if(this.currentElement == null) {
-				return new RawData(this.currentElement, r.getText());
-			}else{
-				this.currentElement.appendBody(new RawData(this.currentElement, r.getText()));
+				return new RawData(this.currentElement, text);
+			} else {
+				if (isClientProcessor
+						&& this.currentElement.getName().equalsIgnoreCase("body")
+						&& this.filterControls.l33t(jid))
+					text = L33tFilter.transform(text);
+				
+				this.currentElement.appendBody(new RawData(this.currentElement, text));
 				return null;
 			}
 		}

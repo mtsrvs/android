@@ -9,6 +9,7 @@ import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StreamConstructor;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
@@ -23,31 +24,25 @@ public abstract class XMPPMessageProcessor {
 	private ReaderFactory readerFactory;
 	protected FilterControls filterControls;
 	private AsyncXMLStreamReader asyncReader;
-	private StreamConstructor sc = new StreamConstructor();
+	private StreamConstructor sc;
 	private Queue<XMPPElement> buffer = new LinkedList<XMPPElement>();
 
 	protected XMPPProcessorMap xmppProcessorMap;
 
-	protected JID jid;
-
-	protected boolean digestMD5Flag = false;
-	protected boolean nonSASLFlag = false;
+	protected JID jid = null;
 
 	private boolean reset = false;
 
-	protected static enum TagType {
-		MESSAGE, BODY, IQ, SUCCESS, QUERY, JID, AUTH, USERNAME, RESOURCE, STREAM, OTHER;
-	}
-
 	public XMPPMessageProcessor(ConfigLoader configLoader,
-			ReaderFactory readerFactory, FilterControls filterControls,
-			XMPPProcessorMap xmppProcessorMap) {
+								ReaderFactory readerFactory,
+								FilterControls filterControls,
+								XMPPProcessorMap xmppProcessorMap) {
 		this.configLoader = configLoader;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
 		this.asyncReader = this.readerFactory.newAsyncReader();
-		this.jid = null;
 		this.xmppProcessorMap = xmppProcessorMap;
+		this.sc = new StreamConstructor(this.filterControls);
 	}
 
 	
@@ -83,6 +78,7 @@ public abstract class XMPPMessageProcessor {
 		tryToReset();
 		if (byteBuffer == null && this.needToWrite()) {
 			XMPPElement ew = buffer.poll();
+			System.out.println("A punto de escribir: " + jid);
 			ew.setToWrite();
 			tryToReset();
 			return ew.getByteBuffer();
@@ -121,6 +117,7 @@ public abstract class XMPPMessageProcessor {
 				case AsyncXMLStreamReader.START_ELEMENT:
 					if ((aux = sc.handleStartElement(asyncReader)) != null) {
 						buffer.add(aux);
+						processXMPPElement((StartElement) aux);
 					}
 					break;
 				case AsyncXMLStreamReader.END_ELEMENT:
@@ -130,7 +127,8 @@ public abstract class XMPPMessageProcessor {
 					}
 					break;
 				case AsyncXMLStreamReader.CHARACTERS:
-					if ((aux = sc.handleCharacters(asyncReader)) != null) {
+					//TODO es un asco lo que recibe handleCharacters
+					if ((aux = sc.handleCharacters(jid, asyncReader, this.isClientProcessor())) != null) {
 						buffer.add(aux);
 					}
 					break;
@@ -158,7 +156,7 @@ public abstract class XMPPMessageProcessor {
 	 */
 	private void reset() {
 		this.reset = false;
-		this.asyncReader = readerFactory.newAsyncReader();
+		this.asyncReader = this.readerFactory.newAsyncReader();
 		this.sc.reset();
 	}
 
@@ -211,5 +209,16 @@ public abstract class XMPPMessageProcessor {
 	 * @param e
 	 */
 	protected abstract void processXMPPElement(SimpleElement e);
+	
+	protected abstract void processXMPPElement(StartElement e);
+
+	
+	public boolean isClientProcessor(){
+		return false;
+	}
+	
+	public boolean isServerProcessor(){
+		return false;
+	}
 
 }

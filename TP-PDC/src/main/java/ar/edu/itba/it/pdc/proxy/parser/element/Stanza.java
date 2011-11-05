@@ -1,17 +1,29 @@
 package ar.edu.itba.it.pdc.proxy.parser.element;
 
 
-public class Stanza extends SimpleElement {
-
-	protected static enum StanzaType {
-		MESSAGE, IQ, PRESENCE
-	}
-	
-	protected StanzaType stanzaType;
+public abstract class Stanza extends SimpleElement {
 	
 	public Stanza(SimpleElement parent, StartElement selement) {
 		super(parent, selement);
-		this.stanzaType = StanzaType.valueOf(this.selement.getName().toUpperCase());
 	}
+	
+	@Override
+	public boolean isStanza(){
+		return true;
+	}
+	
+	public boolean isMessageStanza(){
+		return false;
+	}
+	
+	public boolean isIQStanza(){
+		return false;
+	}
+	
+	public boolean isPresenceStanza(){
+		return false;
+	}
+	
+	
 	
 }
