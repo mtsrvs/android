@@ -40,7 +40,6 @@ public class ElemUtils {
 	 * @return
 	 */
 	public static boolean isElement(SimpleElement se, String name) {
-		System.out.println("Original: " + se.getLocalName() + " Pedido: " + name);
 		return se.getLocalName().equalsIgnoreCase(name);
 	}
 

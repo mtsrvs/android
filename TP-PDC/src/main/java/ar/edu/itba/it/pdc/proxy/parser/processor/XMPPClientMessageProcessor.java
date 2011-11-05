@@ -59,9 +59,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	public void handleIqStanza(IQStanza iqStanza) {
-		
 		handleIqQuery(iqStanza.getFirstChild("query"));
-
 	}
 
 	private void handleIqQuery(SimpleElement query) {
