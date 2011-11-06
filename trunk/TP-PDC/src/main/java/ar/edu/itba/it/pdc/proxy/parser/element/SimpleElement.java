@@ -139,5 +139,15 @@ public class SimpleElement extends XMPPElement {
 	public String getAttribute(String name) {
 		return this.getAttributes().get(name);
 	}
+
+	@Override
+	public boolean needSend() {
+		for(XMPPElement e : this.body) {
+			if(!e.needSend()) {
+				return false;
+			}
+		}
+		return super.needSend();
+	}
 	
 }
