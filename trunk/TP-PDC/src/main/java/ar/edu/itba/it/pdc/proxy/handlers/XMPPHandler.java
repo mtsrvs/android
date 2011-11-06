@@ -53,6 +53,10 @@ public abstract class XMPPHandler implements TCPHandler {
 			getProcessor(key, Opt.WRITE).markToReset();
 		}
 		
+		if(getProcessor(key, Opt.WRITE).needToWrite()) {
+			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+		}
+		
 		if(processor.needToWrite()) {
 			endPointKey.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
