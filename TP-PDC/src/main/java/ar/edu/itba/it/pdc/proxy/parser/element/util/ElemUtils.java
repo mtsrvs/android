@@ -51,4 +51,18 @@ public class ElemUtils {
 	public static boolean hasTextEquals(String text1, String text2) {
 		return text1 != null && text1.equalsIgnoreCase(text2);
 	}
+	
+	/**
+	 * Indica si hay algún objeto null
+	 * @param objects
+	 * @return
+	 */
+	public static boolean hasNullValues(Object ...objects) {
+		for(Object o : objects) {
+			if(o == null) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

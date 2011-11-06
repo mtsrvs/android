@@ -11,6 +11,8 @@ public abstract class XMPPElement {
 	private byte[] data;
 	private int written = 0;
 	
+	private boolean send = true;
+	
 	public XMPPElement(SimpleElement parent) {
 		super();
 		this.parent = parent;
@@ -80,4 +82,13 @@ public abstract class XMPPElement {
 	public boolean isStartElement(){
 		return false;
 	}
+
+	public void notSend() {
+		this.send = false;
+	}
+	
+	public boolean needSend() {
+		return this.send;
+	}
+	
 }
