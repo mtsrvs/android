@@ -7,6 +7,7 @@ public class JID {
 		private String resource;
 		
 		public JID(String jid){
+			//TODO no todas las partes son obligatorias... tira exception cuando no tiene @ o /
 			String[] parts = jid.split("[@/]");
 			this.username = parts[0];
 			this.server = parts[1];
