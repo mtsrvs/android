@@ -24,6 +24,8 @@ public abstract class Stanza extends SimpleElement {
 		return false;
 	}
 	
-	
+	public String getType() {
+		return this.getAttributes().get("type");
+	}
 	
 }
