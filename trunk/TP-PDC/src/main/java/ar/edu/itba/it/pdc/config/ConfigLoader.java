@@ -1,6 +1,5 @@
 package ar.edu.itba.it.pdc.config;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -22,10 +21,10 @@ import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 @Component
 public class ConfigLoader {
 
-	private String initConfigPath = "resources/init.properties";
+	private String initConfigPath = "init.properties";
 	private Properties initConfig = new Properties();
 
-	private String fullConfigPath = "resources/configuration.properties";
+	private String fullConfigPath = "configuration.properties";
 	private Properties config = new Properties();
 	
 	private ConfigLoaderUtils configLoaderUtils;
@@ -43,8 +42,7 @@ public class ConfigLoader {
 	 */
 	public void updateInitConfig() throws ConfigurationFileException {
 		try {
-			FileInputStream fis = new FileInputStream(initConfigPath);
-			this.initConfig.load(fis);
+			this.initConfig.load(ClassLoader.getSystemResourceAsStream(this.initConfigPath));
 		} catch (Exception e) {
 			
 			throw new ConfigurationFileException("Init configuration file");
@@ -71,7 +69,7 @@ public class ConfigLoader {
 	
 	public void commit() {
 		try {
-			FileOutputStream fos = new FileOutputStream(fullConfigPath);
+			FileOutputStream fos = new FileOutputStream(ClassLoader.getSystemResource(fullConfigPath).getPath());
 			config.store(fos, null);
 			fos.close();
 		} catch (Exception e) {
@@ -128,8 +126,7 @@ public class ConfigLoader {
 	 */
 	public void updateConfig() throws ConfigurationFileException {
 		try{
-			FileInputStream fis = new FileInputStream(fullConfigPath);
-			this.config.load(fis);
+			this.config.load(ClassLoader.getSystemResourceAsStream(this.fullConfigPath));
 		} catch (Exception e) {
 			throw new ConfigurationFileException("Configuration file");
 		}
@@ -247,5 +244,5 @@ public class ConfigLoader {
 	private int getIntegerProperty(String name, Properties prop) {
 		return Integer.valueOf(prop.getProperty(name));
 	}
-	
+
 }
