@@ -71,27 +71,24 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	public void handleIqStanza(IQStanza iqStanza) throws AccessControlException {
-		SimpleElement e = iqStanza.getFirstChild("query");
-		if (e != null)
-			handleIqQuery(e);
-		else {
-			e = iqStanza.getFirstChild("bind");
-			if (e != null)
-				handleIqBind(e);
-		}
-			
+		handleIqQuery(iqStanza.getFirstChild("query"));
+		handleIqBind(iqStanza.getFirstChild("bind"));
 	}
 
 	private void handleIqQuery(SimpleElement query) throws AccessControlException {
-		if(ElemUtils.hasTextEquals(query.getStartElement().getNamespaces().get("xmlns"), "jabber:iq:auth")) {
-			handleNonSASLSession(query);
+		if(query != null) {
+			if(ElemUtils.hasTextEquals(query.getStartElement().getNamespaces().get("xmlns"), "jabber:iq:auth")) {
+				handleNonSASLSession(query);
+			}
 		}
 	}
 
 	private void handleIqBind(SimpleElement bind) {
-		if(ElemUtils.hasTextEquals(bind.getStartElement().getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-bind")) {
-			SimpleElement resource = bind.getFirstChild("resource");
-			this.jid.setResource(resource.getFirstTextData());
+		if(bind != null) {
+			if(ElemUtils.hasTextEquals(bind.getStartElement().getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-bind")) {
+				SimpleElement resource = bind.getFirstChild("resource");
+				this.jid.setResource(resource.getFirstTextData());
+			}
 		}
 	}
 	
