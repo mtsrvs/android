@@ -10,5 +10,5 @@ public class IQStanza extends Stanza {
 	public boolean isIQStanza(){
 		return true;
 	}
-
+	
 }

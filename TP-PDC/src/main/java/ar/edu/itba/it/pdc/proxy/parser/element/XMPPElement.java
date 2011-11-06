@@ -57,6 +57,14 @@ public abstract class XMPPElement {
 		return false;
 	}
 	
+	public SimpleElement asSimpleElement() {
+		return (SimpleElement) this;
+	}
+	
+	public RawData asRawData() {
+		return (RawData) this;
+	}
+	
 	public boolean isRawData(){
 		return false;
 	}
