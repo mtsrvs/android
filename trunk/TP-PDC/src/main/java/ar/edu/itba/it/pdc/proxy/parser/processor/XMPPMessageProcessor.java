@@ -6,9 +6,12 @@ import java.util.Queue;
 
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
+import ar.edu.itba.it.pdc.exception.InvalidRangeException;
+import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
+import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
-import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
@@ -17,8 +20,8 @@ import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
-import ar.edu.itba.it.pdc.proxy.parser.element.util.StreamConstructor;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils.StanzaType;
+import ar.edu.itba.it.pdc.proxy.parser.element.util.StreamConstructor;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 import com.fasterxml.aalto.AsyncInputFeeder;
@@ -30,12 +33,12 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	protected ConfigLoader configLoader;
 	private ReaderFactory readerFactory;
 	protected FilterControls filterControls;
+	protected AccessControls accessControls;
 	private AsyncXMLStreamReader asyncReader;
 	private StreamConstructor sc;
 	private Queue<XMPPElement> buffer = new LinkedList<XMPPElement>();
 
-	protected XMPPProcessorMap xmppProcessorMap;
-
+	protected XMPPMessageProcessor endpoint;
 	protected JID jid = null;
 
 	private boolean reset = false;
@@ -43,15 +46,26 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	public XMPPMessageProcessor(ConfigLoader configLoader,
 								ReaderFactory readerFactory,
 								FilterControls filterControls,
-								XMPPProcessorMap xmppProcessorMap) {
+								AccessControls accessControls) {
 		this.configLoader = configLoader;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
+		this.accessControls = accessControls;
 		this.asyncReader = this.readerFactory.newAsyncReader();
-		this.xmppProcessorMap = xmppProcessorMap;
 		this.sc = new StreamConstructor(this.filterControls);
 	}
-
+	
+	public void setEndpoint(XMPPServerMessageProcessor endpoint){
+		this.endpoint = endpoint;
+	}
+	
+	public void setEndpoint(XMPPClientMessageProcessor endpoint){
+		this.endpoint = endpoint;
+	}
+	
+	private void appendOnEndpointBuffer(XMPPElement e){
+		this.endpoint.buffer.add(e);
+	}
 	
 	/**
 	 * Lee el ByteBuffer y manda a procesar su contenido
@@ -133,7 +147,6 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 					}
 					break;
 				case AsyncXMLStreamReader.CHARACTERS:
-					//TODO es un asco lo que recibe handleCharacters
 					if ((aux = sc.handleCharacters(jid, asyncReader, this.isClientProcessor())) != null) {
 						buffer.add(aux);
 					}
@@ -142,6 +155,11 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 					sc.handleOtherEvent(asyncReader);
 				}
 			}
+		} catch (InvalidRangeException e) {
+			appendOnEndpointBuffer(sc.handleAccessControlException(e));
+		} catch (MaxLoginsAllowedException e){
+			buffer.clear();
+			buffer.add(sc.handleAccessControlException(e));
 		} catch (Exception e) {
 			Isecu.log.debug("Invalid Protocol", e);
 			throw new InvalidProtocolException("Invalid protocol");
@@ -214,15 +232,18 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	 * Procesa el elemento XMPP que se agrega al buffer
 	 * 
 	 * @param e
+	 * @throws AccessControlException 
 	 */
-	private void processXMPPElement(SimpleElement e) {
-		if(ElemUtils.isStanzaType(e, StanzaType.IQ)) {
+	private void processXMPPElement(SimpleElement e) throws AccessControlException {
+		if(ElemUtils.isStanzaType(e, StanzaType.IQ)){
 			handleIqStanza((IQStanza) e);
-		}else if(ElemUtils.isStanzaType(e, StanzaType.MESSAGE)) {
+		} else if(ElemUtils.isStanzaType(e, StanzaType.MESSAGE)){
 			handleMessageStanza((MessageStanza) e);
-		}else if(ElemUtils.isStanzaType(e, StanzaType.PRESENCE)) {
+		} else if(ElemUtils.isStanzaType(e, StanzaType.PRESENCE)){
 			handlePresenceStanza((PresenceStanza) e);
-		}else{
+		} else if (ElemUtils.isElement(e, "response")){
+			handleResponseElement(e);
+		} else {
 			handleOtherElement(e);
 		}
 	}
@@ -238,4 +259,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		return false;
 	}
 	
+	protected void handleResponseElement(SimpleElement e) throws AccessControlException {
+		
+	}
 }

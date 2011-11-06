@@ -18,6 +18,10 @@ public class JID {
 			this.server = server;
 			this.resource = resource;
 		}
+		
+		public JID(String username, String server){
+			this(username, server, null);
+		}
 
 		public String getUsername() {
 			return username;
@@ -29,6 +33,10 @@ public class JID {
 
 		public String getResource() {
 			return resource;
+		}
+		
+		public void setResource(String resource){
+			this.resource = resource;
 		}
 		
 		public String toString(){

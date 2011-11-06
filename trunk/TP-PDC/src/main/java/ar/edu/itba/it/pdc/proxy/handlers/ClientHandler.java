@@ -1,6 +1,7 @@
 package ar.edu.itba.it.pdc.proxy.handlers;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
@@ -10,11 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
-import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
 
@@ -29,29 +30,31 @@ public class ClientHandler extends XMPPHandler {
 	private ReaderFactory readerFactory;
 	private FilterControls filterControls;
 	private AccessControls accessControls;
-	private XMPPProcessorMap xmppProcessorMap;
 	
 	@Autowired
-	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls, AccessControls accessControls, XMPPProcessorMap xmppProcessorMap) {
+	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls, AccessControls accessControls) {
 		this.configLoader = configLoader;
 		this.connectionMap = connectionMap;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
 		this.accessControls = accessControls;
-		this.xmppProcessorMap = xmppProcessorMap;
 	}
 
-	public void accept(SelectionKey key) throws IOException {
+	public void accept(SelectionKey key) throws IOException, AccessControlException {
 		SocketChannel ss;
 		SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
 		
 		//TODO: Acá debería hacerse la multiplexación de usuarios
 		
+		InetAddress iaddr = sc.socket().getInetAddress();
+		this.accessControls.ip(iaddr);
+		this.accessControls.network(iaddr);
+		
 		ss = SocketChannel.open(configLoader.getOriginServer());
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.accessControls, this.xmppProcessorMap);
+		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.accessControls);
 		sc.register(key.selector(), SelectionKey.OP_READ, attach);
 		ss.register(key.selector(), SelectionKey.OP_READ, attach);
 	}
