@@ -45,7 +45,6 @@ public class ConfigHandler implements TCPHandler {
 			requestContent = requestContent.substring(0, requestContent.indexOf('\n'));
 
 			commandsProcessor.process(key, buf, requestContent);
-			System.out.println("config_server_read: " + bytesRead + "b");
 		}
 	}
 
@@ -55,8 +54,6 @@ public class ConfigHandler implements TCPHandler {
 
 		buf.flip();
 		int nwrite = sc.write(buf);
-
-		System.out.println("config_client_write: " + nwrite + "b");
 
 		if (!buf.hasRemaining()) {
 			buf.clear();

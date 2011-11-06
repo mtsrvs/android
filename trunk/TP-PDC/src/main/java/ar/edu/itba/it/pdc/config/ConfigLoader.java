@@ -1,5 +1,6 @@
 package ar.edu.itba.it.pdc.config;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -21,10 +22,10 @@ import ar.edu.itba.it.pdc.exception.ConfigurationFileException;
 @Component
 public class ConfigLoader {
 
-	private String initConfigPath = "init.properties";
+	private String initConfigPath = "resources/init.properties";
 	private Properties initConfig = new Properties();
 
-	private String fullConfigPath = "configuration.properties";
+	private String fullConfigPath = "resources/configuration.properties";
 	private Properties config = new Properties();
 	
 	private ConfigLoaderUtils configLoaderUtils;
@@ -42,9 +43,10 @@ public class ConfigLoader {
 	 */
 	public void updateInitConfig() throws ConfigurationFileException {
 		try {
-			this.initConfig.load(ClassLoader.getSystemResourceAsStream(this.initConfigPath));
+			FileInputStream fis = new FileInputStream(initConfigPath);
+			this.initConfig.load(fis);
 		} catch (Exception e) {
-			e.printStackTrace();
+			
 			throw new ConfigurationFileException("Init configuration file");
 		}
 	}
@@ -69,13 +71,10 @@ public class ConfigLoader {
 	
 	public void commit() {
 		try {
-			//TODO modificar el src/main/resources/
-			//TODO porque me pone las barras en el .properties?
-			FileOutputStream fos = new FileOutputStream("src/main/resources/" + fullConfigPath);
+			FileOutputStream fos = new FileOutputStream(fullConfigPath);
 			config.store(fos, null);
 			fos.close();
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new ConfigurationFileException("Full configuration file");
 		}
 	}
@@ -129,7 +128,8 @@ public class ConfigLoader {
 	 */
 	public void updateConfig() throws ConfigurationFileException {
 		try{
-			this.config.load(ClassLoader.getSystemResourceAsStream(this.fullConfigPath));
+			FileInputStream fis = new FileInputStream(fullConfigPath);
+			this.config.load(fis);
 		} catch (Exception e) {
 			throw new ConfigurationFileException("Configuration file");
 		}

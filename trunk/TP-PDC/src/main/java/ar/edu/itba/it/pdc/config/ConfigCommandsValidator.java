@@ -208,8 +208,29 @@ public class ConfigCommandsValidator {
 	}
 	
 	private boolean jidIsWrong(String jid) {
-		//TODO validarlo
+		return validateJid(jid);
+	}
+	
+	private boolean validateJid(String jid) {
+		int domainBeggining = 0;
+		int domainEnd = jid.length();
+		
+		if(jid.contains("@")) {
+			validatePartLength(jid.substring(0, jid.indexOf("@")));
+			domainBeggining = jid.indexOf("@") + 1;
+		}
+		if(jid.contains("/")) {
+			validatePartLength(jid.substring(jid.indexOf("/") + 1, jid.length()));
+			domainEnd = jid.indexOf("/");
+		}
+		validatePartLength(jid.substring(domainBeggining, domainEnd));
 		return false;
+	}
+	
+	private void validatePartLength(String part) {
+		if(part.length() <= 0 || part.length() > 1023) {
+			throw new CommandValidationException();
+		}
 	}
 	
 }

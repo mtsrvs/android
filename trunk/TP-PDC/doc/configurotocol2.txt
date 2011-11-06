@@ -33,9 +33,11 @@ Un objeto puede ser:
                 
                        simple -->   "clave" : "valor"
 
-                                      ó
-
           compuesto --> "clave" : ["valor1", "valor2", ... , "valorn"]
+          
+O puede contener otro objeto:
+		
+        {"calve":"valor","claveObjeto":{"clave1":"valor2","clave2":"valor2"}}
 
 2.2 Comando
 
