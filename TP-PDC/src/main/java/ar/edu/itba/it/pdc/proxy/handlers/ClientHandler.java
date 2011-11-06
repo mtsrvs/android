@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
@@ -44,11 +45,16 @@ public class ClientHandler extends XMPPHandler {
 		SocketChannel ss;
 		SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
 		
-		//TODO: Acá debería hacerse la multiplexación de usuarios
-		
 		InetAddress iaddr = sc.socket().getInetAddress();
-		this.accessControls.ip(iaddr);
-		this.accessControls.network(iaddr);
+		try {
+			this.accessControls.ip(iaddr);
+			this.accessControls.network(iaddr);
+		}catch(AccessControlException e) {
+			Isecu.log.info("Access denied: " + e.getMessage());
+			sc.close();
+			key.cancel();
+			return;
+		}
 		
 		ss = SocketChannel.open(configLoader.getOriginServer());
 		ss.configureBlocking(false);

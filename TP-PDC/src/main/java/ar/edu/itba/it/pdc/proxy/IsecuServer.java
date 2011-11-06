@@ -136,7 +136,7 @@ public class IsecuServer {
 		try {
 			protocolUtils.getHandler(key).accept(key);
 		} catch (AccessControlException e){
-			//TODO
+			Isecu.log.info("Access denied: " + e.getMessage());
 		} catch (Exception e) {
 			Isecu.log.error("Accept handler error");
 		}

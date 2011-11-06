@@ -30,7 +30,7 @@ public class AccessControls {
 	
 	public void ip(InetAddress iaddr) throws AccessControlException {
 		if (this.configLoader.getIPBlacklist().contains(iaddr)){
-			throw new AccessControlException("IP blacklisted!");
+			throw new AccessControlException("IP Blocked[" + iaddr.getHostAddress() + "]");
 		}
 	}
 	
@@ -39,7 +39,7 @@ public class AccessControls {
 		
 		for(SubnetUtils net: this.configLoader.getNetworkBlacklist())
 			if (net.getInfo().isInRange(addr))
-				throw new AccessControlException("Network blacklisted!");
+				throw new AccessControlException("Network Blocked[" + net.getInfo().getAddress() + "]: " + addr);
 	}
 	
 	public void range(String username) throws InvalidRangeException {

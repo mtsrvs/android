@@ -33,7 +33,7 @@ public abstract class XMPPHandler implements TCPHandler {
 		this.read += r;
 		
 		if(r < 0) {
-			closePair(key, endPointKey, "The client closed the connection");
+			closePair(key, endPointKey, "Connection closed by client.");
 			return;
 		}
 

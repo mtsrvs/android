@@ -136,4 +136,8 @@ public class SimpleElement extends XMPPElement {
 		return "";
 	}
 
+	public String getAttribute(String name) {
+		return this.getAttributes().get(name);
+	}
+	
 }
