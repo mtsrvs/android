@@ -3,9 +3,11 @@ package ar.edu.itba.it.pdc.proxy.parser.element.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.filters.L33tFilter;
+import ar.edu.itba.it.pdc.proxy.parser.element.AccessControlFailure;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
@@ -48,7 +50,6 @@ public class StreamConstructor {
 		if(this.currentElement != null && !(this.currentElement instanceof SimpleElement)){
 			throw new InvalidProtocolException("Invalid stream");
 		}
-		
 		
 		String prefix = r.getName().getPrefix();
 		String name = r.getName().getLocalPart();
@@ -112,7 +113,7 @@ public class StreamConstructor {
 			String name;
 			if(prefix != null && !prefix.isEmpty()) {
 				name = "xmlns:" + prefix;
-			}else{
+			} else {
 				name = "xmlns";
 			}
 			ret.put(name , r.getNamespaceURI(i));
@@ -165,5 +166,9 @@ public class StreamConstructor {
 	
 	public void reset() {
 		this.currentElement = null;
+	}
+	
+	public XMPPElement handleAccessControlException(AccessControlException e){
+		return new AccessControlFailure(this.currentElement, e.getMessage());
 	}
 }

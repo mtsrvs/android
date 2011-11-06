@@ -47,6 +47,10 @@ public abstract class XMPPElement {
 		return new String(data, charset);
 	}
 	
+	public void setData(byte[] data){
+		this.data = data;
+	}
+	
 	protected abstract void appendDataToWrite(StringBuilder builder);
 	
 	public boolean isXMPPElement(){

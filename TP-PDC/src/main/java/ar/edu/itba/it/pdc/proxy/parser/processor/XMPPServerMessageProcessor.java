@@ -1,58 +1,55 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.AccessControlException;
+import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
+import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
-import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
-import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
-import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 
 public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	private boolean resetMessage = false;
-
+	
 	public XMPPServerMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
-			XMPPProcessorMap xmppProcessorMap) {
-		super(configLoader, readerFactory, filterControls, xmppProcessorMap);
+			AccessControls accessControls) {
+		super(configLoader, readerFactory, filterControls, accessControls);
 	}
-
+	
 	@Override
 	protected void processXMPPElement(StartElement e) {
 		
 	}
 
-	private void handleNonSASLSession(SimpleElement e){
-		XMPPClientMessageProcessor cmp = this.xmppProcessorMap.getXMPPClientProcessor(this);
-		this.jid = new JID(cmp.getUsername(), cmp.getServer(), cmp.getResource());
-		cmp.jid = this.jid;
+	public void handleIqStanza(IQStanza iqStanza) throws AccessControlException {
+		StartElement s = iqStanza.getStartElement();
+		String typeValue = s.getAttributes().get("type");
+		if (ElemUtils.hasTextEquals(typeValue, "result")
+				&& iqStanza.getBody().isEmpty() && getEndpoint().getNonSASLFlag()){
+			handleNonSASLSession(iqStanza);
+		}
+	}
+
+	private XMPPClientMessageProcessor getEndpoint(){
+		return (XMPPClientMessageProcessor)this.endpoint;
 	}
 	
-	private void handleSASLSession(SimpleElement e){
-		for (XMPPElement elem1 : e.getBody())
-			if (elem1.isSimpleElement()){
-				SimpleElement e1 = ((SimpleElement) elem1);
-				if (e1.getName().equalsIgnoreCase("bind"))
-					for (XMPPElement elem2 : e1.getBody())
-						if (elem2.isSimpleElement()){
-							SimpleElement e2 = (SimpleElement) elem2;
-							if (e2.getName().equalsIgnoreCase("jid"))
-								for (XMPPElement elem3 : e2.getBody())
-									if (elem3.isRawData()){
-										RawData rd = (RawData) elem3;
-										System.out.println("HOLAAAAAAAA");
-										this.jid = new JID(rd.getData());System.out.println(jid);
-										this.xmppProcessorMap.getXMPPClientProcessor(this).jid = this.jid;
-									}
-						}
-			}
+	private void handleNonSASLSession(SimpleElement e) throws MaxLoginsAllowedException {
+		this.accessControls.logins(getEndpoint().getUsername());
+		
+		JID jid = new JID(getEndpoint().getUsername(), getEndpoint().getServer(), getEndpoint().getResource());		
+		this.jid = jid;
+		getEndpoint().jid = this.jid;
+		getEndpoint().setNonSASLFlag(false);
 	}
 
 	@Override
@@ -69,20 +66,6 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 		return true;
 	}
 
-	public void handleIqStanza(IQStanza iqStanza) {
-		StartElement s = iqStanza.getStartElement();
-		String typeValue = s.getAttributes().get("type");
-		XMPPClientMessageProcessor cmp = xmppProcessorMap.getXMPPClientProcessor(this);
-		if (typeValue != null && iqStanza.getBody().isEmpty()
-				&& typeValue.equalsIgnoreCase("result")
-				&& cmp.getNonSASLFlag()){
-			handleNonSASLSession(iqStanza);
-			cmp.setNonSASLFlag(false);
-		} else {
-			handleSASLSession(iqStanza);
-		}
-	}
-
 	public void handleMessageStanza(MessageStanza messageStanza) {
 		// TODO Auto-generated method stub
 		
@@ -93,8 +76,13 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 		
 	}
 
-	public void handleOtherElement(SimpleElement simpleElement) {
+	public void handleOtherElement(SimpleElement simpleElement) throws MaxLoginsAllowedException {
 		if(simpleElement.getName().contains("success")) {
+			this.accessControls.logins(getEndpoint().getUsername());
+			
+			JID jid = new JID(getEndpoint().getUsername(), getEndpoint().getServer());
+			this.jid = jid;
+			this.endpoint.jid = jid;
 			this.markToReset();
 			this.resetMessage = true;
 		}

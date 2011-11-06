@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
-import ar.edu.itba.it.pdc.proxy.info.XMPPProcessorMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPClientMessageProcessor;
 import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
@@ -25,15 +24,16 @@ public class ChannelAttach {
 	private XMPPClientMessageProcessor clientProcessor;
 	private XMPPServerMessageProcessor serverProcessor;
 	
-	public ChannelAttach(ConfigLoader configLoader, ReaderFactory readerFactory, FilterControls filterControls, AccessControls accessControls, XMPPProcessorMap xmppProcessorMap) {
+	public ChannelAttach(ConfigLoader configLoader, ReaderFactory readerFactory, FilterControls filterControls, AccessControls accessControls) {
 		int bufferSize = configLoader.getBufferSize();
 		this.readClientBuf = ByteBuffer.allocate(bufferSize);
 		this.readServerBuf = ByteBuffer.allocate(bufferSize);
 		
-		this.clientProcessor = new XMPPClientMessageProcessor(configLoader, readerFactory, filterControls, xmppProcessorMap);
-		this.serverProcessor = new XMPPServerMessageProcessor(configLoader, readerFactory, filterControls, xmppProcessorMap);
+		this.clientProcessor = new XMPPClientMessageProcessor(configLoader, readerFactory, filterControls, accessControls);
+		this.serverProcessor = new XMPPServerMessageProcessor(configLoader, readerFactory, filterControls, accessControls);
 		
-		xmppProcessorMap.put(this.serverProcessor, this.clientProcessor);
+		this.clientProcessor.setEndpoint(this.serverProcessor);
+		this.serverProcessor.setEndpoint(this.clientProcessor);
 	}
 
 	public ByteBuffer getReadClientBuffer() {
