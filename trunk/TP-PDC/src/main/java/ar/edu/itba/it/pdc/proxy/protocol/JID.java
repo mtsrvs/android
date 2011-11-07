@@ -7,11 +7,22 @@ public class JID {
 		private String resource;
 		
 		public JID(String jid){
-			//TODO no todas las partes son obligatorias... tira exception cuando no tiene @ o /
 			String[] parts = jid.split("[@/]");
-			this.username = parts[0];
-			this.server = parts[1];
-			this.resource = parts[2];
+			if (parts.length == 1)
+				this.server = parts[0];
+			else if (parts.length == 2){
+				if (jid.indexOf("@") != -1){
+					this.username = parts[0];
+					this.server = parts[1];
+				} else {
+					this.server = parts[0];
+					this.resource = parts[1];					
+				}
+			} else if (parts.length == 3){
+				this.username = parts[0];
+				this.server = parts[1];
+				this.resource = parts[2];
+			}
 		}
 		
 		public JID(String username, String server, String resource){
@@ -41,14 +52,11 @@ public class JID {
 		}
 		
 		public String toString(){
-			StringBuilder builder = new StringBuilder();
-			if(this.username != null) {
-				builder.append(this.username + "@");
-			}
-			builder.append(this.server);
-			if(this.resource != null) {
-				builder.append("/" + this.resource);
-			}
-			return builder.toString();
+			String str = this.server;
+			if (this.username != null)
+				str = this.username + "@" + str;
+			if (this.resource != null)
+				str = str + "/" + this.resource;
+			return str;
 		}
 }

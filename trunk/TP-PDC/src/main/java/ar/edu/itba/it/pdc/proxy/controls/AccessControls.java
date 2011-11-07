@@ -14,6 +14,7 @@ import ar.edu.itba.it.pdc.config.TimeRange;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
+import ar.edu.itba.it.pdc.exception.UserSilencedException;
 
 @Component
 public class AccessControls {
@@ -59,11 +60,21 @@ public class AccessControls {
 			this.currentLogins.clear();
 		
 		int logins = this.currentLogins.get(username) == null ? 1 : this.currentLogins.get(username) + 1;
-		this.currentLogins.put(username, logins);
+		this.currentLogins.put(username, logins); 		
 		if (str != null)
 			if (Integer.valueOf(str) < logins)
 				throw new MaxLoginsAllowedException("Too many logins today for " + username + ".");
 			
 		this.lastChecked = today;		
+	}
+	
+	public void silencerTo(String username) throws UserSilencedException {
+		if (this.configLoader.getSilence().contains(username))
+			throw new UserSilencedException(username + " is silenced.");
+	}
+	
+	public void silencerFrom(String username) throws UserSilencedException {
+		if (this.configLoader.getSilence().contains(username))
+			throw new UserSilencedException("You, " + username + ", are silenced.");
 	}
 }

@@ -8,8 +8,6 @@ import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
-import ar.edu.itba.it.pdc.exception.InvalidRangeException;
-import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
@@ -29,18 +27,16 @@ import com.fasterxml.aalto.AsyncXMLStreamReader;
 
 public abstract class XMPPMessageProcessor implements XMPPFilter {
 
-	// Parser variables
+	protected StreamConstructor sc;
 	protected ConfigLoader configLoader;
 	private ReaderFactory readerFactory;
 	protected FilterControls filterControls;
 	protected AccessControls accessControls;
-	private AsyncXMLStreamReader asyncReader;
-	private StreamConstructor sc;
-	private Queue<XMPPElement> buffer = new LinkedList<XMPPElement>();
-
 	protected XMPPMessageProcessor endpoint;
-	protected JID jid = null;
+	private AsyncXMLStreamReader asyncReader;
+	protected Queue<XMPPElement> buffer = new LinkedList<XMPPElement>();
 
+	protected JID jid = null;
 	private boolean reset = false;
 
 	public XMPPMessageProcessor(ConfigLoader configLoader,
@@ -51,8 +47,8 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
 		this.accessControls = accessControls;
-		this.asyncReader = this.readerFactory.newAsyncReader();
 		this.sc = new StreamConstructor(this.filterControls);
+		this.asyncReader = this.readerFactory.newAsyncReader();
 	}
 	
 	public void setEndpoint(XMPPServerMessageProcessor endpoint){
@@ -65,6 +61,10 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	
 	protected void appendOnEndpointBuffer(XMPPElement e){
 		this.endpoint.buffer.add(e);
+	}
+	
+	public void clearEndpointBuffer(){
+		this.endpoint.buffer.clear();
 	}
 	
 	/**
@@ -160,11 +160,6 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 					sc.handleOtherEvent(asyncReader);
 				}
 			}
-		} catch (InvalidRangeException e) {
-			appendOnEndpointBuffer(sc.handleAccessControlException(e));
-		} catch (MaxLoginsAllowedException e){
-			buffer.clear();
-			buffer.add(sc.handleAccessControlException(e));
 		} catch (Exception e) {
 			Isecu.log.debug("Invalid Protocol", e);
 			throw new InvalidProtocolException("Invalid protocol");

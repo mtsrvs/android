@@ -27,4 +27,39 @@ public class PredefinedMessages {
 		return XML.toString();
 	}
 	
+	public static String createStreamError(String type, String message) {
+		StringBuilder XML = new StringBuilder();
+		XML.append("<stream:error>");
+		XML.append("<" + type + "xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\"/>");
+		XML.append("<text xml:lang=\"en\" xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\">");
+		XML.append(message);
+		XML.append("</text>");
+		XML.append("</stream:error>");
+		return XML.toString();
+	}
+	
+	public static String createMessageStanzaError(String type, String to, String message){
+		StringBuilder XML = new StringBuilder();
+		XML.append("<message to=\"" + to + "\" type=\"error\">");
+		XML.append("<body>" + message + "</body>");
+		XML.append("<error type=\"modify\">");
+		XML.append("<" + type + " xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>");
+		XML.append("<text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">");
+		XML.append(message);
+		XML.append("</text>");
+		XML.append("</error>");
+		XML.append("</message>");
+		return XML.toString();
+	}
+	
+	public static String createSASLFailure(String type, String message) {
+		StringBuilder XML = new StringBuilder();
+		XML.append("<failure xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\">");
+		XML.append("<" + type + ">");
+		XML.append(message);
+		XML.append("</" + type + ">");
+		XML.append("</failure>");
+		return XML.toString();
+	}
+	
 }

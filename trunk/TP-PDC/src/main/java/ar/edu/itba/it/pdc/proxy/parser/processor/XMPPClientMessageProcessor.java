@@ -9,7 +9,8 @@ import net.iharder.Base64;
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
-import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
+import ar.edu.itba.it.pdc.exception.InvalidRangeException;
+import ar.edu.itba.it.pdc.exception.UserSilencedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
@@ -21,14 +22,13 @@ import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.PredefinedMessages;
+import ar.edu.itba.it.pdc.proxy.protocol.JID;
 import ar.edu.itba.it.pdc.proxy.protocol.XMPPFileInfo;
 
 public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 
 	private String server = null;
 	private String username = null;
-	private String resource = null;
-	private boolean nonSASLFlag = false;
 	
 	public XMPPClientMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
@@ -61,34 +61,13 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	public String getUsername(){
 		return this.username;
 	}
-	
-	public String getResource(){
-		return this.resource;
-	}
-	
-	public boolean getNonSASLFlag(){
-		return this.nonSASLFlag;
-	}
-	
-	public void setNonSASLFlag(boolean f){
-		this.nonSASLFlag = f;
-	}
 
 	public void handleIqStanza(IQStanza iqStanza) throws AccessControlException {
 		String type = iqStanza.getAttribute("type");
 		String id = iqStanza.getAttribute("id");
 		String to = iqStanza.getAttribute("to");
-		handleIqQuery(iqStanza.getFirstChild("query"));
 		handleIqBind(iqStanza.getFirstChild("bind"));
 		handleIqSi(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), id, type, to);
-	}
-
-	private void handleIqQuery(SimpleElement query) throws AccessControlException {
-		if(query != null) {
-			if(ElemUtils.hasTextEquals(query.getStartElement().getNamespaces().get("xmlns"), "jabber:iq:auth")) {
-				handleNonSASLSession(query);
-			}
-		}
 	}
 
 	private void handleIqBind(SimpleElement bind) {
@@ -148,17 +127,6 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			handleSASLSession(e);
 	}
 	
-	private void handleNonSASLSession(SimpleElement e) throws AccessControlException {
-		SimpleElement username = e.getFirstChild("username");
-		this.username = username == null ? null : username.getFirstTextData();
-		
-		this.accessControls.range(this.username);
-		
-		SimpleElement resource = e.getFirstChild("resource");
-		this.resource = resource == null ? null : resource.getFirstTextData();
-		this.nonSASLFlag = true;
-	}
-	
 	private void handleSASLSession(SimpleElement e) throws AccessControlException {
 		String data = e.getBodyAsRawData();
 		try {
@@ -168,16 +136,32 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			matcher.find();
 			this.username = matcher.group(1);
 			
-			this.accessControls.range(this.username);
-			
-		} catch (Exception exp) {
-			Isecu.log.debug(e);
-			throw new InvalidProtocolException("SASL");
+		} catch (Exception exc) {
+			Isecu.log.debug(exc);
 		}
+			
+		try {
+			this.accessControls.range(this.username);
+		} catch (InvalidRangeException exc) {
+			Isecu.log.info("Access denied: " + exc.getMessage());
+			clearEndpointBuffer();
+			appendOnEndpointBuffer(sc.handleUserControlException("invalid-from", exc.getMessage()));
+			e.notSend();
+		} 
 	}
 	
-	public void handleMessageStanza(MessageStanza messageStanza) {
-		
+	public void handleMessageStanza(MessageStanza messageStanza) {		
+		if (this.jid != null){
+			JID to = new JID(messageStanza.getTo());
+			try {
+				this.accessControls.silencerFrom(this.jid.getUsername());
+				this.accessControls.silencerTo(to.getUsername());
+			} catch (UserSilencedException e) {
+				clearEndpointBuffer();
+				appendOnEndpointBuffer(sc.handleUserSilencedException(this.jid.toString(), e.getMessage()));
+				messageStanza.notSend();
+			}
+		}
 	}
 
 	public void handlePresenceStanza(PresenceStanza presenceStanza) {

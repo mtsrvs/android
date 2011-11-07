@@ -41,18 +41,17 @@ public class ClientHandler extends XMPPHandler {
 		this.accessControls = accessControls;
 	}
 
-	public void accept(SelectionKey key) throws IOException, AccessControlException {
+	public void accept(SelectionKey key) throws IOException {
 		SocketChannel ss;
 		SocketChannel sc = ((ServerSocketChannel) key.channel()).accept();
 		
-		InetAddress iaddr = sc.socket().getInetAddress();
 		try {
+			InetAddress iaddr = sc.socket().getInetAddress();
 			this.accessControls.ip(iaddr);
 			this.accessControls.network(iaddr);
-		}catch(AccessControlException e) {
+		} catch(AccessControlException e) {
 			Isecu.log.info("Access denied: " + e.getMessage());
 			sc.close();
-			key.cancel();
 			return;
 		}
 		
