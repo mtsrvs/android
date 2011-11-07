@@ -10,17 +10,9 @@ public class PredefinedMessages {
 	public static XMPPElement notSupportedStreamMethods(String from, String to, String id, List<String> methods) {
 		StringBuilder XML = new StringBuilder();
 		XML.append(createIqErrorHeader(id, from, to));
-		XML.append("<feature xmlns='http://jabber.org/protocol/feature-neg'>");
-		XML.append("<x xmlns='jabber:x:data' type='form'>");
-		XML.append("<field var='stream-method' type='list-single'>");
-		for(String m : methods) {
-			XML.append("<option><value>");
-			XML.append(m);
-			XML.append("</value></option>");
-		}
-		XML.append("</field>");
-		XML.append("</x>");
-		XML.append("</feature>");
+		XML.append("<error type='cancel'>");
+		XML.append("<service-unavailable xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/>");
+		XML.append("</error>");
 		XML.append("</iq>");
 		return new RawData(null, XML.toString());
 	}
