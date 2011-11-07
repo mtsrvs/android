@@ -144,6 +144,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			ByteStreamsInfo bsi = new ByteStreamsInfo(id, this.jid.toString(), to, sid, jid, host, port);
 			bsi.setMode(query.getAttribute("mode"));
 			connectToStreamHost(bsi);
+			query.notSend();
 		}
 	}
 	
