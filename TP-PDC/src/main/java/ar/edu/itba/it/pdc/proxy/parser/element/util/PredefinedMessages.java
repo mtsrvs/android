@@ -7,50 +7,58 @@ public class PredefinedMessages {
 
 	public static XMPPElement notSupportedFeature(String id, String from, String to) {
 		StringBuilder XML = new StringBuilder();
-		XML.append(createIqHeader(id, "error", from, to));
-		XML.append("<error type='cancel'>");
-		XML.append("<service-unavailable xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/>");
-		XML.append("</error>");
-		XML.append("</iq>");
+		XML.append(createIqHeader(id, "error", from, to))
+		.append("<error type='cancel'>")
+		.append("<service-unavailable xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/>")
+		.append("</error>")
+		.append("</iq>");
 		return new RawData(null, XML.toString());
 	}
 	
 	public static XMPPElement queryDiscoInfo(String id, String from, String to) {
 		StringBuilder XML = new StringBuilder();
-		XML.append(createIqHeader(id, "get", from, to));
-		XML.append("<query xmlns='http://jabber.org/protocol/disco#info'/>");
-		XML.append("</iq>");
+		XML.append(createIqHeader(id, "get", from, to))
+		.append("<query xmlns='http://jabber.org/protocol/disco#info'/>")
+		.append("</iq>");
 		return new RawData(null, XML.toString());
 	}
 	
 	public static XMPPElement siFileTransferResult(String id, String to, String from, String streamMethod) {
 		StringBuilder XML = new StringBuilder();
-		XML.append(createIqHeader(id, "result", from, to));
-		XML.append("<si xmlns='http://jabber.org/protocol/si'>");
-		XML.append("<feature xmlns='http://jabber.org/protocol/feature-neg'>");
-		XML.append("<x xmlns='jabber:x:data' type='submit'>");
-		XML.append("<field var='stream-method'>");
-		XML.append("<value>");
-		XML.append(streamMethod);
-		XML.append("</value>");
-		XML.append("</field>");
-		XML.append("</x>");
-		XML.append("</feature>");
-		XML.append("<file xmlns=\"http://jabber.org/protocol/si/profile/file-transfer\"/>");
-		XML.append("</si>");
-		XML.append("</iq>");
+		XML.append(createIqHeader(id, "result", from, to))
+		.append("<si xmlns='http://jabber.org/protocol/si'>")
+		.append("<feature xmlns='http://jabber.org/protocol/feature-neg'>")
+		.append("<x xmlns='jabber:x:data' type='submit'>")
+		.append("<field var='stream-method'>")
+		.append("<value>")
+		.append(streamMethod)
+		.append("</value>")
+		.append("</field>")
+		.append("</x>")
+		.append("</feature>")
+		.append("<file xmlns=\"http://jabber.org/protocol/si/profile/file-transfer\"/>")
+		.append("</si>")
+		.append("</iq>");
 		return new RawData(null, XML.toString());
 	}
 	
 	public static XMPPElement streamHostUsed(String id, String from, String to, String jid) {
 		StringBuilder XML = new StringBuilder();
-		XML.append(createIqHeader(id, "result", from, to));
-		XML.append("<query xmlns=\"http://jabber.org/protocol/bytestreams\">");
-		XML.append("<streamhost-used jid=\"");
-		XML.append(jid);
-		XML.append("\"/>");
-		XML.append("</query>");
-		XML.append("</iq>");
+		XML.append(createIqHeader(id, "result", from, to))
+		.append("<query xmlns=\"http://jabber.org/protocol/bytestreams\">")
+		.append("<streamhost-used jid=\"")
+		.append(jid)
+		.append("\"/>")
+		.append("</query>")
+		.append("</iq>");
+		return new RawData(null, XML.toString());
+	}
+	
+	public static XMPPElement streamHostFail(String id, String from, String to) {
+		StringBuilder XML = new StringBuilder();
+		XML.append(createIqHeader(id, "error", from, to))
+		.append("<error type='cancel'><item-not-found xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/></error>")
+		.append("</iq>");
 		return new RawData(null, XML.toString());
 	}
 	

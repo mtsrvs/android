@@ -7,7 +7,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -29,10 +28,9 @@ public class FileTransferManager {
 	public FileTransferManager() {
 	}
 	
-	public Socket socks5connection(final ByteStreamsInfo bsi, int timeout) {
+	public Socket socks5connect(final ByteStreamsInfo bsi, int timeout) throws FileTransferException {
 		FutureTask<Socket> futureTask = new FutureTask<Socket>(new Callable<Socket>() {
 			public Socket call() throws Exception {
-				Isecu.log.debug("Comienza socket");
 				Socket socket = new Socket();
 				
 				SocketAddress socketAddress = new InetSocketAddress(bsi.getHost(), Integer.valueOf(bsi.getPort()));
@@ -47,14 +45,13 @@ public class FileTransferManager {
 			}
 		});
 
-		svc.execute(futureTask);
-		
 		try {
+			svc.execute(futureTask);
 			return futureTask.get(timeout, TimeUnit.MILLISECONDS);
-		}catch (Exception e) {
-			Isecu.log.debug("Timeout", e);
-			throw new InvalidProtocolException("Timeout SOCKS5 connection.");
+		}catch(Exception e) {
+			throw new FileTransferException(e.getMessage());
 		}
+		
 	}
 	
 	private boolean establish(Socket socket, ByteStreamsInfo bsi) throws IOException {
@@ -75,18 +72,20 @@ public class FileTransferManager {
         byte[] response = new byte[2];
         in.readFully(response);
         
-        Isecu.log.debug("Response: " + response[0] + "" + response[1]);
-        
         if (response[0] != (byte) 0x05 || response[1] != (byte) 0x00) {
+        	Isecu.log.debug("No-authentication unsopported");
             return false;
         }
 
-        byte[] connectionRequest = getSocks5ConnectCmd(bsi.getSid() + bsi.getJid() + bsi.getTo());
+        byte[] connectionRequest = getSocks5ConnectCmd(bsi);
+        out.write(connectionRequest);
+        out.flush();
+        
         byte[] connectionResponse;
         try {
 			 connectionResponse = receiveSocks5Message(in);
-		} catch (FileTransferException e) {
-			Isecu.log.debug(e);
+		} catch (Exception e) {
+			Isecu.log.debug("Read response", e);
 			return false;
 		}
 		
@@ -96,10 +95,13 @@ public class FileTransferManager {
 	
 		
 	private byte[] receiveSocks5Message(DataInputStream in) throws IOException, FileTransferException {
-        byte[] header = new byte[5];
+		Isecu.log.debug("Llega al receive");
+		byte[] header = new byte[5];
+		
         in.readFully(header, 0, 5);
 
         if (header[3] != (byte) 0x03) {
+        	Isecu.log.debug("Unsupported SOCKS5 address type");
             throw new FileTransferException("Unsupported SOCKS5 address type");
         }
 
@@ -110,39 +112,55 @@ public class FileTransferManager {
 
         in.readFully(response, header.length, addressLength + 2);
 
+        Isecu.log.debug("Sale en Socks5 response");
         return response;
     }
         
         
 	
-	private byte[] getSocks5ConnectCmd(String addr) {
-		byte[] hashAddr = hash(addr);
+	private byte[] getSocks5ConnectCmd(ByteStreamsInfo bsi) {
+		StringBuilder addr = new StringBuilder();
+		addr.append(bsi.getSid()).append(bsi.getFrom()).append(bsi.getTo());
+		byte[] hashAddr = hash(addr.toString()).getBytes();
         
-        byte[] cmd = new byte[7 + hashAddr.length + 2];
+        byte[] cmd = new byte[7 + hashAddr.length];
         cmd[0] = (byte) 0x05; //Socks version
         cmd[1] = (byte) 0x01; //Connect
         cmd[2] = (byte) 0x00; //Reserved byte
         cmd[3] = (byte) 0x03; //Address type
         cmd[4] = (byte) hashAddr.length;
         System.arraycopy(hashAddr, 0, cmd, 5, hashAddr.length);
-        cmd[hashAddr.length] = 0;		// \
-        cmd[hashAddr.length + 1] = 0;	// Port 0
+        //Port 0
+        cmd[cmd.length - 2] = 0;
+        cmd[cmd.length - 1] = 0;	
 
         return cmd;
 	}
 	
-	private byte[] hash(String target) {
-		byte[] ret;
+	private String hash(String target) {
 		try {
-			MessageDigest md = MessageDigest.getInstance("SHA1");
-			md.update(target.getBytes());
-			ret = md.digest();
-		} catch (NoSuchAlgorithmException e) {
+			MessageDigest md = MessageDigest.getInstance("SHA-1");
+			md.update(target.getBytes("UTF-8"));
+			byte[] ret = md.digest();
+			return encodeHex(ret);
+		} catch (Exception e) {
 			Isecu.log.debug(e);
-			Isecu.log.fatal("SHA1");
-			return null;
+			Isecu.log.fatal("Hash error");
+			throw new InvalidProtocolException("Hash error");
 		}
-		return ret;
 	}
+	
+	private String encodeHex(byte[] bytes) {
+        StringBuilder hex = new StringBuilder(bytes.length * 2);
+
+        for (byte aByte : bytes) {
+            if (((int) aByte & 0xff) < 0x10) {
+                hex.append("0");
+            }
+            hex.append(Integer.toString((int) aByte & 0xff, 16));
+        }
+
+        return hex.toString();
+    }
 
 }
