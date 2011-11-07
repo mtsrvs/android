@@ -53,6 +53,7 @@ public abstract class XMPPHandler implements TCPHandler {
 			getProcessor(key, Opt.WRITE).markToReset();
 		}
 		
+		//Si el proxy tiene que escribir mensajes al cliente
 		if(getProcessor(key, Opt.WRITE).needToWrite()) {
 			key.interestOps(SelectionKey.OP_READ | SelectionKey.OP_WRITE);
 		}
