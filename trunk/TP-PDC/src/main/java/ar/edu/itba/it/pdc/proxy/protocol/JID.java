@@ -41,6 +41,14 @@ public class JID {
 		}
 		
 		public String toString(){
-			return this.username + "@" + this.server + "/" + this.resource;
+			StringBuilder builder = new StringBuilder();
+			if(this.username != null) {
+				builder.append(this.username + "@");
+			}
+			builder.append(this.server);
+			if(this.resource != null) {
+				builder.append("/" + this.resource);
+			}
+			return builder.toString();
 		}
 }
