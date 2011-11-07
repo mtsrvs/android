@@ -1,12 +1,16 @@
 package ar.edu.itba.it.pdc.proxy.filetransfer;
 
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.security.MessageDigest;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -25,7 +29,12 @@ public class FileTransferManager {
 	
 	ExecutorService svc = Executors.newCachedThreadPool();
 	
+	private DecimalFormat df = new DecimalFormat();
+	
 	public FileTransferManager() {
+		df.setMinimumFractionDigits(2);
+		df.setMaximumFractionDigits(2);
+		df.setGroupingUsed(false);
 	}
 	
 	public Socket socks5connect(final ByteStreamsInfo bsi, int timeout) throws FileTransferException {
@@ -52,6 +61,30 @@ public class FileTransferManager {
 			throw new FileTransferException(e.getMessage());
 		}
 		
+	}
+	
+	public void receiveFile(final Socket socket) {
+		FutureTask<Void> futureTask = new FutureTask<Void>(new Callable<Void>() {
+
+			public Void call() throws Exception {
+				DataInputStream in = new DataInputStream(socket.getInputStream());
+				File tmpFile = File.createTempFile("si_", "isecu", new File("./tmp"));
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tmpFile));
+				int count = 0;
+					byte[] buffer = new byte[100];
+					int r;
+					while((r = in.read(buffer)) != -1) {
+						bos.write(buffer, 0, r);
+						bos.flush();
+						count += r;
+					}
+					bos.close();
+					Isecu.log.info("File Transfer: Proxy received file[" + df.format((float)count/1024) + " KB]");
+					return null;
+			}
+			
+		});
+		svc.execute(futureTask);
 	}
 	
 	private boolean establish(Socket socket, ByteStreamsInfo bsi) throws IOException {
