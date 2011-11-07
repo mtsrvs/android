@@ -49,12 +49,10 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	public void handleMessageStanza(MessageStanza messageStanza) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	public void handlePresenceStanza(PresenceStanza presenceStanza) {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -65,7 +63,6 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	public void handleOtherElement(SimpleElement simpleElement) throws MaxLoginsAllowedException {
 		if(simpleElement.getName().equalsIgnoreCase("success")) {
-			Isecu.log.debug("Se setea JID del server");
 			try {
 				this.accessControls.logins(getEndpoint().getUsername());
 			} catch (MaxLoginsAllowedException exc){
