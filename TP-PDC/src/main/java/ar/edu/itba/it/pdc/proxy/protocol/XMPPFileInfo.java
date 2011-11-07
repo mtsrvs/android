@@ -1,9 +1,11 @@
 package ar.edu.itba.it.pdc.proxy.protocol;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class XMPPFileInfo {
 
 	private String id;
-	private String sid;
 	
 	private String originHost;
 	private int originPort;
@@ -11,27 +13,21 @@ public class XMPPFileInfo {
 	
 	private int proxyPort;
 	
-	
-	private String description;
-	private int size;
 	private String name;
+	private int size;
+	
+	private String desc;
 	private String date;
 	private String hash;
 	
-	public XMPPFileInfo(String id, String sid, String desc, int size, String name, String date, String hash) {
+	private List<String> streamMethods = new LinkedList<String>();
+	
+	public XMPPFileInfo(String id, String name, int size) {
 		this.id = id;
-		this.sid = sid;
-		this.description = desc;
 		this.size = size;
 		this.name = name;
-		this.date = date;
-		this.hash = hash;
 	}
 	
-	public String getDescription() {
-		return description;
-	}
-
 	public int getSize() {
 		return size;
 	}
@@ -40,6 +36,22 @@ public class XMPPFileInfo {
 		return name;
 	}
 	
+	public void setDesc(String desc) {
+		this.desc = desc;
+	}
+	
+	public String getDesc() {
+		return desc;
+	}
+	
+	public void setDate(String date) {
+		this.date = date;
+	}
+
+	public void setHash(String hash) {
+		this.hash = hash;
+	}
+
 	public String getDate() {
 		return date;
 	}
@@ -50,10 +62,6 @@ public class XMPPFileInfo {
 
 	public String getId() {
 		return id;
-	}
-
-	public String getSid() {
-		return sid;
 	}
 
 	public String getHost() {
@@ -88,12 +96,30 @@ public class XMPPFileInfo {
 		this.proxyPort = proxyPort;
 	}
 
+	public void addStreamMethod(String method) {
+		this.streamMethods.add(method);
+	}
+	
+	public List<String> getStreamMethods() {
+		return streamMethods;
+	}
+
+	public boolean supportByteStreamsOrIBB() {
+		for(String sm : this.streamMethods) {
+			if(sm.equals("http://jabber.org/protocol/bytestreams") || sm.equals("http://jabber.org/protocol/ibb")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public String toString() {
-		return "XMPPFileInfo [id=" + id + ", sid=" + sid + ", host=" + originHost
-				+ ", port=" + originPort + ", jid=" + jid + ", description="
-				+ description + ", size=" + size + ", name=" + name + ", date="
-				+ date + ", hash=" + hash + "]";
+		return "XMPPFileInfo [id=" + id + ", originHost=" + originHost
+				+ ", originPort=" + originPort + ", jid=" + jid
+				+ ", proxyPort=" + proxyPort + ", description=" + desc
+				+ ", size=" + size + ", name=" + name + ", date=" + date
+				+ ", hash=" + hash + "]";
 	}
 	
 }
