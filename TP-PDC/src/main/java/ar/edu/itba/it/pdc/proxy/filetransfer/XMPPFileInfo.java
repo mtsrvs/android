@@ -1,4 +1,4 @@
-package ar.edu.itba.it.pdc.proxy.protocol;
+package ar.edu.itba.it.pdc.proxy.filetransfer;
 
 import java.util.LinkedList;
 import java.util.List;

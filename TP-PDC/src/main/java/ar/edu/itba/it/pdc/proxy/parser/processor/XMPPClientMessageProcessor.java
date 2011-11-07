@@ -17,6 +17,8 @@ import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.UserSilencedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
+import ar.edu.itba.it.pdc.proxy.filetransfer.ByteStreamsInfo;
+import ar.edu.itba.it.pdc.proxy.filetransfer.XMPPFileInfo;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
@@ -27,9 +29,7 @@ import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.PredefinedMessages;
-import ar.edu.itba.it.pdc.proxy.protocol.ByteStreamsInfo;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
-import ar.edu.itba.it.pdc.proxy.protocol.XMPPFileInfo;
 
 public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 
