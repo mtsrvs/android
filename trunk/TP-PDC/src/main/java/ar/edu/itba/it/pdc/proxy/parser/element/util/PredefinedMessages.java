@@ -64,10 +64,10 @@ public class PredefinedMessages {
 	
 	private static String createIqHeader(String id, String type, String from, String to) {
 		StringBuilder XML = new StringBuilder();
-		XML.append("<iq type=\"");
-		XML.append(type);
-		XML.append("\" id=\"");
-		XML.append(id);
+		XML.append("<iq type=\"")
+		.append(type)
+		.append("\" id=\"")
+		.append(id);
 		if(from != null) {
 			XML.append("\" from=\"");
 			XML.append(from);
@@ -82,36 +82,36 @@ public class PredefinedMessages {
 	
 	public static String createStreamError(String type, String message) {
 		StringBuilder XML = new StringBuilder();
-		XML.append("<stream:error>");
-		XML.append("<" + type + "xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\"/>");
-		XML.append("<text xml:lang=\"en\" xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\">");
-		XML.append(message);
-		XML.append("</text>");
-		XML.append("</stream:error>");
+		XML.append("<stream:error>")
+		.append("<" + type + "xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\"/>")
+		.append("<text xml:lang=\"en\" xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\">")
+		.append(message)
+		.append("</text>")
+		.append("</stream:error>");
 		return XML.toString();
 	}
 	
 	public static String createMessageStanzaError(String type, String to, String message){
 		StringBuilder XML = new StringBuilder();
-		XML.append("<message to=\"" + to + "\" type=\"error\">");
-		XML.append("<body>" + message + "</body>");
-		XML.append("<error type=\"modify\">");
-		XML.append("<" + type + " xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>");
-		XML.append("<text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">");
-		XML.append(message);
-		XML.append("</text>");
-		XML.append("</error>");
-		XML.append("</message>");
+		XML.append("<message to=\"" + to + "\" type=\"error\">")
+		.append("<body>" + message + "</body>")
+		.append("<error type=\"modify\">")
+		.append("<" + type + " xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>")
+		.append("<text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">")
+		.append(message)
+		.append("</text>")
+		.append("</error>")
+		.append("</message>");
 		return XML.toString();
 	}
 	
 	public static String createSASLFailure(String type, String message) {
 		StringBuilder XML = new StringBuilder();
-		XML.append("<failure xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\">");
-		XML.append("<" + type + ">");
-		XML.append(message);
-		XML.append("</" + type + ">");
-		XML.append("</failure>");
+		XML.append("<failure xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\">")
+		.append("<" + type + ">")
+		.append(message)
+		.append("</" + type + ">")
+		.append("</failure>");
 		return XML.toString();
 	}
 	
