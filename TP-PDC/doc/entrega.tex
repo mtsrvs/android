@@ -1,0 +1,412 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8x]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{verbatim}
+\usepackage{hyperref}
+
+\usepackage{anysize}
+\marginsize{1.5cm}{1.5cm}{1cm}{1cm}
+
+%\usepackage{sectsty}
+%\sectionfont{\Large}
+
+\pdfinfo{%
+  /Title    (Trabajo Práctico Especial)
+  /Author   ()
+  /Creator  ()
+  /Producer ()
+  /Subject  ()
+  /Keywords ()
+}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+ \huge \underline{\textbf{Trabajo Práctico Especial}}\\[0.05cm]
+ \normalsize \textbf{Protocolos de Comunicación}\\[0.25cm]
+ \normalsize \textbf{Revisión correspondiente a la entrega: }\\[1cm]
+
+\large
+\begin{tabular}{c @{ - } l}
+ Andrés Mata Suarez & 50143 \\
+ Jimena Pose & 49015 \\
+ Pablo Ballesty & 49359 \\
+\end{tabular}\\[19.4cm]
+ 2011 - Segundo cuatrimestre
+\end{center}
+
+\end{titlepage}
+
+\setcounter{tocdepth}{2}
+\tableofcontents
+
+
+\newpage
+
+\section{Descripción detallada del protocolo desarrollado}
+A continuación se presenta el RFC del protocolo \textit{configurotocol 1.0}, diseñado para manejar la configuración
+del servidor proxy.
+
+\verbatiminput{configurotocol2.txt}
+
+\section{Problemas encontrados durante el diseño y la implementación}
+
+\section{Limitaciones de la aplicación}
+
+\section{Posibles extensiones}
+
+\section{Conclusiones}
+
+\section{Ejemplos de testeo}
+Para la ejecución de los casos de prueba, se va a contar con los siguientes usuarios:
+\begin{itemize}
+ \item \textbf{foo} con contraseña \textbf{123123123}
+ \item \textbf{bar} con contraseña \textbf{123123123}
+ \item \textbf{baz} con contraseña \textbf{123123123}
+ \item \textbf{foobar} con contraseña \textbf{123123123}
+\end{itemize}
+
+\subsection{Testeos de requerimientos funcionales}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por rango de horarios\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{foo} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
+					dicho usuario en dicho rango horario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{foo} inicia sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por rango de horarios\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{foo} sólo pueda acceder de 6:00 a 18:00 horas. Iniciar sesión con
+					dicho usuario fuera de ese rango horario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{foo} no tiene permitido el inicio de sesión en dicho
+					rango horario. Se recibe un error acorde al protocolo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por rango de horarios\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{foo} sólo pueda acceder de 19:00 a 06:00 horas. Iniciar sesión con
+					dicho usuario dentro de ese rango horario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{foo} no tiene permitido el inicio de sesión en dicho
+					rango horario. Se recibe un error acorde al protocolo. Que el configurotocol permita este seteo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de logins exitosos por usuario y día\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{bar} no haya iniciado sesión
+					anteriormente en el día.
+					Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{bar} sólo pueda acceder al sistema un máximo de 1 (una) vez
+					por día. Iniciar sesión en el sistema como dicho usuario.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{bar} inicia sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de logins exitosos por usuario y día\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Asegurarse de que el usuario \textbf{bar} no haya iniciado sesión
+					anteriormente en el día.
+					Utilizar el protocolo \textit{configurotocol} para exigir que el usuario
+					\textbf{bar} sólo pueda acceder al sistema un máximo de 1 (una) vez
+					por día. Iniciar sesión en el sistema como dicho usuario. Cerrar sesión.
+					Iniciar sesión una vez más.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{bar} ya cumplió su cuota diaria de accesos.
+					El segundo login no es aceptado. Se devuelve mensaje de error acorde al protocolo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (dirección IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes de la dirección 192.168.1.50. Iniciar sesión como
+					\textbf{baz} desde la dirección 192.168.1.51.\\
+    \hline
+    \textbf{Resultado esperado}	&	El usuario \textbf{baz} inicia sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (dirección IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes de la dirección 192.168.1.50. Iniciar sesión como
+					\textbf{baz} desde la dirección 192.168.1.50.\\
+    \hline
+    \textbf{Resultado esperado}	&	La dirección 192.168.1.50 se encuentra en la lista negra. No se permite
+					el inicio de sesión. Se devuelve mensaje de error acorde al protocolo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (redes IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes del rango de direcciones 192.168.1.0/25. Iniciar sesión como
+					\textbf{foobar} desde la dirección 192.168.1.130. Iniciar sesión como
+					\textbf{baz} desde la dirección 192.168.1.254.\\
+    \hline
+    \textbf{Resultado esperado}	&	Ambos usuarios inician sesión sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por lista negra (redes IP)\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para impedir conexiones
+					entrantes del rango de direcciones 192.168.1.0/25. Iniciar sesión como
+					\textbf{foobar} desde la dirección 192.168.1.126. Iniciar sesión como
+					\textbf{bar} desde la dirección 192.168.1.10.\\
+    \hline
+    \textbf{Resultado esperado}	&	No se permite ninguno de los dos inicios de sesión. Se devuelven mensajes
+					acordes para cada instancia de la aplicación.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de sesiones concurrentes\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para restringir la cantidad
+					máxima de sesiones concurrentes del usuario \textbf{baz} a 3.
+					Iniciar sesión como dicho usuario desde 2 clientes distintos.\\
+    \hline
+    \textbf{Resultado esperado}	&	Se permite el inicio de sesión en cada instancia del programa.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por cantidad de sesiones concurrentes\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para restringir la cantidad
+					máxima de sesiones concurrentes del usuario \textbf{baz} a 3.
+					Iniciar sesión como dicho usuario desde 3 clientes
+					distintos. Utilizar un nuevo cliente e iniciar sesión nuevamente.\\
+    \hline
+    \textbf{Resultado esperado}	&	Se permite el inicio de sesión en el último cliente, y el primer cliente
+					que se utilizó se desconecta recibiendo un error acorde al protocolo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por silenciamiento de usuarios\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para asegurarse de que el usuario
+					\textbf{foobar} no se encuentre silenciado. Iniciar sesión como dicho
+					usuario y emitir mensajes hacia el usuario \textbf{foo} que estará conectado.
+					Luego el usuario \textbf{foo} emite mensajes hacia \textbf{foobar}.\\
+    \hline
+    \textbf{Resultado esperado}	&	Los usuarios se comunican sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Por silenciamiento de usuarios\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Utilizar el protocolo \textit{configurotocol} para silenciar al usuario
+					\textbf{foobar}. Iniciar sesión como dicho usuario y emitir mensajes hacia
+					el usuario \textbf{foo} que estará conectado.
+					Luego \textbf{foo} envía mensajes hacia \textbf{foobar} y hacia \textbf{bar}.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{foo} y \textbf{foobar} no pueden comunicarse, y \textbf{bar} recibe los mensajes de \textbf{foo}.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(L33t)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{L33t}. 
+					Emitir mensajes desde \textbf{foo} hacia \textbf{bar} que posean vocales.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe los mensajes en formato \textbf{L33t}.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(L33t)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{L33t}. 
+					Emitir mensajes desde \textbf{foo} hacia \textbf{bar} que posean vocales.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe los mensajes en formato \textbf{L33t}.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(Hash)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{Hash}. 
+					Enviar un archivo desde \textbf{foo} hacia \textbf{bar}. Asegurarse que 
+					se envía el hash correspondiente.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe el archivo sin problemas, con el hash generado.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(Hash)\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{Hash}. 
+					Enviar un archivo desde \textbf{foo} hacia \textbf{bar}. Quitar el hash del mensaje.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe el archivo sin problemas, con el hash generado.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Funcionalidad}	&	Filtros(Hash)\\
+    \hline
+    \textbf{Tipo de test}	&	Negativo\\
+    \hline
+    \textbf{Descripción}	&	Mediante \textit{configurotocol} activar el filtro de \textbf{Hash}. 
+					Enviar un archivo desde \textbf{foo} hacia \textbf{bar}. Alterar el hash.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} no recibe el archivo.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\subsection{Testeos de requerimientos no funcionales}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Requerimiento no funcional}	& Envío de archivos\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Desde el usuario \textbf{foo} enviar un archivo a \textbf{bar} de un tamaño de 30Mb.\\
+    \hline
+    \textbf{Resultado esperado}	&	\textbf{bar} recibe el archivo sin problemas.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\begin{center}
+  \begin{tabular}{|r|p{12.5cm}|}
+    \hline
+    \textbf{Requerimiento no funcional}	& Concurrencia\\
+    \hline
+    \textbf{Tipo de test}	&	Positivo\\
+    \hline
+    \textbf{Descripción}	&	Configurar JMeter para que realice \textit{n} conexiones al servidor proxy y emita mensajes.
+					Ir aumentando \textit{n}.\\
+    \hline
+    \textbf{Resultado esperado}	&	Para n aceptable (analizaremos durante el desarrollo cuanto sería un n aceptable) no se rechazan conexiones y pueden emitirse los mensajes.\\
+    \hline   
+  \end{tabular}
+\end{center}
+
+\section{Guía de instalación detallada y precisa}
+
+\section{Instrucciones para la configuración}
+
+\section{Ejemplos de configuración}
+
+\section{Documento de diseño del proyecto}
+
+\end{document}
