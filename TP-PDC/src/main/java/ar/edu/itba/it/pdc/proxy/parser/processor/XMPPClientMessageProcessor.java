@@ -1,6 +1,11 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,6 +27,7 @@ import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.PredefinedMessages;
+import ar.edu.itba.it.pdc.proxy.protocol.ByteStreamsInfo;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 import ar.edu.itba.it.pdc.proxy.protocol.XMPPFileInfo;
 
@@ -68,6 +74,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		String to = iqStanza.getAttribute("to");
 		handleIqBind(iqStanza.getFirstChild("bind"));
 		handleIqSi(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), id, type, to);
+		handleByteStreams(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/bytestreams"), id, type, to);
 	}
 
 	private void handleIqBind(SimpleElement bind) {
@@ -88,7 +95,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			String name = file.getAttribute("name");
 			int size = Integer.valueOf(file.getAttribute("size"));
 			
-			XMPPFileInfo f = new XMPPFileInfo(id, to, name, size);
+			XMPPFileInfo f = new XMPPFileInfo(id, this.jid.toString(), to, name, size);
 			
 			f.setDate(file.getAttribute("date"));
 			f.setHash(file.getAttribute("hash"));
@@ -109,8 +116,9 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	private void manageFile(XMPPFileInfo file) {
-		if(file.supportByteStreamsOrIBB()) {
-			
+		if(file.supportByteStreamsOrIBB() && validateServerStreamMethods(file)) {
+			XMPPElement siResult = PredefinedMessages.siFileTransferResult(file.getId(), file.getFrom(), file.getTo(), file.getPreferedStreamMethod());
+			this.appendOnEndpointBuffer(siResult);
 		}else{
 			cancelFileNegociation(file);
 		}
@@ -119,6 +127,55 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	private void cancelFileNegociation(XMPPFileInfo file) {
 		XMPPElement error = PredefinedMessages.notSupportedFeature(file.getId(), file.getTo(), this.jid.toString());
 		this.appendOnEndpointBuffer(error);
+	}
+	
+	private boolean validateServerStreamMethods(XMPPFileInfo file) {
+		return true;
+	}
+
+	private void handleByteStreams(SimpleElement query, String id, String type, String to) {
+		if(ElemUtils.hasNullValues(query, id, type, to)) {
+			return;
+		}
+		if(type.equalsIgnoreCase("set")) {
+			String sid = query.getAttribute("sid");
+			SimpleElement streamhost = query.getFirstChild("streamhost");
+			String port = streamhost.getAttribute("port");
+			String host = streamhost.getAttribute("host");
+			String jid = streamhost.getAttribute("jid");
+			ByteStreamsInfo bsi = new ByteStreamsInfo(id, this.jid.toString(), to, sid, jid, host, port);
+			bsi.setMode(query.getAttribute("mode"));
+			connectToStreamHost(bsi);
+		}
+	}
+	
+	private void connectToStreamHost(final ByteStreamsInfo bsi) {
+		new Thread() {
+			//TODO: Seguir acá
+			@Override
+			public void run() {
+				try {
+					Socket s = new Socket(bsi.getHost(), Integer.parseInt(bsi.getPort()));
+					PrintWriter out = new PrintWriter(s.getOutputStream());
+					BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
+					out.write("CMD = X'01'");
+					out.write("ATYP = X'03'");
+					String addr = bsi.getSid() + bsi.getJid() + bsi.getTo();
+					out.write("DST.ADDR = " + MessageDigest.getInstance("SHA").digest(addr.getBytes()));
+					out.write("DST.PORT = 0");
+					int c = 0;
+					String line;
+					while((line = in.readLine()) != null) {
+						Isecu.log.debug(line);
+					}
+					Isecu.log.debug("Se leyeron: " + c);
+				} catch (Exception e) {
+					Isecu.log.debug(e);
+				}
+			}
+
+		}.start();
+//		this.appendOnEndpointBuffer(PredefinedMessages.streamHostUsed(bsi.getId(), bsi.getTo(), bsi.getFrom(), bsi.getJid()));
 	}
 	
 	@Override

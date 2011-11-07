@@ -7,6 +7,7 @@ public class XMPPFileInfo {
 
 	private String id;
 	
+	private String from;
 	private String to;
 	
 	private String name;
@@ -18,8 +19,9 @@ public class XMPPFileInfo {
 	
 	private List<String> streamMethods = new LinkedList<String>();
 	
-	public XMPPFileInfo(String id, String to, String name, int size) {
+	public XMPPFileInfo(String id, String from, String to, String name, int size) {
 		this.id = id;
+		this.from = from;
 		this.to = to;
 		this.size = size;
 		this.name = name;
@@ -35,6 +37,10 @@ public class XMPPFileInfo {
 	
 	public String getTo() {
 		return to;
+	}
+	
+	public String getFrom() {
+		return from;
 	}
 
 	public void setDesc(String desc) {
@@ -80,6 +86,15 @@ public class XMPPFileInfo {
 			}
 		}
 		return false;
+	}
+	
+	public String getPreferedStreamMethod() {
+		if(this.streamMethods.contains("http://jabber.org/protocol/bytestreams")) {
+			return "http://jabber.org/protocol/bytestreams";
+		}else if(this.streamMethods.contains("http://jabber.org/protocol/ibb")){
+			return "http://jabber.org/protocol/ibb";
+		}
+		return "";
 	}
 
 	@Override
