@@ -15,6 +15,7 @@ import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
+import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
@@ -31,14 +32,16 @@ public class ClientHandler extends XMPPHandler {
 	private ReaderFactory readerFactory;
 	private FilterControls filterControls;
 	private AccessControls accessControls;
+	private FileTransferManager fileManager;
 	
 	@Autowired
-	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls, AccessControls accessControls) {
-		this.configLoader = configLoader;
+	public ClientHandler(ConfigLoader configLoader, ConnectionMap connectionMap, ReaderFactory readerFactory, FilterControls filterControls, AccessControls accessControls, FileTransferManager fileManager) {
 		this.connectionMap = connectionMap;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
 		this.accessControls = accessControls;
+		this.configLoader = configLoader;
+		this.fileManager = fileManager;
 	}
 
 	public void accept(SelectionKey key) throws IOException {
@@ -59,7 +62,7 @@ public class ClientHandler extends XMPPHandler {
 		ss.configureBlocking(false);
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
-		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.accessControls);
+		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.accessControls, this.fileManager);
 		sc.register(key.selector(), SelectionKey.OP_READ, attach);
 		ss.register(key.selector(), SelectionKey.OP_READ, attach);
 	}
