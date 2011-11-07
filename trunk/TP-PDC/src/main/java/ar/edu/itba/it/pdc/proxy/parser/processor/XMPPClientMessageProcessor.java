@@ -1,6 +1,5 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
-import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -148,15 +147,15 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	private void connectToStreamHost(final ByteStreamsInfo bsi) {
-		//TODO: Timeout configurable
 		try {
-			Socket s = this.fileManager.socks5connection(bsi, 10000);
+			this.fileManager.socks5connect(bsi, 10000);
 			this.appendOnEndpointBuffer(PredefinedMessages.streamHostUsed(bsi.getId(), bsi.getTo(), bsi.getFrom(), bsi.getJid()));
+			Isecu.log.info("File Transfer: Stream initiated[" + bsi.getFrom() + "]");
 		}catch (Exception e) {
-			//TODO: mensaje de error en streamhost
 			Isecu.log.debug(e);
+			this.appendOnEndpointBuffer(PredefinedMessages.streamHostFail(bsi.getId(), bsi.getTo(), bsi.getFrom()));
+			Isecu.log.info("File Transfer: Strem initiation failed[" + bsi.getFrom() + "]");
 		}
-		
 	}
 	
 	@Override
