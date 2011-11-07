@@ -18,9 +18,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.Isecu;
+import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.FileTransferException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 
@@ -30,11 +32,14 @@ public class FileTransferManager {
 	ExecutorService svc = Executors.newCachedThreadPool();
 	
 	private DecimalFormat df = new DecimalFormat();
+	private ConfigLoader configLoader;
 	
-	public FileTransferManager() {
+	@Autowired
+	public FileTransferManager(ConfigLoader configLoader) {
 		df.setMinimumFractionDigits(2);
 		df.setMaximumFractionDigits(2);
 		df.setGroupingUsed(false);
+		this.configLoader = configLoader;
 	}
 	
 	public Socket socks5connect(final ByteStreamsInfo bsi, int timeout) throws FileTransferException {
@@ -71,7 +76,7 @@ public class FileTransferManager {
 				File tmpFile = File.createTempFile("si_", "isecu", new File("./tmp"));
 				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(tmpFile));
 				int count = 0;
-					byte[] buffer = new byte[100];
+					byte[] buffer = new byte[FileTransferManager.this.configLoader.getFileTransferBufferSize()];
 					int r;
 					while((r = in.read(buffer)) != -1) {
 						bos.write(buffer, 0, r);

@@ -140,6 +140,10 @@ public class ConfigLoader {
 		return getIntegerProperty("bufferSize", this.initConfig);
 	}
 	
+	public int getFileTransferBufferSize() {
+		return getIntegerProperty("fileTrasferBufferSize", this.initConfig);
+	}
+	
 	/**
 	 * Lista de IPs en la lista negra.
 	 * @return List<String>
