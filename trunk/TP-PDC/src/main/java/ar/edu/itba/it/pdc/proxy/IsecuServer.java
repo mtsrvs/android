@@ -99,7 +99,7 @@ public class IsecuServer {
 		try {
 			protocolUtils.getHandler(key).write(key);
 		} catch (Exception e) {
-			e.printStackTrace();
+			Isecu.log.debug("Write handler error", e);
 			Isecu.log.error("Write handler error");
 		}
 	}
@@ -120,6 +120,7 @@ public class IsecuServer {
 			protocolUtils.getHandler(key).read(key,
 					HandlerUtils.getKey(endPoint, key.selector()));
 		} catch (Exception e) {
+			Isecu.log.debug("Read handler error", e);
 			Isecu.log.error("Read handler error");
 		}
 	}
@@ -133,6 +134,7 @@ public class IsecuServer {
 		try {
 			protocolUtils.getHandler(key).accept(key);
 		} catch (Exception e) {
+			Isecu.log.debug("Accept handler error", e);
 			Isecu.log.error("Accept handler error");
 		}
 	}

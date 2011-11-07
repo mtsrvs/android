@@ -1,11 +1,7 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.charset.Charset;
-import java.security.MessageDigest;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,6 +14,7 @@ import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.UserSilencedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filetransfer.ByteStreamsInfo;
+import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
 import ar.edu.itba.it.pdc.proxy.filetransfer.XMPPFileInfo;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
@@ -38,10 +35,10 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	
 	public XMPPClientMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
-			AccessControls accessControls) {
-		super(configLoader, readerFactory, filterControls, accessControls);
+			AccessControls accessControls, FileTransferManager fileManager) {
+		super(configLoader, readerFactory, filterControls, accessControls, fileManager);
 	}
-	
+
 	public XMPPServerMessageProcessor getEndpoint(){
 		return (XMPPServerMessageProcessor) this.endpoint;
 	}
@@ -130,6 +127,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	private boolean validateServerStreamMethods(XMPPFileInfo file) {
+		//TODO
 		return true;
 	}
 
@@ -150,32 +148,15 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	private void connectToStreamHost(final ByteStreamsInfo bsi) {
-		new Thread() {
-			//TODO: Seguir acá
-			@Override
-			public void run() {
-				try {
-					Socket s = new Socket(bsi.getHost(), Integer.parseInt(bsi.getPort()));
-					PrintWriter out = new PrintWriter(s.getOutputStream());
-					BufferedReader in = new BufferedReader(new InputStreamReader(s.getInputStream()));
-					out.write("CMD = X'01'");
-					out.write("ATYP = X'03'");
-					String addr = bsi.getSid() + bsi.getJid() + bsi.getTo();
-					out.write("DST.ADDR = " + MessageDigest.getInstance("SHA").digest(addr.getBytes()));
-					out.write("DST.PORT = 0");
-					int c = 0;
-					String line;
-					while((line = in.readLine()) != null) {
-						Isecu.log.debug(line);
-					}
-					Isecu.log.debug("Se leyeron: " + c);
-				} catch (Exception e) {
-					Isecu.log.debug(e);
-				}
-			}
-
-		}.start();
-//		this.appendOnEndpointBuffer(PredefinedMessages.streamHostUsed(bsi.getId(), bsi.getTo(), bsi.getFrom(), bsi.getJid()));
+		//TODO: Timeout configurable
+		try {
+			Socket s = this.fileManager.socks5connection(bsi, 10000);
+			this.appendOnEndpointBuffer(PredefinedMessages.streamHostUsed(bsi.getId(), bsi.getTo(), bsi.getFrom(), bsi.getJid()));
+		}catch (Exception e) {
+			//TODO: mensaje de error en streamhost
+			Isecu.log.debug(e);
+		}
+		
 	}
 	
 	@Override

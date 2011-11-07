@@ -5,6 +5,7 @@ import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
+import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
@@ -21,10 +22,10 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	
 	public XMPPServerMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
-			AccessControls accessControls) {
-		super(configLoader, readerFactory, filterControls, accessControls);
+			AccessControls accessControls, FileTransferManager fileManager) {
+		super(configLoader, readerFactory, filterControls, accessControls, fileManager);
 	}
-	
+
 	@Override
 	protected void processXMPPElement(StartElement e) {
 		

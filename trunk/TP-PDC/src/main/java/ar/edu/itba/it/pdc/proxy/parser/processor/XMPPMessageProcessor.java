@@ -9,6 +9,7 @@ import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
+import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
@@ -35,20 +36,20 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	protected XMPPMessageProcessor endpoint;
 	private AsyncXMLStreamReader asyncReader;
 	protected Queue<XMPPElement> buffer = new LinkedList<XMPPElement>();
-
+	protected FileTransferManager fileManager;
+	
 	protected JID jid = null;
 	private boolean reset = false;
 
-	public XMPPMessageProcessor(ConfigLoader configLoader,
-								ReaderFactory readerFactory,
-								FilterControls filterControls,
-								AccessControls accessControls) {
+	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory, 
+			FilterControls filterControls, AccessControls accessControls, FileTransferManager fileManager) {
 		this.configLoader = configLoader;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
 		this.accessControls = accessControls;
 		this.sc = new StreamConstructor(this.filterControls);
 		this.asyncReader = this.readerFactory.newAsyncReader();
+		this.fileManager = fileManager;
 	}
 	
 	public void setEndpoint(XMPPServerMessageProcessor endpoint){
