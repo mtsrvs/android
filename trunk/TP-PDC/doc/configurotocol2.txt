@@ -116,32 +116,38 @@ siguientes:
       "blacklist":["net", "10.0.0.0/24"}
 
 3.2.2.2 Acceso concurrente
+
 El objeto caccess debe ser de formato compuesto y debe respetar el siguiente 
 formato:
    "caccess":["jid", "3"]
 
 3.2.2.3 Multiplexador de cuentas
+
 El objeto multiplex debe ser de formato compuesto y debe respetar el siguiente
 formato:
    "multiplex":["jid", "10.0.0.1"]
 
 3.2.2.4 Silenciar usuarios
+
 El objeto silence debe ser de formato simple y debe respetar el siguiente forma-
 to:
    "silence":"jid"
 
 3.2.2.5 Filtros
+
 El objeto filter debe ser de formato compuesto y debe respetar el siguiente for-
 mato:
    "filter":["filtername", "jid", "state"]
 Donde filtername puede ser leet o hash y state puede ser on u off.
 
 3.2.3 Comandos de tipo "delete"
+
 Un comando que cumple con las reglas A y B, y es del tipo "delete", se 
 considera válido si posee al menos uno de los siguientes objetos, y son todos 
 válidos:
 
 3.2.3.1 Blacklist
+
 El objeto blacklist debe ser de formato compuesto y de algún tipo de los siguientes:
 
    - Tipo "range":
@@ -157,27 +163,32 @@ El objeto blacklist debe ser de formato compuesto y de algún tipo de los siguie
       "blacklist":["net", "10.0.0.0/24"}
 
 3.2.3.2 Acceso concurrente
+
 El objeto caccess debe ser de formato simple y debe respetar el siguiente 
 formato:
    "caccess":"jid"
 
 3.2.3.3 Multiplexador de cuentas
+
 El objeto multiplex debe ser de formato simple y debe respetar el siguiente
 formato:
    "multiplex":"jid"
 
 3.2.3.4 Silenciar usuarios
+
 El objeto silence debe ser de formato simple y debe respetar el siguiente forma-
 to:
    "silence":"jid"
 
 3.2.3.5 Filtros
+
 El objeto filter debe ser de formato compuesto y debe respetar el siguiente for-
 mato:
    "filter":["filtername", "jid"]
 Donde filtername puede ser leet o hash y state puede ser on u off.
 
 4. Respuestas
+
 Luego de la ejecución de un comando la aplicación enviará una respuesta.
 Toda respuesta va a contener el objeto status, con valor "OK" o "ERROR" corres-
 pondiente a una respuesta satisfactoria o no, respectivamente. Luego de cualquier
