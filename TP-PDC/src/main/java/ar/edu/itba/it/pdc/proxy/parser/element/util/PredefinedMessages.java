@@ -1,13 +1,11 @@
 package ar.edu.itba.it.pdc.proxy.parser.element.util;
 
-import java.util.List;
-
 import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 
 public class PredefinedMessages {
 
-	public static XMPPElement notSupportedStreamMethods(String from, String to, String id, List<String> methods) {
+	public static XMPPElement notSupportedFeature(String id, String from, String to) {
 		StringBuilder XML = new StringBuilder();
 		XML.append(createIqErrorHeader(id, from, to));
 		XML.append("<error type='cancel'>");

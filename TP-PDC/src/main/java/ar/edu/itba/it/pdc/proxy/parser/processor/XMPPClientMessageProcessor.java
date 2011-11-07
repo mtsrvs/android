@@ -1,14 +1,15 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.iharder.Base64;
+import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
+import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
@@ -76,9 +77,10 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	public void handleIqStanza(IQStanza iqStanza) throws AccessControlException {
 		String type = iqStanza.getAttribute("type");
 		String id = iqStanza.getAttribute("id");
+		String to = iqStanza.getAttribute("to");
 		handleIqQuery(iqStanza.getFirstChild("query"));
 		handleIqBind(iqStanza.getFirstChild("bind"));
-		handleIqSi(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), id, type);
+		handleIqSi(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), id, type, to);
 	}
 
 	private void handleIqQuery(SimpleElement query) throws AccessControlException {
@@ -91,15 +93,15 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 
 	private void handleIqBind(SimpleElement bind) {
 		if(bind != null) {
-			if(ElemUtils.hasTextEquals(bind.getStartElement().getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-bind")) {
+			if(bind.getNamespaces().containsValue("urn:ietf:params:xml:ns:xmpp-bind")) {
 				SimpleElement resource = bind.getFirstChild("resource");
 				this.jid.setResource(resource.getFirstTextData());
 			}
 		}
 	}
 	
-	private void handleIqSi(SimpleElement si, String id, String type) {
-		if(ElemUtils.hasNullValues(si, id, type)) {
+	private void handleIqSi(SimpleElement si, String id, String type, String to) {
+		if(ElemUtils.hasNullValues(si, id, type, to)) {
 			return;
 		}
 		if(type.equalsIgnoreCase("set")) {
@@ -107,7 +109,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			String name = file.getAttribute("name");
 			int size = Integer.valueOf(file.getAttribute("size"));
 			
-			XMPPFileInfo f = new XMPPFileInfo(id, name, size);
+			XMPPFileInfo f = new XMPPFileInfo(id, to, name, size);
 			
 			f.setDate(file.getAttribute("date"));
 			f.setHash(file.getAttribute("hash"));
@@ -128,15 +130,15 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	private void manageFile(XMPPFileInfo file) {
-//		if(file.supportByteStreamsOrIBB()) {
-//			
-//		}else{
+		if(file.supportByteStreamsOrIBB()) {
+			
+		}else{
 			cancelFileNegociation(file);
-//		}
+		}
 	}
 	
 	private void cancelFileNegociation(XMPPFileInfo file) {
-		XMPPElement error = PredefinedMessages.notSupportedStreamMethods(this.jid.toString(), this.endpoint.jid.toString(), file.getId(), file.getStreamMethods());
+		XMPPElement error = PredefinedMessages.notSupportedFeature(file.getId(), file.getTo(), this.jid.toString());
 		this.appendOnEndpointBuffer(error);
 	}
 	
@@ -168,10 +170,9 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			
 			this.accessControls.range(this.username);
 			
-		} catch (IOException e1) {
-			
-		} catch (IllegalStateException e1) {
-			
+		} catch (Exception exp) {
+			Isecu.log.debug(e);
+			throw new InvalidProtocolException("SASL");
 		}
 	}
 	

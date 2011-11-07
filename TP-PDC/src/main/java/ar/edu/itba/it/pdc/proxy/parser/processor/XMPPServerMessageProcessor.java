@@ -88,7 +88,7 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			this.markToReset();
 			this.resetMessage = true;
 			
-			Isecu.log.debug("JID seteado: " + this.jid);
+			Isecu.log.info("User connection[" + this.jid + "]");
 		}
 	}
 }

@@ -7,11 +7,7 @@ public class XMPPFileInfo {
 
 	private String id;
 	
-	private String originHost;
-	private int originPort;
-	private String jid;
-	
-	private int proxyPort;
+	private String to;
 	
 	private String name;
 	private int size;
@@ -22,8 +18,9 @@ public class XMPPFileInfo {
 	
 	private List<String> streamMethods = new LinkedList<String>();
 	
-	public XMPPFileInfo(String id, String name, int size) {
+	public XMPPFileInfo(String id, String to, String name, int size) {
 		this.id = id;
+		this.to = to;
 		this.size = size;
 		this.name = name;
 	}
@@ -36,6 +33,10 @@ public class XMPPFileInfo {
 		return name;
 	}
 	
+	public String getTo() {
+		return to;
+	}
+
 	public void setDesc(String desc) {
 		this.desc = desc;
 	}
@@ -64,38 +65,6 @@ public class XMPPFileInfo {
 		return id;
 	}
 
-	public String getHost() {
-		return originHost;
-	}
-
-	public void setHost(String host) {
-		this.originHost = host;
-	}
-
-	public int getPort() {
-		return originPort;
-	}
-
-	public void setPort(int port) {
-		this.originPort = port;
-	}
-	
-	public String getJid() {
-		return jid;
-	}
-
-	public void setJid(String jid) {
-		this.jid = jid;
-	}
-
-	public int getProxyPort() {
-		return proxyPort;
-	}
-
-	public void setProxyPort(int proxyPort) {
-		this.proxyPort = proxyPort;
-	}
-
 	public void addStreamMethod(String method) {
 		this.streamMethods.add(method);
 	}
@@ -112,14 +81,12 @@ public class XMPPFileInfo {
 		}
 		return false;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "XMPPFileInfo [id=" + id + ", originHost=" + originHost
-				+ ", originPort=" + originPort + ", jid=" + jid
-				+ ", proxyPort=" + proxyPort + ", description=" + desc
-				+ ", size=" + size + ", name=" + name + ", date=" + date
-				+ ", hash=" + hash + "]";
+		return "XMPPFileInfo [id=" + id + ", to=" + to + ", name=" + name
+				+ ", size=" + size + ", desc=" + desc + ", date=" + date
+				+ ", hash=" + hash + ", streamMethods=" + streamMethods + "]";
 	}
 	
 }
