@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
-import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.proxy.handlers.HandlerUtils;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.protocol.Protocol;
@@ -63,13 +62,11 @@ public class IsecuServer {
 		System.out.println("Services were initiated.\t[OK]");
 		
 		while (true) {
-
 			selector.select();
 
 			Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
 			while (iterator.hasNext()) {
 				SelectionKey key = iterator.next();
-				
 				try{
 					if (key.isValid()) {
 						
@@ -88,7 +85,7 @@ public class IsecuServer {
 						iterator.remove();
 					}
 				} catch(CancelledKeyException e) {
-					
+					Isecu.log.debug(e);
 				}
 			}
 		}
@@ -135,8 +132,6 @@ public class IsecuServer {
 	private void handleAccept(SelectionKey key) {
 		try {
 			protocolUtils.getHandler(key).accept(key);
-		} catch (AccessControlException e){
-			Isecu.log.info("Access denied: " + e.getMessage());
 		} catch (Exception e) {
 			Isecu.log.error("Accept handler error");
 		}

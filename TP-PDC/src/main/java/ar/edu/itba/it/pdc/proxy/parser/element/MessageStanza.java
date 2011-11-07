@@ -6,6 +6,14 @@ public class MessageStanza extends Stanza {
 		super(parent, selement);
 	}
 	
+	public String getTo(){
+		return this.selement.getAttributes().get("to");
+	}
+	
+	public String getFrom(){
+		return this.selement.getAttributes().get("from");
+	}
+	
 	@Override
 	public boolean isMessageStanza(){
 		return true;

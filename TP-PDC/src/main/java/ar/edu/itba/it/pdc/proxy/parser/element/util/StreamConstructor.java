@@ -3,18 +3,18 @@ package ar.edu.itba.it.pdc.proxy.parser.element.util;
 import java.util.HashMap;
 import java.util.Map;
 
-import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.filters.L33tFilter;
-import ar.edu.itba.it.pdc.proxy.parser.element.AccessControlFailure;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
+import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanzaError;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartDocumentElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.UserControlFailure;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
@@ -168,7 +168,11 @@ public class StreamConstructor {
 		this.currentElement = null;
 	}
 	
-	public XMPPElement handleAccessControlException(AccessControlException e){
-		return new AccessControlFailure(this.currentElement, e.getMessage());
+	public UserControlFailure handleUserControlException(String type, String message){
+		return new UserControlFailure(this.currentElement, type, message);
+	}
+	
+	public MessageStanzaError handleUserSilencedException(String to, String message){
+		return new MessageStanzaError(this.currentElement, to, message);
 	}
 }

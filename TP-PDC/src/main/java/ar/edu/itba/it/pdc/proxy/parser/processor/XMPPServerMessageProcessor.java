@@ -12,7 +12,6 @@ import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
-import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 
@@ -31,26 +30,8 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 		
 	}
 
-	public void handleIqStanza(IQStanza iqStanza) throws AccessControlException {
-		StartElement s = iqStanza.getStartElement();
-		String typeValue = s.getAttributes().get("type");
-		if (ElemUtils.hasTextEquals(typeValue, "result")
-				&& iqStanza.getBody().isEmpty() && getEndpoint().getNonSASLFlag()){
-			handleNonSASLSession(iqStanza);
-		}
-	}
-
 	private XMPPClientMessageProcessor getEndpoint(){
 		return (XMPPClientMessageProcessor)this.endpoint;
-	}
-	
-	private void handleNonSASLSession(SimpleElement e) throws MaxLoginsAllowedException {
-		this.accessControls.logins(getEndpoint().getUsername());
-		
-		JID jid = new JID(getEndpoint().getUsername(), getEndpoint().getServer(), getEndpoint().getResource());		
-		this.jid = jid;
-		getEndpoint().jid = this.jid;
-		getEndpoint().setNonSASLFlag(false);
 	}
 
 	@Override
@@ -77,10 +58,22 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 		
 	}
 
+	public void handleIqStanza(IQStanza iqStanza) throws AccessControlException {
+		// TODO Auto-generated method stub
+		
+	}
+
 	public void handleOtherElement(SimpleElement simpleElement) throws MaxLoginsAllowedException {
 		if(simpleElement.getName().equalsIgnoreCase("success")) {
 			Isecu.log.debug("Se setea JID del server");
-			this.accessControls.logins(getEndpoint().getUsername());
+			try {
+				this.accessControls.logins(getEndpoint().getUsername());
+			} catch (MaxLoginsAllowedException exc){
+				Isecu.log.info("Access denied: " + exc.getMessage());
+				buffer.clear();
+				buffer.add(sc.handleUserControlException("invalid-from", exc.getMessage()));
+				return;
+			} 
 			
 			JID jid = new JID(getEndpoint().getUsername(), getEndpoint().getServer());
 			this.jid = jid;
