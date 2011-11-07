@@ -63,7 +63,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		this.endpoint = endpoint;
 	}
 	
-	private void appendOnEndpointBuffer(XMPPElement e){
+	protected void appendOnEndpointBuffer(XMPPElement e){
 		this.endpoint.buffer.add(e);
 	}
 	
@@ -98,10 +98,15 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	public ByteBuffer write(ByteBuffer byteBuffer) {
 		tryToReset();
 		if (byteBuffer == null && this.needToWrite()) {
-			XMPPElement ew = buffer.poll();
-			ew.setToWrite();
-			tryToReset();
-			return ew.getByteBuffer();
+			XMPPElement ew;
+			do {
+				ew = buffer.poll();
+			}while(ew != null && !ew.needSend());
+			if(ew != null) {
+				ew.setToWrite();
+				tryToReset();
+				return ew.getByteBuffer();
+			}
 		}
 		return byteBuffer;
 	}

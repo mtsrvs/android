@@ -1,5 +1,6 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
+import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
@@ -77,7 +78,8 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	public void handleOtherElement(SimpleElement simpleElement) throws MaxLoginsAllowedException {
-		if(simpleElement.getName().contains("success")) {
+		if(simpleElement.getName().equalsIgnoreCase("success")) {
+			Isecu.log.debug("Se setea JID del server");
 			this.accessControls.logins(getEndpoint().getUsername());
 			
 			JID jid = new JID(getEndpoint().getUsername(), getEndpoint().getServer());
@@ -85,6 +87,8 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			this.endpoint.jid = jid;
 			this.markToReset();
 			this.resetMessage = true;
+			
+			Isecu.log.debug("JID seteado: " + this.jid);
 		}
 	}
 }
