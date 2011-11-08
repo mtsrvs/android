@@ -32,5 +32,5 @@ public interface XMPPFilter {
 	 * @param simpleElement
 	 * @throws MaxLoginsAllowedException 
 	 */
-	public void handleOtherElement(SimpleElement simpleElement) throws MaxLoginsAllowedException;
+	public void handleOtherElement(SimpleElement simpleElement);
 }

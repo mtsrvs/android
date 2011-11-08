@@ -7,9 +7,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import net.iharder.Base64;
+
+import org.joda.time.DateTime;
+
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
-import ar.edu.itba.it.pdc.exception.AccessControlException;
 import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.UserSilencedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
@@ -32,6 +34,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 
 	private String server = null;
 	private String username = null;
+	private String resource = null;
 	
 	public XMPPClientMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
@@ -64,23 +67,9 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	public String getUsername(){
 		return this.username;
 	}
-
-	public void handleIqStanza(IQStanza iqStanza) throws AccessControlException {
-		String type = iqStanza.getAttribute("type");
-		String id = iqStanza.getAttribute("id");
-		String to = iqStanza.getAttribute("to");
-		handleIqBind(iqStanza.getFirstChild("bind"));
-		handleIqSi(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), id, type, to);
-		handleByteStreams(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/bytestreams"), id, type, to);
-	}
-
-	private void handleIqBind(SimpleElement bind) {
-		if(bind != null) {
-			if(bind.getNamespaces().containsValue("urn:ietf:params:xml:ns:xmpp-bind")) {
-				SimpleElement resource = bind.getFirstChild("resource");
-				this.jid.setResource(resource.getFirstTextData());
-			}
-		}
+	
+	public String getResource(){
+		return this.resource;
 	}
 	
 	private void handleIqSi(SimpleElement si, String id, String type, String to) {
@@ -162,12 +151,12 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	@Override
-	protected void handleResponseElement(SimpleElement e) throws AccessControlException{
+	protected void handleResponseElement(SimpleElement e){
 		if(ElemUtils.hasTextEquals(e.getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-sasl"))
 			handleSASLSession(e);
 	}
 	
-	private void handleSASLSession(SimpleElement e) throws AccessControlException {
+	private void handleSASLSession(SimpleElement e) {
 		String data = e.getBodyAsRawData();
 		try {
 			String decoded = new String(Base64.decode(data), Charset.forName("UTF-8"));
@@ -185,12 +174,13 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		} catch (InvalidRangeException exc) {
 			Isecu.log.info("Access denied: " + exc.getMessage());
 			clearEndpointBuffer();
-			appendOnEndpointBuffer(sc.handleUserControlException("invalid-from", exc.getMessage()));
+			appendOnEndpointBuffer(sc.handleUserControlException("not-authorized", exc.getMessage()));
 			e.notSend();
 		} 
 	}
 	
-	public void handleMessageStanza(MessageStanza messageStanza) {		
+	public void handleMessageStanza(MessageStanza messageStanza) {
+		updateLastStanzaTime();	
 		if (this.jid != null){
 			JID to = new JID(messageStanza.getTo());
 			try {
@@ -205,11 +195,45 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	public void handlePresenceStanza(PresenceStanza presenceStanza) {
-		
+		updateLastStanzaTime();
+	}
+
+	public void handleIqStanza(IQStanza iqStanza) {
+		updateLastStanzaTime();
+		String type = iqStanza.getAttribute("type");
+		String id = iqStanza.getAttribute("id");
+		String to = iqStanza.getAttribute("to");
+		if (ElemUtils.hasTextEquals(type, "set"))
+			handleIqBind(iqStanza.getFirstElementWithNamespace("urn:ietf:params:xml:ns:xmpp-bind"));
+		handleIqSi(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), id, type, to);
+	}
+
+	private void handleIqBind(SimpleElement bind) {
+		if(bind != null) {
+			SimpleElement resource = bind.getFirstChild("resource");
+			if (resource != null)
+				this.resource = resource.getFirstTextData();
+		}
 	}
 
 	public void handleOtherElement(SimpleElement simpleElement) {
 		
+	}
+
+	private DateTime lastStanzaTime = new DateTime();
+	
+	private void updateLastStanzaTime(){
+		this.lastStanzaTime = new DateTime();
+	}
+
+	public int compareTo(XMPPClientMessageProcessor o) {
+		return this.lastStanzaTime.compareTo(o.lastStanzaTime);
+	}
+	
+	public String toString(){
+		if (this.jid == null)
+			return "null - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute();
+		return "Resource: " + this.jid.getResource() + " - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute();
 	}
 	
 }

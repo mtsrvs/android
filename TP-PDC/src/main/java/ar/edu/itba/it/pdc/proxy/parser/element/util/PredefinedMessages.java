@@ -2,6 +2,7 @@ package ar.edu.itba.it.pdc.proxy.parser.element.util;
 
 import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
+import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 public class PredefinedMessages {
 
@@ -112,6 +113,17 @@ public class PredefinedMessages {
 		.append(message)
 		.append("</" + type + ">")
 		.append("</failure>");
+		return XML.toString();
+	}
+	
+	public static String createPresenceUnavailable(JID jid, String message) {
+		StringBuilder XML = new StringBuilder();
+		XML.append("<presence type=\"unavailable\">");
+		//XML.append("<presence from=\"" + jid + "\" type=\"unavailable\" >");
+		/*XML.append("<status>");
+		XML.append(message);
+		XML.append("</status>");*/
+		XML.append("</presence>");
 		return XML.toString();
 	}
 	

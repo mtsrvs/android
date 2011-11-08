@@ -10,11 +10,12 @@ import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanzaError;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
+import ar.edu.itba.it.pdc.proxy.parser.element.StreamError;
 import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartDocumentElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
-import ar.edu.itba.it.pdc.proxy.parser.element.UserControlFailure;
+import ar.edu.itba.it.pdc.proxy.parser.element.SASLFailure;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
@@ -168,11 +169,15 @@ public class StreamConstructor {
 		this.currentElement = null;
 	}
 	
-	public UserControlFailure handleUserControlException(String type, String message){
-		return new UserControlFailure(this.currentElement, type, message);
+	public SASLFailure handleUserControlException(String type, String message){
+		return new SASLFailure(this.currentElement, type, message);
 	}
 	
 	public MessageStanzaError handleUserSilencedException(String to, String message){
 		return new MessageStanzaError(this.currentElement, to, message);
+	}
+	
+	public StreamError handleStreamError(String type, String message){
+		return new StreamError(this.currentElement, type, message);
 	}
 }
