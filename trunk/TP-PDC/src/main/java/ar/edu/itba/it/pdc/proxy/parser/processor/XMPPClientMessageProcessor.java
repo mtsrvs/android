@@ -76,7 +76,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	private void handleIqSi(SimpleElement si, String id, String type, String to) {
-		if(ElemUtils.hasNullValues(si, id, type, to)) {
+		if(ElemUtils.hasNullValues(si, id, type, to) || !configLoader.checkHash(this.jid.getUserInfo())) {
 			return;
 		}
 		if(type.equalsIgnoreCase("set")) {
@@ -121,7 +121,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	private void handleByteStreams(SimpleElement query, String id, String type, String to) {
-		if(ElemUtils.hasNullValues(query, id, type, to)) {
+		if(ElemUtils.hasNullValues(query, id, type, to) || !configLoader.checkHash(this.jid.getUserInfo())) {
 			return;
 		}
 		if(type.equalsIgnoreCase("set")) {
