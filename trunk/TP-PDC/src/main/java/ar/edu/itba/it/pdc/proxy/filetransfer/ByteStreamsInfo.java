@@ -14,6 +14,8 @@ public class ByteStreamsInfo {
 	private String host;
 	private String jid;
 	
+	private XMPPFileInfo file;
+	
 	public ByteStreamsInfo(String id, String from, String to, String sid, String jid, String host, String port) {
 		this.id = id;
 		this.from = from;
@@ -62,6 +64,14 @@ public class ByteStreamsInfo {
 
 	public String getJid() {
 		return jid;
+	}
+
+	public XMPPFileInfo getFile() {
+		return file;
+	}
+
+	public void setFile(XMPPFileInfo file) {
+		this.file = file;
 	}
 
 	@Override

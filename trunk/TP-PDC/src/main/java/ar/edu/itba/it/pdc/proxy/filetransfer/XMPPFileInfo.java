@@ -7,6 +7,8 @@ public class XMPPFileInfo {
 
 	private String id;
 	
+	private String sid;
+	
 	private String from;
 	private String to;
 	
@@ -19,8 +21,9 @@ public class XMPPFileInfo {
 	
 	private List<String> streamMethods = new LinkedList<String>();
 	
-	public XMPPFileInfo(String id, String from, String to, String name, int size) {
+	public XMPPFileInfo(String id, String sid, String from, String to, String name, int size) {
 		this.id = id;
+		this.sid = sid;
 		this.from = from;
 		this.to = to;
 		this.size = size;
@@ -69,6 +72,14 @@ public class XMPPFileInfo {
 
 	public String getId() {
 		return id;
+	}
+	
+	public String getSid() {
+		return sid;
+	}
+
+	public void setSid(String sid) {
+		this.sid = sid;
 	}
 
 	public void addStreamMethod(String method) {

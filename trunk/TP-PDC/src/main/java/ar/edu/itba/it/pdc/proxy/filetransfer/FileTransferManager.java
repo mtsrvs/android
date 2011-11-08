@@ -25,6 +25,9 @@ import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.FileTransferException;
 import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
+import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.util.PredefinedMessages;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
 
 @Component
 public class FileTransferManager {
@@ -68,7 +71,7 @@ public class FileTransferManager {
 		
 	}
 	
-	public void receiveFile(final Socket socket) {
+	public void receiveFile(final Socket socket, final XMPPMessageProcessor processor, final ByteStreamsInfo bsi) {
 		FutureTask<Void> futureTask = new FutureTask<Void>(new Callable<Void>() {
 
 			public Void call() throws Exception {
@@ -85,7 +88,18 @@ public class FileTransferManager {
 					}
 					bos.close();
 					Isecu.log.info("File Transfer: Proxy received file[" + df.format((float)count/1024) + " KB]");
+					sendFile(bsi, processor);
 					return null;
+			}
+			
+			private void sendFile(ByteStreamsInfo bsi, XMPPMessageProcessor processor) {
+				try {
+					Isecu.log.debug("Se manda Si Offer al server");		
+					XMPPElement e = PredefinedMessages.createSiOffer(bsi.getFile());
+					processor.appendOnEndpointBuffer(e);
+				}catch(Exception e) {
+					Isecu.log.debug("Error SI Offer", e);
+				}
 			}
 			
 		});
@@ -97,7 +111,7 @@ public class FileTransferManager {
 		DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         
-     // authentication negotiation
+        // authentication negotiation
         byte[] cmd = new byte[3];
 
         cmd[0] = (byte) 0x05; // Socks  5

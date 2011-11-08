@@ -13,7 +13,6 @@ import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
-import ar.edu.itba.it.pdc.proxy.parser.element.StreamError;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
@@ -23,6 +22,7 @@ import ar.edu.itba.it.pdc.proxy.protocol.JID;
 public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	private boolean resetMessage = false;
+	private boolean forceWrite = false;
 	
 	public XMPPServerMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
@@ -32,7 +32,6 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	@Override
 	protected void processXMPPElement(StartElement e) {
-		
 	}
 
 	private XMPPClientMessageProcessor getEndpoint(){
@@ -67,6 +66,7 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			System.out.println("from: " + iqStanza.getAttribute("from"));
 			handleIqBind(iqStanza.getFirstElementWithNamespace("urn:ietf:params:xml:ns:xmpp-bind"));
 		}
+		handleSiResult(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), iqStanza.getAttribute("id"), iqStanza.getAttribute("type"));
 	}
 	
 	private void handleIqBind(SimpleElement bind){
@@ -111,6 +111,16 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 		}
 	}
 
+	private void handleSiResult(SimpleElement si, String id, String type) {
+		if(ElemUtils.hasNullValues(si, id, type)) {
+			return;
+		}
+		if(type.equals("result")) {
+			Isecu.log.debug("LLEGA RESULT SI");
+			this.forceWrite = false;
+		}
+	}
+	
 	public void handleOtherElement(SimpleElement simpleElement) {
 		if(simpleElement.getName().equalsIgnoreCase("success")) {
 			try {
@@ -131,4 +141,19 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			Isecu.log.info("User connection[" + this.jid + "]");
 		}
 	}
+	
+	public void markToWrite() {
+		this.forceWrite = true;
+	}
+
+	@Override
+	public boolean needToWrite() {
+		if(this.forceWrite) {
+			return true;
+		}
+		return super.needToWrite();
+	}
+
+	
+	
 }
