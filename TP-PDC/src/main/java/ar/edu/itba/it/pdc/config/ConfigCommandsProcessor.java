@@ -111,6 +111,7 @@ public class ConfigCommandsProcessor {
 		sendResponse(key, buf, resp);
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean caccessCommand(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 		// {"auth":["admin","admin"],"type":"assignation", "caccess":["user","qty"]}
 		validator.validateCaccessCommand(request);
@@ -133,6 +134,7 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean multiplexCommand(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "multiplex":["jid","serverto"]}
 		validator.validateMultiplexCommand(request);
@@ -179,6 +181,7 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private boolean filterCommand(SelectionKey key, ByteBuffer buf,
 			Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "filter":["leet/hash", "user", "on/off"]}
@@ -207,6 +210,7 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private boolean blacklistCommand(SelectionKey key, ByteBuffer buf,
 			Map<String, Object> request) {
 		boolean success = true;
@@ -228,6 +232,7 @@ public class ConfigCommandsProcessor {
 		return success;
 	}
 
+	@SuppressWarnings("unchecked")
 	private boolean rangeBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
 //		rangeBlacklist = {"user":["from","server"]}
@@ -255,6 +260,7 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private boolean loginsBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["logins","user","qty"]}
 //		loginsBlacklist = {"user":"qty"}
@@ -276,6 +282,7 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private boolean ipBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["ip","dir"]}
 //		ipBlacklist = ["ip"]
@@ -299,6 +306,7 @@ public class ConfigCommandsProcessor {
 		return true;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private boolean netBlacklist(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["net","net"]}
 //		netBlacklist = {["origin/port"]}
