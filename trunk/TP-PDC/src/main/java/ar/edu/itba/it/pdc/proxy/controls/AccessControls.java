@@ -1,8 +1,10 @@
 package ar.edu.itba.it.pdc.proxy.controls;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 
@@ -11,6 +13,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.config.TimeRange;
 import ar.edu.itba.it.pdc.exception.AccessControlException;
@@ -18,7 +21,6 @@ import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
 import ar.edu.itba.it.pdc.exception.UserSilencedException;
 import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPClientMessageProcessor;
-import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 @Component
 public class AccessControls {
@@ -84,26 +86,36 @@ public class AccessControls {
 			throw new UserSilencedException("You, " + username + ", are silenced.");
 	}
 	
-	public XMPPClientMessageProcessor concurrentSessions(JID jid, XMPPClientMessageProcessor cmp){
-		Integer maxConcurrentSessions = this.configLoader.getCaccess().get(jid.getUsername());
+	public List<XMPPClientMessageProcessor> concurrentSessions(XMPPClientMessageProcessor cmp){
+		Integer maxConcurrentSessions = this.configLoader.getCaccess().get(cmp.getJid().getUsername());
 		
-		System.out.println("maxConcurrentSessions: " + maxConcurrentSessions);
-		
-		if (maxConcurrentSessions != null && jid.getResource() != null){
+		List<XMPPClientMessageProcessor> ans = null;
+		if (cmp.getJid().getUsername() != null){
+			this.concurrentSessions.add(cmp);
+			int concurrentSessions = this.concurrentSessions.queueSize(cmp.getJid().getUsername());			
 			
-			System.out.println("map antes: " + this.concurrentSessions);
-			System.out.println("concurrentSessions antes: " + concurrentSessions);
-			
-			this.concurrentSessions.add(jid.getUsername(), cmp);
-			int concurrentSessions = this.concurrentSessions.queueSize(jid.getUsername());
-			
-			System.out.println("concurrentSessions despues: " + concurrentSessions);			
-			System.out.println("map despues: " + this.concurrentSessions);
-			
-			if (maxConcurrentSessions < concurrentSessions)
-				return this.concurrentSessions.poll(jid.getUsername());
+			if (maxConcurrentSessions != null){
+				if (maxConcurrentSessions < concurrentSessions--){
+					ans = new ArrayList<XMPPClientMessageProcessor>();
+					ans.add(this.concurrentSessions.poll(cmp.getJid().getUsername()));
+				}
+				while(maxConcurrentSessions < concurrentSessions--)
+					ans.add(this.concurrentSessions.poll(cmp.getJid().getUsername()));
+
+				Isecu.log.debug("Concurrent session map: " + this.concurrentSessions);
+				return ans;
+			}
 		}
-		return null;
+		Isecu.log.debug("Concurrent session map: " + this.concurrentSessions);
+		return ans;
+	}
+	
+	public void reorder(XMPPClientMessageProcessor cmp){
+		this.concurrentSessions.reorder(cmp);
+	}
+	
+	public void remove(XMPPClientMessageProcessor cmp){
+		this.concurrentSessions.remove(cmp);
 	}
 	
 	private class ConcurrentSessions {
@@ -129,16 +141,34 @@ public class AccessControls {
 			return p == null ? 0 : p.size();
 		}
 		
-		public boolean add(String username, XMPPClientMessageProcessor cmp){
-			PriorityQueue<XMPPClientMessageProcessor> q = getQueue(username);
+		public void add(XMPPClientMessageProcessor cmp){
+			PriorityQueue<XMPPClientMessageProcessor> q = getQueue(cmp.getJid().getUsername());
 			if (q != null)
 				q.add(cmp);
 			else {
 				q = new PriorityQueue<XMPPClientMessageProcessor>(10, reverseOrderComparator());
 				q.add(cmp);
-				this.sessions.put(username, q);
-			}			
-			return true;
+				this.sessions.put(cmp.getJid().getUsername(), q);
+			}
+		}
+		
+		public void remove(XMPPClientMessageProcessor cmp){
+			if (cmp.getJid() != null){
+				PriorityQueue<XMPPClientMessageProcessor> q = getQueue(cmp.getJid().getUsername());
+				if (q != null){
+					q.remove(cmp);
+					if (q.isEmpty())
+						this.sessions.remove(cmp.getJid().getUsername());
+				}
+			}
+		}
+		
+		public void reorder(XMPPClientMessageProcessor cmp){
+			if (cmp.getJid() != null && cmp.getJid().getUsername() != null){
+				PriorityQueue<XMPPClientMessageProcessor> q = getQueue(cmp.getJid().getUsername());
+				q.remove(cmp);
+				q.add(cmp);
+			}
 		}
 		
 		private Comparator<XMPPClientMessageProcessor> reverseOrderComparator(){

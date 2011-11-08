@@ -227,6 +227,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	
 	private void updateLastStanzaTime(){
 		this.lastStanzaTime = new DateTime();
+		this.accessControls.reorder(this);
 	}
 
 	public int compareTo(XMPPClientMessageProcessor o) {

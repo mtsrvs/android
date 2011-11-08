@@ -3,7 +3,6 @@ package ar.edu.itba.it.pdc.proxy.parser.element.util;
 import ar.edu.itba.it.pdc.proxy.filetransfer.XMPPFileInfo;
 import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
-import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 public class PredefinedMessages {
 
@@ -93,15 +92,15 @@ public class PredefinedMessages {
 		return XML.toString();
 	}
 	
-	public static String createMessageStanzaError(String type, String to, String message){
+	public static String createMessageStanzaError(String error, String type, String to, String message){
 		StringBuilder XML = new StringBuilder();
 		XML.append("<message to=\"" + to + "\" type=\"error\">")
 		.append("<body>" + message + "</body>")
-		.append("<error type=\"modify\">")
-		.append("<" + type + " xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>")
-		.append("<text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">")
-		.append(message)
-		.append("</text>")
+		.append("<error type=\"" + type + "\">")
+		.append("<" + error + " xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>")
+		//.append("<text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">")
+		//.append(message)
+		//.append("</text>")
 		.append("</error>")
 		.append("</message>");
 		return XML.toString();
@@ -147,13 +146,10 @@ public class PredefinedMessages {
 		return new RawData(null, XML.toString());
 	}
 
-	public static String createPresenceUnavailable(JID jid, String message) {
+	public static String createPresenceUnavailable(String from, String message) {
 		StringBuilder XML = new StringBuilder();
-		XML.append("<presence type=\"unavailable\">");
-		//XML.append("<presence from=\"" + jid + "\" type=\"unavailable\" >");
-		/*XML.append("<status>");
-		XML.append(message);
-		XML.append("</status>");*/
+		XML.append("<presence from=\"" + from + "\" type=\"unavailable\">");
+		XML.append("<status>" + message + "</status>");
 		XML.append("</presence>");
 		return XML.toString();
 	}

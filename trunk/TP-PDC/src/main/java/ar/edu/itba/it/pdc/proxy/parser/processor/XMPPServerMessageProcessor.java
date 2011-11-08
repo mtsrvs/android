@@ -13,6 +13,7 @@ import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
+import ar.edu.itba.it.pdc.proxy.parser.element.PresenceUnavailable;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
@@ -62,8 +63,6 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 
 	public void handleIqStanza(IQStanza iqStanza) {
 		if (ElemUtils.hasTextEquals(iqStanza.getAttribute("type"), "result")){
-			System.out.println("JID: " + jid.getResource());
-			System.out.println("from: " + iqStanza.getAttribute("from"));
 			handleIqBind(iqStanza.getFirstElementWithNamespace("urn:ietf:params:xml:ns:xmpp-bind"));
 		}
 		handleSiResult(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), iqStanza.getAttribute("id"), iqStanza.getAttribute("type"));
@@ -75,15 +74,15 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			if (j != null){
 				this.jid.setResource(getEndpoint().getResource());
 				Isecu.log.debug("Resource binded for " + this.jid.getUsername() + ": " + this.jid.getResource());
-				/*XMPPClientMessageProcessor cmp = this.accessControls.concurrentSessions(this.jid, getEndpoint());
-				if (cmp != null){
-					cmp.getEndpoint().buffer.clear();
-					StreamError pu = sc.handleStreamError("conflict", "HOLAAAAAA");
-					cmp.getEndpoint().buffer.add(pu);
-					//System.out.println(cmp.buffer);
-					Isecu.log.info("Max concurrent sessions: Resource: " + cmp.jid.getResource() + " closed.");
-					return;
-				}*/
+				List<XMPPClientMessageProcessor> cmps = this.accessControls.concurrentSessions(getEndpoint());
+				if (cmps != null){					
+					for (XMPPClientMessageProcessor cmp : cmps){						
+						PresenceUnavailable pu = sc.handlePresenceUnavailable(cmp.jid.toString(), "WWWWWWWWWWWWWWWWWW");
+						cmp.getEndpoint().buffer.add(pu);
+						cmp.getEndpoint().doTerminate();
+						Isecu.log.info("Max concurrent sessions: Resource: " + cmp.jid.getResource() + " closed.");
+					}
+				}
 			}
 		}
 	}	
