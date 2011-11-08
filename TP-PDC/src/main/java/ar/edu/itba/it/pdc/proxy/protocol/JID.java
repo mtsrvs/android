@@ -51,6 +51,15 @@ public class JID {
 			this.resource = resource;
 		}
 		
+		public String getUserInfo() {
+			StringBuilder user = new StringBuilder();
+			if(this.username != null) {
+				user.append(this.username).append("@");
+			}
+			user.append(this.server);
+			return user.toString();
+		}
+		
 		public String toString(){
 			String str = this.server;
 			if (this.username != null)

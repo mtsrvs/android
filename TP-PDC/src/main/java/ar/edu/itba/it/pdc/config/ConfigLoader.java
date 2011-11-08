@@ -249,4 +249,14 @@ public class ConfigLoader {
 		return Integer.valueOf(prop.getProperty(name));
 	}
 
+	/**
+	 * Dado un usuario de la forma user@domain indica si hay que validar o no el hash
+	 * @param user
+	 * @return
+	 */
+	public boolean checkHash(String user) {
+		String status = getHash().get(user);
+		return status == null ? false : status.equalsIgnoreCase("on");
+	}
+	
 }
