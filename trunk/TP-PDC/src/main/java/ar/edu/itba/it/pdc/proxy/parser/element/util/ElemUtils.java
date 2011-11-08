@@ -30,7 +30,17 @@ public class ElemUtils {
 	 * @return
 	 */
 	public static boolean isStanzaType(SimpleElement e, StanzaType st) {
-		return isElement(e, st.toString());
+		return isElementLocal(e, st.toString());
+	}
+
+	/**
+	 * Indica si un elemento posee el nombre especificado (comparación local)
+	 * @param se
+	 * @param name
+	 * @return
+	 */
+	public static boolean isElementLocal(SimpleElement se, String name) {
+		return se.getLocalName().equalsIgnoreCase(name);
 	}
 	
 	/**
@@ -40,7 +50,7 @@ public class ElemUtils {
 	 * @return
 	 */
 	public static boolean isElement(SimpleElement se, String name) {
-		return se.getLocalName().equalsIgnoreCase(name);
+		return se.getName().equalsIgnoreCase(name);
 	}
 
 	/**

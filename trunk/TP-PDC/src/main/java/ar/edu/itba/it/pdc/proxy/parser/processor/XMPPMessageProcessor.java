@@ -15,6 +15,7 @@ import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
+import ar.edu.itba.it.pdc.proxy.parser.element.StreamError;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
@@ -148,8 +149,8 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 					break;
 				case AsyncXMLStreamReader.END_ELEMENT:
 					if ((aux = sc.handleEndElement(asyncReader)) != null) {
-						buffer.add(aux);
 						processXMPPElement((SimpleElement) aux);
+						buffer.add(aux);
 					}
 					break;
 				case AsyncXMLStreamReader.CHARACTERS:
@@ -242,11 +243,17 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 			handleMessageStanza((MessageStanza) e);
 		} else if(ElemUtils.isStanzaType(e, StanzaType.PRESENCE)){
 			handlePresenceStanza((PresenceStanza) e);
-		} else if (ElemUtils.isElement(e, "response")){
+		} else if (ElemUtils.isElementLocal(e, "response")){
 			handleResponseElement(e);
+		} else if (ElemUtils.isElement(e, "stream:features")){
+			handleStreamFeatures(e);
 		} else {
 			handleOtherElement(e);
 		}
+	}
+	
+	protected void handleStreamFeatures(SimpleElement e){
+		
 	}
 	
 	protected abstract void processXMPPElement(StartElement e);
@@ -260,7 +267,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		return false;
 	}
 	
-	protected void handleResponseElement(SimpleElement e) throws AccessControlException {
+	protected void handleResponseElement(SimpleElement e) {
 		
 	}
 }

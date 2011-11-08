@@ -1,5 +1,6 @@
 package ar.edu.itba.it.pdc.proxy.parser.element;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +91,7 @@ public class SimpleElement extends XMPPElement {
 		List<SimpleElement> children = new LinkedList<SimpleElement>();
 		for(XMPPElement e : this.getBody()) {
 			if(e.isSimpleElement()) {
-				if(ElemUtils.isElement(((SimpleElement) e), name)) {
+				if(ElemUtils.isElementLocal(((SimpleElement) e), name)) {
 					children.add((SimpleElement)e);
 				}
 			}
@@ -98,9 +99,20 @@ public class SimpleElement extends XMPPElement {
 		return children;
 	}
 	
+	public void setChildren(String name, List<SimpleElement> children) {
+		Iterator<XMPPElement> iterator = this.body.iterator();
+		while(iterator.hasNext()){
+			XMPPElement e = iterator.next();
+			if(e.isSimpleElement())
+				if(ElemUtils.isElementLocal(((SimpleElement) e), name))
+					if(!children.contains((SimpleElement) e))
+						iterator.remove();				
+		}
+	}
+	
 	public SimpleElement getFirstChild(String name) {
 		for(XMPPElement e : this.getBody()) {
-			if(e.isSimpleElement() && ElemUtils.isElement(((SimpleElement) e), name)) {
+			if(e.isSimpleElement() && ElemUtils.isElementLocal(((SimpleElement) e), name)) {
 				return ((SimpleElement)e);
 			}
 		}
@@ -119,7 +131,7 @@ public class SimpleElement extends XMPPElement {
 	public boolean hasChild(String name) {
 		for(XMPPElement e : this.getBody()) {
 			if(e.isSimpleElement()) {
-				if(ElemUtils.isElement(((SimpleElement) e), name)) {
+				if(ElemUtils.isElementLocal(((SimpleElement) e), name)) {
 					return true;
 				}
 			}
