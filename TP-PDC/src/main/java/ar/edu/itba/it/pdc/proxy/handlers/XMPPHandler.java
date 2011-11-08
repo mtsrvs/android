@@ -7,6 +7,7 @@ import java.nio.channels.SocketChannel;
 
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.proxy.ChannelAttach;
+import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPClientMessageProcessor;
 import ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor;
 
 public abstract class XMPPHandler implements TCPHandler {
@@ -24,8 +25,14 @@ public abstract class XMPPHandler implements TCPHandler {
 		SocketChannel sc = (SocketChannel) key.channel();
 		XMPPMessageProcessor processor = getProcessor(key, Opt.READ);
 		ByteBuffer buf = this.getReadBuffer(key);
+				
+		if (processor.mustTerminate()){
+			Isecu.log.debug("1) I am " + processor.getJid());
+			closePair(key, endPointKey, "Connection closed by client.");
+			return;
+		}
 
-		int r = 0;
+		int r = 0;		
 		if(!processor.needToReset()) {
 			r =  sc.read(buf);
 		}
@@ -33,6 +40,9 @@ public abstract class XMPPHandler implements TCPHandler {
 		this.read += r;
 		
 		if(r < 0) {
+			Isecu.log.debug("2) I am " + processor.getJid());
+			if (processor.isClientProcessor())
+				processor.getAccessControls().remove((XMPPClientMessageProcessor)processor);
 			closePair(key, endPointKey, "Connection closed by client.");
 			return;
 		}

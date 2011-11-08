@@ -19,8 +19,8 @@ import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
-import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils.StanzaType;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.StreamConstructor;
+import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils.StanzaType;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 import com.fasterxml.aalto.AsyncInputFeeder;
@@ -50,6 +50,14 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		this.sc = new StreamConstructor(this.filterControls);
 		this.asyncReader = this.readerFactory.newAsyncReader();
 		this.fileManager = fileManager;
+	}
+	
+	public JID getJid(){
+		return this.jid;
+	}
+	
+	public AccessControls getAccessControls(){
+		return this.accessControls;
 	}
 	
 	public void setEndpoint(XMPPServerMessageProcessor endpoint){
@@ -165,7 +173,16 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 			Isecu.log.debug("Invalid Protocol", e);
 			throw new InvalidProtocolException("Invalid protocol");
 		}
-
+	}
+	
+	private boolean mustTerminate = false;
+	
+	public void doTerminate(){
+		this.mustTerminate = true;
+	}
+	
+	public boolean mustTerminate(){
+		return this.mustTerminate;
 	}
 
 	/**
