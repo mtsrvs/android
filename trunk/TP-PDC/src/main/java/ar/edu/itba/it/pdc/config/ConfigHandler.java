@@ -42,8 +42,9 @@ public class ConfigHandler implements TCPHandler {
 			sc.close();
 		} else if (bytesRead > 0) {
 			String requestContent = new String(request.array());
-			requestContent = requestContent.substring(0, requestContent.indexOf('\n'));
-
+			if(requestContent.contains("\n")) {
+				requestContent = requestContent.substring(0, requestContent.indexOf('\n'));
+			}
 			commandsProcessor.process(key, buf, requestContent);
 		}
 	}
