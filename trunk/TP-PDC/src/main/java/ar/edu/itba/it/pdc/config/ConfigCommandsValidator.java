@@ -22,6 +22,7 @@ public class ConfigCommandsValidator {
 		validTypes.add("query");
 		validTypes.add("delete");
 		
+		@SuppressWarnings("unchecked")
 		boolean authIsWrong = !command.containsKey("auth") || ((List<String>)command.get("auth")).size() != 2;
 		boolean typeIsWrong = !command.containsKey("type") || !validTypes.contains(command.get("type"));
 		boolean quantityIsWrong = command.size() <= 2;
@@ -49,6 +50,7 @@ public class ConfigCommandsValidator {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void validateCaccessCommand(Map<String, Object> command) {
 //		{"auth":["admin","admin"],"type":"assignation", "caccess":["user","qty"]}
 		if(command.get("type").equals("assignation")) {
@@ -66,6 +68,7 @@ public class ConfigCommandsValidator {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void validateMultiplexCommand(Map<String, Object> command) {
 		if(command.get("type").equals("assignation")) {
 //		{"auth":["admin","admin"],"type":"assignation", "multiplex":["jid","serverto"]}
@@ -97,6 +100,7 @@ public class ConfigCommandsValidator {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void validateFilterCommand(Map<String, Object> command) {
 		List<String> filter = (List<String>) command.get("filter");
 		if(command.get("type").equals("assignation")) {
@@ -127,6 +131,7 @@ public class ConfigCommandsValidator {
 		return validStatus;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void validateBlacklistCommand(Map<String, Object> command) {
 //		{"auth":["admin","admin"],"type":"assignation", "blacklist":["range","user","from","server"]}
 		List<String> blacklistCommand = (List<String>) command.get("blacklist");

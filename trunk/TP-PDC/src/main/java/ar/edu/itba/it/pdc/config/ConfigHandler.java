@@ -53,7 +53,7 @@ public class ConfigHandler implements TCPHandler {
 		ByteBuffer buf = (ByteBuffer) key.attachment();
 
 		buf.flip();
-		int nwrite = sc.write(buf);
+		sc.write(buf);
 
 		if (!buf.hasRemaining()) {
 			buf.clear();
