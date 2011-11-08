@@ -16,6 +16,7 @@ import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceUnavailable;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
+import ar.edu.itba.it.pdc.proxy.parser.element.StreamError;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
@@ -76,10 +77,13 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 				Isecu.log.debug("Resource binded for " + this.jid.getUsername() + ": " + this.jid.getResource());
 				List<XMPPClientMessageProcessor> cmps = this.accessControls.concurrentSessions(getEndpoint());
 				if (cmps != null){					
-					for (XMPPClientMessageProcessor cmp : cmps){						
-						PresenceUnavailable pu = sc.handlePresenceUnavailable(cmp.jid.toString(), "WWWWWWWWWWWWWWWWWW");
+					for (XMPPClientMessageProcessor cmp : cmps){
+						String message = "Maximum amount of concurrent sessions for user '" + this.jid.getUsername() + "' reached. ";
+						message += "Thus, " + cmp.getResource() + " is now closed.";
+						PresenceUnavailable pu = sc.handlePresenceUnavailable(cmp.jid.toString(), message);
+						StreamError se = sc.handleStreamError("conflict", message);
 						cmp.getEndpoint().buffer.add(pu);
-						cmp.getEndpoint().doTerminate();
+						cmp.getEndpoint().buffer.add(se);
 						Isecu.log.info("Max concurrent sessions: Resource: " + cmp.jid.getResource() + " closed.");
 					}
 				}

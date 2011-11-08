@@ -166,8 +166,10 @@ public class AccessControls {
 		public void reorder(XMPPClientMessageProcessor cmp){
 			if (cmp.getJid() != null && cmp.getJid().getUsername() != null){
 				PriorityQueue<XMPPClientMessageProcessor> q = getQueue(cmp.getJid().getUsername());
-				q.remove(cmp);
-				q.add(cmp);
+				if (q != null){
+					q.remove(cmp);
+					q.add(cmp);
+				}
 			}
 		}
 		
