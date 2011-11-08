@@ -174,16 +174,6 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 			throw new InvalidProtocolException("Invalid protocol");
 		}
 	}
-	
-	private boolean mustTerminate = false;
-	
-	public void doTerminate(){
-		this.mustTerminate = true;
-	}
-	
-	public boolean mustTerminate(){
-		return this.mustTerminate;
-	}
 
 	/**
 	 * En caso de tener y poder resetear el processor lo hace.

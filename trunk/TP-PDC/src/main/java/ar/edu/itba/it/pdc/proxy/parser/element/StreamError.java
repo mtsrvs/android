@@ -15,7 +15,6 @@ public class StreamError extends XMPPElement {
 
 	@Override
 	public void appendDataToWrite(StringBuilder builder) {
-		//builder.append(PredefinedMessages.createPresenceUnavailable(message));
 		builder.append(PredefinedMessages.createStreamError(type, message));
 		builder.append("</stream:stream>");
 	}

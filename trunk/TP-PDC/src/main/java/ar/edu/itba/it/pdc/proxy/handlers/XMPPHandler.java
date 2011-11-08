@@ -25,12 +25,6 @@ public abstract class XMPPHandler implements TCPHandler {
 		SocketChannel sc = (SocketChannel) key.channel();
 		XMPPMessageProcessor processor = getProcessor(key, Opt.READ);
 		ByteBuffer buf = this.getReadBuffer(key);
-				
-		if (processor.mustTerminate()){
-			Isecu.log.debug("1) I am " + processor.getJid());
-			closePair(key, endPointKey, "Connection closed by client.");
-			return;
-		}
 
 		int r = 0;		
 		if(!processor.needToReset()) {

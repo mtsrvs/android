@@ -84,7 +84,7 @@ public class PredefinedMessages {
 	public static String createStreamError(String type, String message) {
 		StringBuilder XML = new StringBuilder();
 		XML.append("<stream:error>")
-		.append("<" + type + "xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\"/>")
+		.append("<" + type + " xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\"/>")
 		.append("<text xml:lang=\"en\" xmlns=\"urn:ietf:params:xml:ns:xmpp-streams\">")
 		.append(message)
 		.append("</text>")
