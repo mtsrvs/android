@@ -15,7 +15,6 @@ import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
-import ar.edu.itba.it.pdc.proxy.parser.element.StreamError;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
@@ -61,7 +60,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		this.endpoint = endpoint;
 	}
 	
-	protected void appendOnEndpointBuffer(XMPPElement e){
+	public void appendOnEndpointBuffer(XMPPElement e){
 		this.endpoint.buffer.add(e);
 	}
 	
@@ -270,4 +269,5 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	protected void handleResponseElement(SimpleElement e) {
 		
 	}
+	
 }

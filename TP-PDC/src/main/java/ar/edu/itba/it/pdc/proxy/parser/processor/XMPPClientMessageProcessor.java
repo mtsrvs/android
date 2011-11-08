@@ -2,6 +2,7 @@ package ar.edu.itba.it.pdc.proxy.parser.processor;
 
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +36,8 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	private String server = null;
 	private String username = null;
 	private String resource = null;
+	
+	private List<XMPPFileInfo> files = new LinkedList<XMPPFileInfo>();
 	
 	public XMPPClientMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
@@ -81,7 +84,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			String name = file.getAttribute("name");
 			int size = Integer.valueOf(file.getAttribute("size"));
 			
-			XMPPFileInfo f = new XMPPFileInfo(id, this.jid.toString(), to, name, size);
+			XMPPFileInfo f = new XMPPFileInfo(id, si.getAttribute("id"), this.jid.toString(), to, name, size);
 			
 			f.setDate(file.getAttribute("date"));
 			f.setHash(file.getAttribute("hash"));
@@ -97,14 +100,16 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			for(SimpleElement opt : options) {
 				f.addStreamMethod(opt.getFirstChild("value").getBodyAsRawData());
 			}
+			files.add(f);
 			manageFile(f);
 		}
 	}
 
 	private void manageFile(XMPPFileInfo file) {
-		if(file.supportByteStreamsOrIBB() && validateServerStreamMethods(file)) {
+		if(file.supportByteStreamsOrIBB()) {
 			XMPPElement siResult = PredefinedMessages.siFileTransferResult(file.getId(), file.getFrom(), file.getTo(), file.getPreferedStreamMethod());
 			this.appendOnEndpointBuffer(siResult);
+			
 		}else{
 			cancelFileNegociation(file);
 		}
@@ -113,11 +118,6 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	private void cancelFileNegociation(XMPPFileInfo file) {
 		XMPPElement error = PredefinedMessages.notSupportedFeature(file.getId(), file.getTo(), this.jid.toString());
 		this.appendOnEndpointBuffer(error);
-	}
-	
-	private boolean validateServerStreamMethods(XMPPFileInfo file) {
-		//TODO
-		return true;
 	}
 
 	private void handleByteStreams(SimpleElement query, String id, String type, String to) {
@@ -132,6 +132,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			String jid = streamhost.getAttribute("jid");
 			ByteStreamsInfo bsi = new ByteStreamsInfo(id, this.jid.toString(), to, sid, jid, host, port);
 			bsi.setMode(query.getAttribute("mode"));
+			bsi.setFile(getFileInfo(sid));
 			connectToStreamHost(bsi);
 			query.notSend();
 		}
@@ -140,9 +141,10 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	private void connectToStreamHost(final ByteStreamsInfo bsi) {
 		try {
 			Socket s = this.fileManager.socks5connect(bsi, 10000);
-			this.fileManager.receiveFile(s);
+			this.fileManager.receiveFile(s, this.endpoint, bsi);
 			this.appendOnEndpointBuffer(PredefinedMessages.streamHostUsed(bsi.getId(), bsi.getTo(), bsi.getFrom(), bsi.getJid()));
 			Isecu.log.info("File Transfer: Stream initiated[" + bsi.getFrom() + "]");
+			((XMPPServerMessageProcessor)this.endpoint).markToWrite();
 		}catch (Exception e) {
 			Isecu.log.debug(e);
 			this.appendOnEndpointBuffer(PredefinedMessages.streamHostFail(bsi.getId(), bsi.getTo(), bsi.getFrom()));
@@ -206,6 +208,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		if (ElemUtils.hasTextEquals(type, "set"))
 			handleIqBind(iqStanza.getFirstElementWithNamespace("urn:ietf:params:xml:ns:xmpp-bind"));
 		handleIqSi(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), id, type, to);
+		handleByteStreams(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/bytestreams"), id, type, to);
 	}
 
 	private void handleIqBind(SimpleElement bind) {
@@ -234,6 +237,15 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		if (this.jid == null)
 			return "null - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute();
 		return "Resource: " + this.jid.getResource() + " - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute();
+	}
+	
+	private XMPPFileInfo getFileInfo(String sid) {
+		for(XMPPFileInfo f : this.files) {
+			if(sid.equals(f.getSid())) {
+				return f;
+			}
+		}
+		return null;
 	}
 	
 }

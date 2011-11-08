@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>ar.edu.itba.it.pdc</groupId>
-	<artifactId>TP-PDC</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>Isecu</artifactId>
+	<version>0.0.1</version>
 	<name>Isecu</name>
 	<description>Trabajo Práctico Especial - Protocolos de Comunicación -
 		ITBA 2011/2 - Proxy XMPP en Java.</description>
@@ -24,6 +24,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
+							<addClasspath>true</addClasspath>
 							<mainClass>ar.edu.itba.it.pdc.Isecu</mainClass>
 						</manifest>
 					</archive>

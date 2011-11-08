@@ -1,5 +1,6 @@
 package ar.edu.itba.it.pdc.proxy.parser.element.util;
 
+import ar.edu.itba.it.pdc.proxy.filetransfer.XMPPFileInfo;
 import ar.edu.itba.it.pdc.proxy.parser.element.RawData;
 import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
@@ -116,6 +117,36 @@ public class PredefinedMessages {
 		return XML.toString();
 	}
 	
+	public static XMPPElement createDiscoveryInfo(String from, String to) {
+		StringBuilder XML = new StringBuilder();
+		XML.append(createIqHeader("isecurequest", "get", from, to))
+		.append("<query xmlns='http://jabber.org/protocol/disco#info'/>")
+		.append("</iq>");
+		return new RawData(null, XML.toString());
+	}
+	
+	public static XMPPElement createSiOffer(XMPPFileInfo file) {
+		StringBuilder XML = new StringBuilder();
+		XML.append(createIqHeader(file.getId(), "set", file.getFrom(), file.getTo()))
+		.append("<si xmlns='http://jabber.org/protocol/si' id='")
+		.append(file.getId())
+		.append("' profile='http://jabber.org/protocol/si/profile/file-transfer'>")
+		.append("<file xmlns='http://jabber.org/protocol/si/profile/file-transfer' name='")
+		.append(file.getName())
+		.append("' size='").append(file.getSize()).append("'/>")
+		.append("<feature xmlns='http://jabber.org/protocol/feature-neg'>")
+		.append("<x xmlns='jabber:x:data' type='form'>")
+		.append("<field var='stream-method' type='list-single'>")
+		.append("<option><value>http://jabber.org/protocol/bytestreams</value></option>")
+		.append("<option><value>http://jabber.org/protocol/ibb</value></option>")
+		.append("</field>")
+		.append("</x>")
+		.append("</feature>")
+		.append("</si>")
+		.append("</iq>");
+		return new RawData(null, XML.toString());
+	}
+
 	public static String createPresenceUnavailable(JID jid, String message) {
 		StringBuilder XML = new StringBuilder();
 		XML.append("<presence type=\"unavailable\">");
