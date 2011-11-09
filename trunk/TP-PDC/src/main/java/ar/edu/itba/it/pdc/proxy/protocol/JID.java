@@ -6,6 +6,12 @@ public class JID {
 		private String server;
 		private String resource;
 		
+		public JID(){
+			this.username = null;
+			this.server = null;
+			this.resource = null;
+		}
+		
 		public JID(String jid){
 			String[] parts = jid.split("[@/]");
 			if (parts.length == 1)
@@ -38,13 +44,21 @@ public class JID {
 		public String getUsername() {
 			return username;
 		}
-
+		
 		public String getServer() {
 			return server;
 		}
 
 		public String getResource() {
 			return resource;
+		}
+		
+		public void setUsername(String username){
+			this.username = username;
+		}
+		
+		public void setServer(String server){
+			this.server = server;
 		}
 		
 		public void setResource(String resource){

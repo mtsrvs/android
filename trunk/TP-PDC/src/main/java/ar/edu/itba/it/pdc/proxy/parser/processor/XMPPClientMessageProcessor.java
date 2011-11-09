@@ -13,7 +13,6 @@ import org.joda.time.DateTime;
 
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
-import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.UserSilencedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filetransfer.ByteStreamsInfo;
@@ -32,10 +31,6 @@ import ar.edu.itba.it.pdc.proxy.parser.element.util.PredefinedMessages;
 import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
-
-	private String server = null;
-	private String username = null;
-	private String resource = null;
 	
 	private List<XMPPFileInfo> files = new LinkedList<XMPPFileInfo>();
 	
@@ -54,7 +49,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		if(e.getName().contains("stream")) {
 			String toValue = e.getAttributes().get("to");
 			if (toValue != null)
-				this.server = toValue;
+				this.jid.setServer(toValue);
 		}	
 	}
 	
@@ -64,15 +59,15 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	public String getServer(){
-		return this.server;
+		return this.jid.getServer();
 	}
 	
 	public String getUsername(){
-		return this.username;
+		return this.jid.getUsername();
 	}
 	
 	public String getResource(){
-		return this.resource;
+		return this.jid.getResource();
 	}
 	
 	private void handleIqSi(SimpleElement si, String id, String type, String to) {
@@ -148,7 +143,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		}catch (Exception e) {
 			Isecu.log.debug(e);
 			this.appendOnEndpointBuffer(PredefinedMessages.streamHostFail(bsi.getId(), bsi.getTo(), bsi.getFrom()));
-			Isecu.log.info("File Transfer: Strem initiation failed[" + bsi.getFrom() + "]");
+			Isecu.log.info("File Transfer: Stream initiation failed[" + bsi.getFrom() + "]");
 		}
 	}
 	
@@ -165,34 +160,23 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			Pattern pattern = Pattern.compile("username=\\\"(.*?)\\\"");
 			Matcher matcher = pattern.matcher(decoded);
 			matcher.find();
-			this.username = matcher.group(1);
+			this.jid.setUsername(matcher.group(1));
 			
 		} catch (Exception exc) {
 			Isecu.log.debug(exc);
 		}
-			
-		try {
-			this.accessControls.range(this.username);
-		} catch (InvalidRangeException exc) {
-			Isecu.log.info("Access denied: " + exc.getMessage());
-			clearEndpointBuffer();
-			appendOnEndpointBuffer(sc.handleUserControlException("not-authorized", exc.getMessage()));
-			e.notSend();
-		} 
 	}
 	
 	public void handleMessageStanza(MessageStanza messageStanza) {
 		updateLastStanzaTime();	
-		if (this.jid != null){
-			JID to = new JID(messageStanza.getTo());
-			try {
-				this.accessControls.silencerFrom(this.jid.getUsername());
-				this.accessControls.silencerTo(to.getUsername());
-			} catch (UserSilencedException e) {
-				clearEndpointBuffer();
-				appendOnEndpointBuffer(sc.handleUserSilencedException(this.jid.toString(), e.getMessage()));
-				messageStanza.notSend();
-			}
+		JID to = new JID(messageStanza.getTo());
+		try {
+			this.accessControls.silencerFrom(this.jid.getUsername());
+			this.accessControls.silencerTo(to.getUsername());
+		} catch (UserSilencedException e) {
+			clearEndpointBuffer();
+			appendOnEndpointBuffer(sc.handleUserSilencedException(this.jid.toString(), e.getMessage()));
+			messageStanza.notSend();
 		}
 	}
 
@@ -215,7 +199,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		if(bind != null) {
 			SimpleElement resource = bind.getFirstChild("resource");
 			if (resource != null)
-				this.resource = resource.getFirstTextData();
+				this.jid.setResource(resource.getFirstTextData());
 		}
 	}
 
@@ -235,9 +219,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	public String toString(){
-		if (this.jid == null)
-			return "null - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute();
-		return "Resource: " + this.jid.getResource() + " - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute();
+		return "Resource: " + this.jid.getResource() + " - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute() + ":" + this.lastStanzaTime.getMillisOfSecond();
 	}
 	
 	private XMPPFileInfo getFileInfo(String sid) {

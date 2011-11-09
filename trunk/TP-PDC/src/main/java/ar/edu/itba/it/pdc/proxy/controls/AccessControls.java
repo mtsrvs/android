@@ -153,7 +153,7 @@ public class AccessControls {
 		}
 		
 		public void remove(XMPPClientMessageProcessor cmp){
-			if (cmp.getJid() != null){
+			if (cmp.getJid() != null && cmp.getJid().getResource() != null){
 				PriorityQueue<XMPPClientMessageProcessor> q = getQueue(cmp.getJid().getUsername());
 				if (q != null){
 					q.remove(cmp);
@@ -166,10 +166,9 @@ public class AccessControls {
 		public void reorder(XMPPClientMessageProcessor cmp){
 			if (cmp.getJid() != null && cmp.getJid().getUsername() != null){
 				PriorityQueue<XMPPClientMessageProcessor> q = getQueue(cmp.getJid().getUsername());
-				if (q != null){
-					q.remove(cmp);
-					q.add(cmp);
-				}
+				if (q != null)
+					if (q.remove(cmp))
+						q.add(cmp);
 			}
 		}
 		
