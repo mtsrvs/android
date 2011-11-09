@@ -1,6 +1,7 @@
 package ar.edu.itba.it.pdc.proxy.controls;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -108,6 +109,11 @@ public class AccessControls {
 		}
 		Isecu.log.debug("Concurrent session map: " + this.concurrentSessions);
 		return ans;
+	}
+	
+	public InetSocketAddress multiplex(String username){
+		return this.configLoader.getMultiplex().get(username);
+		
 	}
 	
 	public void reorder(XMPPClientMessageProcessor cmp){

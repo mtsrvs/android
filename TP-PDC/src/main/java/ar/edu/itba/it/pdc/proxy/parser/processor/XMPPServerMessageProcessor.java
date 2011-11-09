@@ -1,5 +1,6 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
+import java.nio.channels.ServerSocketChannel;
 import java.util.Iterator;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
+import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
@@ -24,10 +26,15 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	private boolean resetMessage = false;
 	private boolean forceWrite = false;
 	
+	private ServerSocketChannel channel;
+	public void associateChannel(ServerSocketChannel server){
+		this.channel = server;
+	}
+	
 	public XMPPServerMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
-			AccessControls accessControls, FileTransferManager fileManager) {
-		super(configLoader, readerFactory, filterControls, accessControls, fileManager);
+			AccessControls accessControls, FileTransferManager fileManager, ConnectionMap connectionMap) {
+		super(configLoader, readerFactory, filterControls, accessControls, fileManager, connectionMap);
 	}
 	
 	private XMPPClientMessageProcessor getEndpoint(){
@@ -72,14 +79,17 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			Iterator<SimpleElement> iterator = mechanismList.iterator();
 			while(iterator.hasNext()){
 				SimpleElement elem = iterator.next();
-				if (!ElemUtils.hasTextEquals(elem.getFirstTextData(), "DIGEST-MD5"))
+				if (fromAttribute && !ElemUtils.hasTextEquals(elem.getFirstTextData(), "DIGEST-MD5"))
+					iterator.remove();
+				else if (!fromAttribute && !ElemUtils.hasTextEquals(elem.getFirstTextData(), "PLAIN") )
 					iterator.remove();
 			}
 			
 			mechanisms.setChildren("mechanism", mechanismList);
 			
 			if (mechanisms.getChildren("mechanism").isEmpty()){
-				String message = "DIGEST-MD5 mechanism not supported by this server";
+				String mech = fromAttribute ? "DIGEST-MD5" : "PLAIN";
+				String message = "Authentication via SASL/" + mech + " mechanism not supported by this server";
 				Isecu.log.info(message);
 				bufferAdd(sc.handleUserControlException("temporary-auth-failure", message));
 			}
