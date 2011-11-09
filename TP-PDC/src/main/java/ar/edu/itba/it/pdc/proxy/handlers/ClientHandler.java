@@ -63,7 +63,7 @@ public class ClientHandler extends XMPPHandler {
 		connectionMap.addConnection(sc, ss);
 		sc.configureBlocking(false);
 		ChannelAttach attach = new ChannelAttach(this.configLoader, this.readerFactory, this.filterControls, this.accessControls, this.fileManager, this.connectionMap);
-		attach.associateChannelWithProcessor(sc, key.selector(), attach);
+		//attach.associateChannelWithProcessor(sc, key.selector(), attach);
 		//attach.associateChannelWithProcessor(ss);
 		sc.register(key.selector(), SelectionKey.OP_READ, attach);
 		ss.register(key.selector(), SelectionKey.OP_READ, attach);

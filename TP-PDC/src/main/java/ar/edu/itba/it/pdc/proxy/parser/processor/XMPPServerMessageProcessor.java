@@ -129,8 +129,8 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			
 			// Time range/Max Logins access controls
 			try {
-				this.accessControls.logins(getEndpoint().getUsername());
-				this.accessControls.range(getEndpoint().getUsername());				
+				this.accessControls.logins(getEndpoint().jid.getUserInfo());
+				this.accessControls.range(getEndpoint().jid.getUserInfo());				
 			} catch (MaxLoginsAllowedException exc){
 				Isecu.log.info("Access denied: " + exc.getMessage());
 				buffer.clear();
