@@ -1,5 +1,6 @@
 package ar.edu.itba.it.pdc.proxy.filetransfer;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -20,6 +21,8 @@ public class XMPPFileInfo {
 	private String hash;
 	
 	private String proxyIp;
+	
+	private File file;
 	
 	private List<String> streamMethods = new LinkedList<String>();
 	
@@ -116,6 +119,14 @@ public class XMPPFileInfo {
 			return "http://jabber.org/protocol/ibb";
 		}
 		return "";
+	}
+
+	public File getFile() {
+		return file;
+	}
+
+	public void setFile(File file) {
+		this.file = file;
 	}
 
 	@Override

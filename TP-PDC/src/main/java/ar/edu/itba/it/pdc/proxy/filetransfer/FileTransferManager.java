@@ -4,8 +4,10 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -89,7 +91,10 @@ public class FileTransferManager {
 					}
 					bos.close();
 					Isecu.log.info("File Transfer: Proxy received file[" + df.format((float)count/1024) + " KB]");
-					sendFile(bsi, processor);
+					if(calculateOrValidateHash(bsi.getFile(), tmpFile)) {
+						bsi.getFile().setFile(tmpFile);
+						sendFile(bsi, processor);
+					}
 					return null;
 			}
 			
@@ -188,6 +193,37 @@ public class FileTransferManager {
         cmd[cmd.length - 1] = 0;	
 
         return cmd;
+	}
+	
+	private boolean calculateOrValidateHash(XMPPFileInfo fileInfo, File file) {
+		String hash = calculateHash(file);
+		Isecu.log.info("File Transfer : Hash calculated [" + hash + "]");
+		if (fileInfo.getHash() != null) {
+			return fileInfo.equals(hash);
+		} else {
+			fileInfo.setHash(hash);
+			return true;
+		}
+	}
+	
+	private String calculateHash(File file) {
+		try {
+			MessageDigest md = MessageDigest.getInstance("MD5");
+
+			InputStream is = new FileInputStream(file);
+			byte[] buffer = new byte[configLoader.getFileTransferBufferSize()];
+			
+			int read;
+			while((read = is.read(buffer)) != -1) {
+				md.update(buffer, 0, read);
+			}
+			
+			return encodeHex(md.digest());
+			
+		} catch (Exception e) {
+			Isecu.log.fatal("File hash error");
+			throw new InvalidProtocolException("File hash error");
+		}
 	}
 	
 	private String hash(String target) {
