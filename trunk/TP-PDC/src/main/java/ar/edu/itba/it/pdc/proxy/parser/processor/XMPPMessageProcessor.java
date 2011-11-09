@@ -11,6 +11,7 @@ import ar.edu.itba.it.pdc.exception.InvalidProtocolException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
+import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
@@ -37,6 +38,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	private AsyncXMLStreamReader asyncReader;
 	protected Queue<XMPPElement> buffer = new LinkedList<XMPPElement>();
 	protected FileTransferManager fileManager;
+	protected ConnectionMap connectionMap;
 	
 	protected JID jid = null;
 	private boolean reset = false;	
@@ -44,7 +46,8 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	protected boolean fromAttribute = false;
 
 	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory, 
-			FilterControls filterControls, AccessControls accessControls, FileTransferManager fileManager) {
+			FilterControls filterControls, AccessControls accessControls, FileTransferManager fileManager,
+			ConnectionMap connectionMap) {
 		this.configLoader = configLoader;
 		this.readerFactory = readerFactory;
 		this.filterControls = filterControls;
@@ -52,6 +55,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		this.sc = new StreamConstructor(this.filterControls);
 		this.asyncReader = this.readerFactory.newAsyncReader();
 		this.fileManager = fileManager;
+		this.connectionMap = connectionMap;
 		this.jid = new JID();
 	}
 	
@@ -153,8 +157,8 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 					break;
 				case AsyncXMLStreamReader.START_ELEMENT:
 					if ((aux = sc.handleStartElement(asyncReader)) != null) {
-						bufferAdd(aux);
 						processXMPPElement((StartElement) aux);
+						bufferAdd(aux);
 					}
 					break;
 				case AsyncXMLStreamReader.END_ELEMENT:
@@ -263,6 +267,8 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 			handlePresenceStanza((PresenceStanza) e);
 		} else if (ElemUtils.isElementLocal(e, "response")){
 			handleResponseElement(e);
+		} else if (ElemUtils.isElementLocal(e, "auth")){
+			handleAuthElement(e);
 		} else if (ElemUtils.isElement(e, "stream:features")){
 			handleStreamFeatures(e);
 		} else {
@@ -286,6 +292,10 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	}
 	
 	protected void handleResponseElement(SimpleElement e) {
+		
+	}
+	
+	protected void handleAuthElement(SimpleElement e) {
 		
 	}
 	

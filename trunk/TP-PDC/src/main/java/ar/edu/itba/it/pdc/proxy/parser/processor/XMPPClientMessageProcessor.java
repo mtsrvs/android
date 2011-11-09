@@ -1,11 +1,14 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
+import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.iharder.Base64;
 
@@ -14,11 +17,13 @@ import org.joda.time.DateTime;
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
 import ar.edu.itba.it.pdc.exception.UserSilencedException;
+import ar.edu.itba.it.pdc.proxy.ChannelAttach;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filetransfer.ByteStreamsInfo;
 import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
 import ar.edu.itba.it.pdc.proxy.filetransfer.XMPPFileInfo;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
+import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
@@ -36,8 +41,8 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	
 	public XMPPClientMessageProcessor(ConfigLoader configLoader,
 			ReaderFactory readerFactory, FilterControls filterControls,
-			AccessControls accessControls, FileTransferManager fileManager) {
-		super(configLoader, readerFactory, filterControls, accessControls, fileManager);
+			AccessControls accessControls, FileTransferManager fileManager, ConnectionMap connectionMap) {
+		super(configLoader, readerFactory, filterControls, accessControls, fileManager, connectionMap);
 	}
 
 	public XMPPServerMessageProcessor getEndpoint(){
@@ -55,6 +60,25 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			if (fromValue != null){
 				this.fromAttribute = true;
 				this.jid = new JID(fromValue);
+				
+				//Multiplexación si viene el atributo 'from' en el elemento stream inicial.
+				/*try {
+					InetSocketAddress multiplex = this.accessControls.multiplex(this.jid.getUsername());
+					InetSocketAddress origin = (InetSocketAddress)configLoader.getOriginServer();
+					SocketChannel ss = null;
+					if(multiplex == null){
+						ss = SocketChannel.open(origin);
+					} else {
+						InetSocketAddress addr = multiplex;
+						ss = SocketChannel.open();
+						e.getAttributes().put("from", addr.getHostName());
+					}
+					ss.configureBlocking(false);
+					ss.register(this.selector, SelectionKey.OP_READ, this.attach);
+					this.connectionMap.addConnection(this.client, ss);
+				} catch(IOException exc){
+					Isecu.log.debug(exc);
+				}*/
 			}
 		}	
 	}
@@ -154,8 +178,44 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	}
 	
 	@Override
+	protected void handleAuthElement(SimpleElement e){
+		if(!fromAttribute && ElemUtils.hasTextEquals(e.getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-sasl"))
+			handleSASLPlainSession(e);
+	}
+	
+	protected boolean afterMultiplex = false;
+	
+	private void handleSASLPlainSession(SimpleElement e) {
+		String data = e.getBodyAsRawData();
+		try {
+			String decoded = new String(Base64.decode(data), Charset.forName("UTF-8"));
+			String[] parts = decoded.split("\0");
+			Isecu.log.debug("Username -> parts[1]:" + parts[1]);
+			this.jid.setUsername(parts[1]);
+			
+			//Multiplexación
+			/*InetAddress multiplex = this.accessControls.multiplex(this.jid.getUsername());
+			if (multiplex != null){
+				
+			}*/
+			
+		} catch (Exception exc) {
+			Isecu.log.debug(exc);
+		}
+	}
+	
+	private SocketChannel client;
+	private Selector selector;
+	private ChannelAttach attach;
+	public void associateChannel(SocketChannel client, Selector selector, ChannelAttach attach){
+		this.client = client;
+		this.selector = selector;
+		this.attach = attach;
+	}
+	
+	/*@Override
 	protected void handleResponseElement(SimpleElement e){
-		if(!this.fromAttribute && ElemUtils.hasTextEquals(e.getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-sasl"))
+		if(ElemUtils.hasTextEquals(e.getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-sasl"))
 			handleSASLSession(e);
 	}
 	
@@ -171,7 +231,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		} catch (Exception exc) {
 			Isecu.log.debug(exc);
 		}
-	}
+	}*/
 	
 	public void handleMessageStanza(MessageStanza messageStanza) {
 		updateLastStanzaTime();	

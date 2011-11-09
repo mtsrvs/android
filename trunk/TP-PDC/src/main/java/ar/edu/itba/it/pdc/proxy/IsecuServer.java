@@ -117,8 +117,7 @@ public class IsecuServer {
 			endPoint = connectionMap.getClientChannel(key.channel());
 		}
 		try {
-			protocolUtils.getHandler(key).read(key,
-					HandlerUtils.getKey(endPoint, key.selector()));
+			protocolUtils.getHandler(key).read(key, HandlerUtils.getKey(endPoint, key.selector()));
 		} catch (Exception e) {
 			Isecu.log.debug("Read handler error", e);
 			Isecu.log.error("Read handler error");
