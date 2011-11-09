@@ -148,7 +148,7 @@ existen para el protocolo, y dada la cuidadosa implementación que cada uno
 requiere, se volvería un trabajo denso y sin mucho sentido brindar soporte para
 todos ellos. Por lo tanto, se optó por monopolizar el uso de SASL/DIGEST-MD5
 (se encuentra dentro de los \textit{mandatory-to-implement} de los RFC del
-protocolo) como método predilecto.
+protocolo) como método predilecto.\\
 El proxy analizará las features enviadas por el servidor y eliminará
 aquellos mecanismos que no sean el mencionado. En caso no quedar ninguno, se
 devolverá al usuario un elemento <failure> de tipo <temporary-auth-failure>
@@ -156,8 +156,21 @@ indicando los motivos evidentes.
 
 
 \section{Posibles extensiones}
+Una posible aplicación del proxy es dentro de una empresa, con el objetivo de controlar o modificar
+los mensajes enviados por los empleados para preservar una buena imágen. Por lo tanto, se considera
+que una posible extensión sería agregar un corrector ortográfico y un filtro de ciertas palabras
+indeseadas.\\
+Por otro lado, podría establecerse un tamaño máximo de archivos a enviar o recibir, con el objetivo
+de evitar congestionamiento indeseado en la red. Por supuesto, esta restricción puede establecerse
+por usuario, permitiendo que ciertos usuarios puedan intercambiar archivos del tamaño que deseen.\\
+Otra posible extensión sería agregar otros mecanismos de SASL, para permitir la conexión de clientes
+que requieran otro mecanismo que no sea DIGEST-MD5.
 
 \section{Conclusiones}
+El proxy XMPP es una herramienta muy potente para poder manipular los datos transferidos entre cliente y servidor 
+(y viceversa). Es importante poder contar con una herramienta que permita controlar dichos datos, ya que muchas
+veces se desea filtrar o modificar ciertas cosas de forma transparente al cliente.
+
 
 \section{Ejemplos de testeo}
 Para la ejecución de los casos de prueba, se va a contar con los siguientes usuarios:
@@ -506,9 +519,8 @@ Para la ejecución de los casos de prueba, se va a contar con los siguientes usu
 \begin{verbatim}
  Dependencias:
 
- - Para la compilación del proyecto es necesario que el sistema cuente con Maven2. El cual 
-en el caso de Ubuntu puede instalarse
-con el siguiente comando:
+ - Para la compilación del proyecto es necesario que el sistema cuente con Maven2. El cual, 
+en el caso de Ubuntu, puede instalarse con el siguiente comando:
 
   > sudo apt-get install maven2
 
@@ -568,8 +580,7 @@ adminPassword=admin
 \newpage
 \section{Diseño del proyecto}
 
-\subsection{Diagramas UML}
-\subsubsection{Handlers}
+\subsection{Handlers}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=400px]{UML/Handlers}  
@@ -578,7 +589,7 @@ adminPassword=admin
 \end{figure}
 
 \newpage
-\subsubsection{Elements}
+\subsection{Elements}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=400px]{UML/Elements}  
@@ -587,7 +598,7 @@ adminPassword=admin
 \end{figure}
 
 \newpage
-\subsubsection{Processor}
+\subsection{Processor}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=400px]{UML/Processor}  
@@ -596,7 +607,7 @@ adminPassword=admin
 \end{figure}
 
 \newpage
-\subsubsection{Configuración}
+\subsection{Configuración}
 \begin{figure}[h]
 	\centering
 	\includegraphics[width=400px]{UML/ConfigUML}  
