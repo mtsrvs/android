@@ -41,6 +41,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	protected JID jid = null;
 	private boolean reset = false;	
 	private boolean stopAddingToBuffer = false;
+	protected boolean fromAttribute = false;
 
 	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory, 
 			FilterControls filterControls, AccessControls accessControls, FileTransferManager fileManager) {

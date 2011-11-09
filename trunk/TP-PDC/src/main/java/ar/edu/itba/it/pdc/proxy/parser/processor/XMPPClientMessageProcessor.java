@@ -50,6 +50,12 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			String toValue = e.getAttributes().get("to");
 			if (toValue != null)
 				this.jid.setServer(toValue);
+			
+			String fromValue = e.getAttributes().get("from");
+			if (fromValue != null){
+				this.fromAttribute = true;
+				this.jid = new JID(fromValue);
+			}
 		}	
 	}
 	
@@ -143,13 +149,13 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		}catch (Exception e) {
 			Isecu.log.debug(e);
 			this.appendOnEndpointBuffer(PredefinedMessages.streamHostFail(bsi.getId(), bsi.getTo(), bsi.getFrom()));
-			Isecu.log.info("File Transfer: Stream initiation failed[" + bsi.getFrom() + "]");
+			Isecu.log.info("File Transfer: Strem initiation failed[" + bsi.getFrom() + "]");
 		}
 	}
 	
 	@Override
 	protected void handleResponseElement(SimpleElement e){
-		if(ElemUtils.hasTextEquals(e.getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-sasl"))
+		if(!this.fromAttribute && ElemUtils.hasTextEquals(e.getNamespaces().get("xmlns"), "urn:ietf:params:xml:ns:xmpp-sasl"))
 			handleSASLSession(e);
 	}
 	
