@@ -88,7 +88,7 @@ public class AccessControls {
 	}
 	
 	public List<XMPPClientMessageProcessor> concurrentSessions(XMPPClientMessageProcessor cmp){
-		Integer maxConcurrentSessions = this.configLoader.getCaccess().get(cmp.getJid().getUsername());
+		Integer maxConcurrentSessions = this.configLoader.getCaccess().get(cmp.getJid().getUserInfo());
 		
 		List<XMPPClientMessageProcessor> ans = null;
 		if (cmp.getJid().getUsername() != null){
