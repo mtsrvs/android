@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.security.MessageDigest;
@@ -214,5 +215,53 @@ public class FileTransferManager {
 
         return hex.toString();
     }
+	
+	public ServerSocket startSocks5offer(int timeout) {
+		FutureTask<ServerSocket> futureTask = new FutureTask<ServerSocket>(new Callable<ServerSocket>() {
+
+			public ServerSocket call() throws Exception {
+				ServerSocket ss = null;
+				try {
+					InetSocketAddress pa = (InetSocketAddress) configLoader.getProxyAddress();
+					for(int i = 7000; i < 65536; i++) {
+						try {
+							ss = new ServerSocket(i, 1, pa.getAddress());
+							return ss;
+						}catch(IOException e) {
+							//Puerto utilizado se prueba el siguiente
+						}
+					}
+					return null;
+				}catch(Exception e) {
+					return null;
+				}
+			}
+			
+		});
+		svc.execute(futureTask);
+		try {
+			return futureTask.get(timeout, TimeUnit.MILLISECONDS);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	
+	public void socks5Server(final ServerSocket ss) {
+		FutureTask<Void> futureTask = new FutureTask<Void>(new Callable<Void>() {
+
+			@Override
+			public Void call() throws Exception {
+				Isecu.log.debug("Ofreciendo SOCKS5");
+				Socket client = ss.accept();
+				Isecu.log.debug("El cliente está tratando de hacer SOCKS5: " + client.getLocalPort());
+				
+				return null;
+				
+			}
+			
+		});
+		
+		svc.execute(futureTask);
+	}
 
 }

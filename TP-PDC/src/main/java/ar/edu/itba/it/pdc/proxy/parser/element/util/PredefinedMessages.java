@@ -154,4 +154,16 @@ public class PredefinedMessages {
 		return XML.toString();
 	}
 	
+	public static XMPPElement createByteStreamOffer(XMPPFileInfo file, int port) {
+		StringBuilder XML = new StringBuilder();
+		XML.append(createIqHeader(file.getId(), "set", file.getFrom(), file.getTo()));
+		XML.append("<query xmlns='http://jabber.org/protocol/bytestreams' sid='").append(file.getSid()).append("'>");
+		XML.append("<streamhost jid='").append(file.getTo())
+			.append("' host='").append(file.getProxyIp()).append("' port='")
+			.append(port).append("'/>");
+		XML.append("</query>");
+		XML.append("</iq>");
+		return new RawData(null, XML.toString());
+	}
+	
 }
