@@ -189,10 +189,11 @@ Donde filtername puede ser leet o hash y state puede ser on u off.
 
 4. Respuestas
 
-Luego de la ejecución de un comando la aplicación enviará una respuesta.
-Toda respuesta va a contener el objeto status, con valor "OK" o "ERROR" corres-
-pondiente a una respuesta satisfactoria o no, respectivamente. Luego de cualquier
-comando de tipo "assignation" o "delete" se va a responder con una respuesta 
-conformada sólo con un objeto status. En caso de que el comando haya sido de 
-tipo "query" los resultados de esa query se enviarán en formato compuesto o 
-simple, dependiendo de la cantidad de resultados obtenidos, en el objeto "data".
+Luego de la ejecución de un comando, la aplicación enviará una respuesta en 
+formato JSON. Toda respuesta va a contener el objeto status, con valor "OK" o 
+"ERROR" correspondiente a una respuesta satisfactoria o no, respectivamente. 
+Luego de cualquier comando de tipo "assignation" o "delete" se va a responder 
+con una respuesta conformada sólo con un objeto status. En caso de que el 
+comando haya sido de tipo "query" los resultados de esa query se enviarán en 
+formato compuesto o simple, dependiendo de la cantidad de resultados obtenidos, 
+en el objeto "data".
