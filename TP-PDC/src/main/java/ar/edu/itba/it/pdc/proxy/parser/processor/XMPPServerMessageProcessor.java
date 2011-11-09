@@ -99,6 +99,8 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	public void handleOtherElement(SimpleElement simpleElement) {
 		if(simpleElement.getName().equalsIgnoreCase("success")) {
 			
+			this.fromAttribute = true;
+			
 			// Time range/Max Logins access controls
 			try {
 				this.accessControls.logins(getEndpoint().getUsername());
