@@ -150,6 +150,20 @@ no bloqueante que se tomó para todo el resto de la aplicación, aunque como el 
 que se transmiten constantemente, no creemos que esta decisión afecte mucho a la performance de la aplicación en general.
 
 \section{Limitaciones de la aplicación}
+\subsection{Encriptación y mecanismos de autenticación}
+La aplicación no permite métodos de encriptación basados en TLS ni  relacionados.
+Es decir, el funcionamiento del Proxy bajo esas circunstancias es impredecible.
+Por otra parte, debido a la variedad de mecanismos de autenticación SASL que
+existen para el protocolo, y dada la cuidadosa implementación que cada uno
+requiere, se volvería un trabajo denso y sin mucho sentido brindar soporte para
+todos ellos. Por lo tanto, se optó por monopolizar el uso de SASL/DIGEST-MD5
+(se encuentra dentro de los \textit{mandatory-to-implement} de los RFC del
+protocolo) como método predilecto.
+El proxy analizará las features enviadas por el servidor y eliminará
+aquellos mecanismos que no sean el mencionado. En caso no quedar ninguno, se
+devolverá al usuario un elemento <failure> de tipo <temporary-auth-failure>
+indicando los motivos evidentes.
+
 
 \section{Posibles extensiones}
 
