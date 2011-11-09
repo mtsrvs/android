@@ -6,9 +6,12 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
+import javax.naming.ConfigurationException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import ar.edu.itba.it.pdc.exception.CommandValidationException;
 import ar.edu.itba.it.pdc.proxy.handlers.TCPHandler;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 
@@ -18,6 +21,7 @@ public class ConfigHandler implements TCPHandler {
 	private ConfigLoader configLoader;
 	private ConnectionMap connectionMap;
 	private ConfigCommandsProcessor commandsProcessor;
+	private StringBuilder buffer;
 
 	@Autowired
 	public ConfigHandler(ConfigLoader configLoader, ConnectionMap connectionMap, 
@@ -25,6 +29,7 @@ public class ConfigHandler implements TCPHandler {
 		this.configLoader = configLoader;
 		this.connectionMap = connectionMap;
 		this.commandsProcessor = commandsProcessor;
+		this.buffer = new StringBuilder();
 	}
 
 	public void read(SelectionKey key, SelectionKey endPointKey)
@@ -38,14 +43,32 @@ public class ConfigHandler implements TCPHandler {
 		long bytesRead = sc.read(request);
 		buf.clear();
 
-		if (bytesRead == -1) { // Did the other end close?
-			sc.close();
-		} else if (bytesRead > 0) {
-			String requestContent = new String(request.array());
-			if(requestContent.contains("\n")) {
-				requestContent = requestContent.substring(0, requestContent.indexOf('\n'));
+		try {
+			if (bytesRead == -1) { // Did the other end close?
+				sc.close();
+			} else if (bytesRead > 0) {
+				String requestContent = new String(request.array());
+				checkCtrlC(request.array());
+				if(requestContent.contains("\n")) {
+					requestContent = requestContent.substring(0, requestContent.indexOf('\n'));
+					buffer.append(requestContent);
+					commandsProcessor.process(key, buf, buffer.toString());
+					buffer.delete(0, buffer.length());
+				} else {
+					buffer.append(requestContent);
+					key.interestOps(SelectionKey.OP_READ);
+				}
 			}
-			commandsProcessor.process(key, buf, requestContent);
+		} catch (Exception e) {
+			sc.close();
+		}
+	}
+
+	private void checkCtrlC(byte[] array) {
+		if(array[0] == -1 && array[1] == -12 && array[2] == -1
+				&& array[3] == -3 && array[4] == 6 && array[5] == 0 
+				&& array[6] == 0 && array[7] == 0 && array[8] == 0 && array[9] == 0) {
+			throw new CommandValidationException();
 		}
 	}
 
@@ -56,7 +79,10 @@ public class ConfigHandler implements TCPHandler {
 		buf.flip();
 		sc.write(buf);
 
-		if (!buf.hasRemaining()) {
+		if(commandsProcessor.hasRemaining()) {
+			commandsProcessor.getContent(buf);
+			key.interestOps(SelectionKey.OP_WRITE);
+		} else if (!buf.hasRemaining()) {
 			buf.clear();
 			key.interestOps(SelectionKey.OP_READ);
 		} else {

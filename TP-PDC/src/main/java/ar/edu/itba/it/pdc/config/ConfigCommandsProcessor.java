@@ -20,6 +20,7 @@ public class ConfigCommandsProcessor {
 	private ConfigLoader configLoader;
 	private ObjectMapper mapper;
 	private ConfigCommandsValidator validator;
+	private StringBuilder responseBuffer;
 	
 	protected static enum Msg {
 		OK("{\"status\":\"OK\"}\n"), 
@@ -39,6 +40,7 @@ public class ConfigCommandsProcessor {
 		this.configLoader = configLoader;
 		this.mapper = new ObjectMapper();
 		this.validator = validator;
+		this.responseBuffer = new StringBuilder();
 	}
 
 	@SuppressWarnings("unchecked")
@@ -89,10 +91,26 @@ public class ConfigCommandsProcessor {
 
 	public void sendResponse(SelectionKey key, ByteBuffer buf, String response) {
 		if (response != "") {
-			buf.clear();
-			buf.put(response.getBytes());
-			key.interestOps(SelectionKey.OP_WRITE);
+			this.responseBuffer.append(response);
 		}
+		key.interestOps(SelectionKey.OP_WRITE);
+	}
+	
+	public boolean hasRemaining() {
+		return this.responseBuffer.length() != 0;
+	}
+	
+	public void getContent(ByteBuffer buf) {
+		String aux;
+		if(this.responseBuffer.length() > buf.capacity()) {
+			aux = responseBuffer.substring(0,buf.capacity());
+			responseBuffer = responseBuffer.delete(0, buf.capacity());
+		} else {
+			aux = responseBuffer.toString();
+			this.responseBuffer.delete(0, responseBuffer.length());
+		}
+		buf.clear();
+		buf.put(aux.getBytes());
 	}
 
 	private boolean authenticate(List<String> values) {
