@@ -1,0 +1,64 @@
+<class-diagram version="1.0.4" icons="true" automaticImage="JPEG" always-add-relationships="false" 
+  generalizations="true" realizations="true" associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="3" corner="BOTTOM_RIGHT" language="java" name="ar.edu.itba.it.pdc.proxy.handlers.XMPPHandler" 
+    project="TP-PDC" file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/handlers/XMPPHandler.java" binary="false">    
+    <position x="184" y="157" width="265" height="152"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="false"/>    
+    </display>  
+  </class>  
+  <interface id="4" corner="BOTTOM_RIGHT" language="java" name="ar.edu.itba.it.pdc.proxy.handlers.TCPHandler" 
+    project="TP-PDC" file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/handlers/TCPHandler.java" binary="false">    
+    <position x="516" y="64" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </interface>  
+  <class id="5" corner="BOTTOM_RIGHT" language="java" name="ar.edu.itba.it.pdc.proxy.handlers.ClientHandler" 
+    project="TP-PDC" file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/handlers/ClientHandler.java" binary="false">    
+    <position x="335" y="368" width="305" height="206"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="6" corner="BOTTOM_RIGHT" language="java" name="ar.edu.itba.it.pdc.proxy.handlers.ServerHandler" 
+    project="TP-PDC" file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/handlers/ServerHandler.java" binary="false">    
+    <position x="169" y="450" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="7" corner="BOTTOM_RIGHT" language="java" name="ar.edu.itba.it.pdc.config.ConfigHandler" project="TP-PDC" 
+    file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/config/ConfigHandler.java" binary="false">    
+    <position x="512" y="157" width="315" height="161"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="false"/>    
+    </display>  
+  </class>  
+  <generalization>    
+    <end type="SOURCE" nodeId="5"/>    
+    <end type="TARGET" nodeId="3"/>  
+  </generalization>  
+  <generalization>    
+    <end type="SOURCE" nodeId="6"/>    
+    <end type="TARGET" nodeId="3"/>  
+  </generalization>  
+  <realization>    
+    <end type="SOURCE" nodeId="3"/>    
+    <end type="TARGET" nodeId="4"/>  
+  </realization>  
+  <realization>    
+    <end type="SOURCE" nodeId="7"/>    
+    <end type="TARGET" nodeId="4"/>  
+  </realization>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>

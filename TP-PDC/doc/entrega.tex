@@ -501,7 +501,7 @@ Para la ejecución de los casos de prueba, se va a contar con los siguientes usu
   \end{tabular}
 \end{center}
 
-\section{Guía de instalación detallada y precisa}
+\section{Guía de instalación}
 
 \begin{verbatim}
  Dependencias:
@@ -565,22 +565,41 @@ adminUsername=admin
 adminPassword=admin
 \end{verbatim}
 
-
-\section{Documento de diseño del proyecto}
+\newpage
+\section{Diseño del proyecto}
 
 \subsection{Diagramas UML}
 \subsubsection{Handlers}
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=400px]{Handlers}  
+	\includegraphics[width=400px]{UML/Handlers}  
 	\caption{Diagrama UML de los handlers}
 	\label{figure:Handlers}
 \end{figure}
 
+\newpage
+\subsubsection{Elements}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=400px]{UML/Elements}  
+	\caption{Diagrama UML de los elementos XMPP}
+	\label{figure:Elements}
+\end{figure}
+
+\newpage
+\subsubsection{Processor}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=400px]{UML/Processor}  
+	\caption{Diagrama UML del mecanismo para procesar los streams}
+	\label{figure:Processor}
+\end{figure}
+
+\newpage
 \subsubsection{Configuración}
 \begin{figure}[h]
 	\centering
-	\includegraphics[width=400px]{ConfigUML}  
+	\includegraphics[width=400px]{UML/ConfigUML}  
 	\caption{Diagrama UML del protocolo de configuración}
 	\label{figure:ConfigUML}
 \end{figure}
