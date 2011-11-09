@@ -1,0 +1,58 @@
+<class-diagram version="1.0.4" icons="true" automaticImage="JPEG" always-add-relationships="false" 
+  generalizations="true" realizations="true" associations="true" dependencies="false" nesting-relationships="true">  
+  <class id="1" corner="BOTTOM_RIGHT" language="java" 
+    name="ar.edu.itba.it.pdc.proxy.parser.processor.XMPPClientMessageProcessor" project="TP-PDC" 
+    file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/parser/processor/XMPPClientMessageProcessor.java" 
+    binary="false">    
+    <position x="65" y="318" width="303" height="169"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <interface id="2" corner="BOTTOM_RIGHT" language="java" name="ar.edu.itba.it.pdc.proxy.parser.processor.XMPPFilter" 
+    project="TP-PDC" file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/parser/processor/XMPPFilter.java" 
+    binary="false">    
+    <position x="403" y="18" width="-1" height="-1"/>    
+    <display autosize="true" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </interface>  
+  <class id="3" corner="BOTTOM_RIGHT" language="java" 
+    name="ar.edu.itba.it.pdc.proxy.parser.processor.XMPPMessageProcessor" project="TP-PDC" 
+    file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/parser/processor/XMPPMessageProcessor.java" binary="false">    
+    <position x="256" y="120" width="291" height="141"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="false"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <class id="4" corner="BOTTOM_RIGHT" language="java" 
+    name="ar.edu.itba.it.pdc.proxy.parser.processor.XMPPServerMessageProcessor" project="TP-PDC" 
+    file="/TP-PDC/src/main/java/ar/edu/itba/it/pdc/proxy/parser/processor/XMPPServerMessageProcessor.java" 
+    binary="false">    
+    <position x="425" y="314" width="379" height="170"/>    
+    <display autosize="false" package="true" initial-value="false" signature="true" visibility="true">      
+      <attributes public="true" package="true" protected="true" private="true"/>      
+      <operations public="true" package="true" protected="true" private="true"/>    
+    </display>  
+  </class>  
+  <generalization>    
+    <end type="SOURCE" nodeId="4"/>    
+    <end type="TARGET" nodeId="3"/>  
+  </generalization>  
+  <generalization>    
+    <end type="SOURCE" nodeId="1"/>    
+    <end type="TARGET" nodeId="3"/>  
+  </generalization>  
+  <realization>    
+    <end type="SOURCE" nodeId="3"/>    
+    <end type="TARGET" nodeId="2"/>  
+  </realization>  
+  <classifier-display autosize="true" package="true" initial-value="false" signature="true" visibility="true">    
+    <attributes public="true" package="true" protected="true" private="true"/>    
+    <operations public="true" package="true" protected="true" private="true"/>  
+  </classifier-display>  
+  <association-display labels="true" multiplicity="true"/>
+</class-diagram>
