@@ -1,6 +1,9 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
@@ -58,8 +61,8 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 				this.fromAttribute = true;
 				this.jid = new JID(fromValue);
 				
-				//Multiplexaci�n si viene el atributo 'from' en el elemento stream inicial.
-				/*try {
+				/*//Multiplexaci�n si viene el atributo 'from' en el elemento stream inicial.
+				try {
 					InetSocketAddress multiplex = this.accessControls.multiplex(this.jid.getUsername());
 					InetSocketAddress origin = (InetSocketAddress)configLoader.getOriginServer();
 					SocketChannel ss = null;

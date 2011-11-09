@@ -21,7 +21,7 @@ public class FilterControls {
 	public boolean l33t(JID jid){
 		if (jid == null)
 			return false;
-		String l33t = this.configLoader.getLeet().get(jid.getUsername());
+		String l33t = this.configLoader.getLeet().get(jid.getUserInfo());
 		return l33t != null && l33t.equalsIgnoreCase(ON);
 	}
 	

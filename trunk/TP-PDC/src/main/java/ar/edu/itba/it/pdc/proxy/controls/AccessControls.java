@@ -52,15 +52,15 @@ public class AccessControls {
 				throw new AccessControlException("Network Blocked[" + net.getInfo().getAddress() + "]: " + addr);
 	}
 	
-	public void range(String username) throws InvalidRangeException {
-		TimeRange timeRange = this.configLoader.getTimeRanges().get(username);
+	public void range(String userInfo) throws InvalidRangeException {
+		TimeRange timeRange = this.configLoader.getTimeRanges().get(userInfo);
 		
 		if (timeRange != null && !timeRange.isInRange(DateTime.now()))
-			throw new InvalidRangeException(username + " is not allowed to login at this time.");
+			throw new InvalidRangeException(userInfo + " is not allowed to login at this time.");
 	}
 	
-	public void logins(String username) throws MaxLoginsAllowedException {
-		String str = this.configLoader.getLoginsBlacklist().get(username);
+	public void logins(String userInfo) throws MaxLoginsAllowedException {
+		String str = this.configLoader.getLoginsBlacklist().get(userInfo);
 		DateTime today = DateTime.now();
 		if (this.lastChecked != null
 				&& (today.getYear() != this.lastChecked.getYear()
@@ -68,11 +68,11 @@ public class AccessControls {
 				|| today.getDayOfYear() != this.lastChecked.getDayOfYear()))
 			this.currentLogins.clear();
 		
-		int logins = this.currentLogins.get(username) == null ? 1 : this.currentLogins.get(username) + 1;
-		this.currentLogins.put(username, logins); 		
+		int logins = this.currentLogins.get(userInfo) == null ? 1 : this.currentLogins.get(userInfo) + 1;
+		this.currentLogins.put(userInfo, logins); 		
 		if (str != null)
 			if (Integer.valueOf(str) < logins)
-				throw new MaxLoginsAllowedException("Too many logins today for " + username + ".");
+				throw new MaxLoginsAllowedException("Too many logins today for " + userInfo + ".");
 			
 		this.lastChecked = today;		
 	}
