@@ -14,19 +14,24 @@ public class Isecu {
 	public static Logger log = Logger.getRootLogger();
 	
 	public static void main(String[] args) throws IOException{
-		ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
-		BeanFactory factory = context;
-		IsecuServer is = (IsecuServer) factory.getBean("isecuServer");
-				
-		new Isecu(is);
+		try {
+			ApplicationContext context = new ClassPathXmlApplicationContext("context.xml");
+			BeanFactory factory = context;
+			IsecuServer is = (IsecuServer) factory.getBean("isecuServer");
+			
+			new Isecu(is);
+		}catch(Exception e) {
+			Isecu.log.debug("Fatal: ", e);
+			Isecu.log.fatal("Se apaga el proxy");
+		}
 	}
 	
 	public Isecu(IsecuServer isecuServer) {
 		try {
 			isecuServer.start();
-		} catch (IOException e) {
-			System.out.println("Error en el server!");
-			e.printStackTrace();
+		} catch (Exception e) {
+			Isecu.log.debug("Fatal: ", e);
+			Isecu.log.fatal("Se apaga el proxy");
 		}
 	}
 	

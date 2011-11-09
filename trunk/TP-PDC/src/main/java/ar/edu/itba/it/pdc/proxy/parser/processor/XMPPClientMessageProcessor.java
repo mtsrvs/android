@@ -1,9 +1,6 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.Charset;
@@ -61,7 +58,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 				this.fromAttribute = true;
 				this.jid = new JID(fromValue);
 				
-				//Multiplexación si viene el atributo 'from' en el elemento stream inicial.
+				//Multiplexaciï¿½n si viene el atributo 'from' en el elemento stream inicial.
 				/*try {
 					InetSocketAddress multiplex = this.accessControls.multiplex(this.jid.getUsername());
 					InetSocketAddress origin = (InetSocketAddress)configLoader.getOriginServer();
@@ -157,7 +154,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			String jid = streamhost.getAttribute("jid");
 			ByteStreamsInfo bsi = new ByteStreamsInfo(id, this.jid.toString(), to, sid, jid, host, port);
 			bsi.setMode(query.getAttribute("mode"));
-			bsi.setFile(getFileInfo(sid));
+			bsi.setFile(getFileInfoBySid(sid));
 			connectToStreamHost(bsi);
 			query.notSend();
 		}
@@ -166,6 +163,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 	private void connectToStreamHost(final ByteStreamsInfo bsi) {
 		try {
 			Socket s = this.fileManager.socks5connect(bsi, 10000);
+			bsi.getFile().setProxyIp(s.getLocalAddress().getHostAddress());
 			this.fileManager.receiveFile(s, this.endpoint, bsi);
 			this.appendOnEndpointBuffer(PredefinedMessages.streamHostUsed(bsi.getId(), bsi.getTo(), bsi.getFrom(), bsi.getJid()));
 			Isecu.log.info("File Transfer: Stream initiated[" + bsi.getFrom() + "]");
@@ -193,7 +191,7 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 			Isecu.log.debug("Username -> parts[1]:" + parts[1]);
 			this.jid.setUsername(parts[1]);
 			
-			//Multiplexación
+			//Multiplexaciï¿½n
 			/*InetAddress multiplex = this.accessControls.multiplex(this.jid.getUsername());
 			if (multiplex != null){
 				
@@ -288,9 +286,18 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		return "Resource: " + this.jid.getResource() + " - " + this.lastStanzaTime.getHourOfDay() + ":" + this.lastStanzaTime.getMinuteOfHour() + ":" + this.lastStanzaTime.getSecondOfMinute() + ":" + this.lastStanzaTime.getMillisOfSecond();
 	}
 	
-	private XMPPFileInfo getFileInfo(String sid) {
+	private XMPPFileInfo getFileInfoBySid(String sid) {
 		for(XMPPFileInfo f : this.files) {
 			if(sid.equals(f.getSid())) {
+				return f;
+			}
+		}
+		return null;
+	}
+	
+	public XMPPFileInfo getFileInfoByIdOffer(String id) {
+		for(XMPPFileInfo f : this.files) {
+			if(id.equals(f.getId())) {
 				return f;
 			}
 		}

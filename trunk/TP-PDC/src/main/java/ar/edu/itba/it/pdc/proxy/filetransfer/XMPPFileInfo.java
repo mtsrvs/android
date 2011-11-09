@@ -19,6 +19,8 @@ public class XMPPFileInfo {
 	private String date;
 	private String hash;
 	
+	private String proxyIp;
+	
 	private List<String> streamMethods = new LinkedList<String>();
 	
 	public XMPPFileInfo(String id, String sid, String from, String to, String name, int size) {
@@ -82,6 +84,14 @@ public class XMPPFileInfo {
 		this.sid = sid;
 	}
 
+	public void setProxyIp(String ip) {
+		this.proxyIp = ip;
+	}
+	
+	public String getProxyIp() {
+		return proxyIp;
+	}
+	
 	public void addStreamMethod(String method) {
 		this.streamMethods.add(method);
 	}
