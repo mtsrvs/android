@@ -53,6 +53,75 @@ del servidor proxy.
 
 \section{Problemas encontrados durante el diseño y la implementación}
 
+A continuación se detallan las decisiones que se han tomado durante el desarrollo del trabajo, para enfrentar los problemas
+que consideramos críticos.
+
+\subsection{Concurrencia}
+\subsubsection{Problema}
+El servidor proxy debe poder atender una cantidad considerable de sesiones concurrentes, sin dejar a ningún cliente
+bloqueado sin servicio.
+\subsubsection{Decisión}
+\par
+Una de las primeras opciones que se planteó fue la de utilizar \textit{SimpleThreads}, la cual consistía
+en manejar cada socket con un Thread por separado. Esta opción fue descartada al instante, ya que se mantendrían gran
+cantidad de Threads corriendo, sin estar procesando nada, y pocos procesando la información que fuere enviada por el
+cliente, lo que resultaría poco performante. Además, se sumaría el tiempo de \textit{scheduling} que crecería en igual o mayor ritmo
+que las conexiones.
+\par
+Una vez, descartada la opción anterior, decidimos utilizar Non-blocking Input Output (\textbf{Java NIO}). En la pre-entrega del
+trabajo se propuso utilizar un selector por Thread, y tener $n$ Threads, siendo $n$ la cantidad de núcleos del procesador donde esté
+corriendo la aplicación. De esta manera, no se perdería performance por \textit{scheduling}, pero llegado el momento de implementarlo,
+decidimos utilizar un solo Thread (salvo el caso de archivos que se explicará mas adelante), ya que la implementación de lo propuesto
+resultaba muy compleja, y acarrería problemas al momento de comunicar dos sockets, o mantener estados conjuntos.
+
+\subsection{Parser y modelo no bloqueante}
+\subsubsection{Problema}
+Habiendo tomado la decisión de seguir un modelo de atención no bloqueante, esto derivó en que cualquier procesamiento que se haga
+ante un evento del selector, debía ser no bloqueante, ya que de lo contrario, seguiríamos teníendo el problema de la sección
+anterior.\\
+Los parsers de XML mas conocidos como Xerces, SAX, DOM son tradicionalmente bloqueantes, lo cual no calzó con el modelo que se había
+planteado.
+\subsubsection{Decisión}
+Comenzamos investigando acerca de parsers de XML no bloqueantes, encontramos información sobre \textit{StAX} y \textit{StAX2} 
+(Streaming API for XML) ambos métodos de parsing de stream de XML. En donde la versión 2, utilizaba la métodología de 
+\textit{Pull Parsing} la cual nos permitía ir appendeando \textit{chunks} de datos. La única implementación de StAX2 completa era
+\textit{WoodStox}, pero esta arrojaba excepciones fatales cuando se appendeaban \textit{chunks} de datos con porciones de XML inválido, cosa
+que era esperable que pueda suceder. Luego de que \textit{WoodStox} fue descartado encontramos que el mismo desarrollador de la librería,
+tenía en versión Beta, el parser XML \textbf{aaltoXML}, el cual poseía escaza/nula documentación, pero que arrojaba el evento EVENT\_INCOMPLETE
+cuando se appendeaban datos de XML inválido. Luego de revisar los testeos de unidad en el source code de la librería, reconocimos como
+era su funcionamiento, y decidimos utilizarla.
+
+\subsection{Tamaño de buffers}
+\subsubsection{Problema}
+Antes de haber decidido utilizar \textit{aaltoXML}, teníamos el problema de tener que fijar un tamaño de buffer para lectura del cliente
+que nos asegure que lleguen las \textit{stanzas} completas. Como el RFC del protocolo no explicita un tamaño máximo de \textit{stanza}, sino
+que da la opción de enviar mensajes de error si la stanza enviada, es mayor a lo esperado por el servidor, y que cada implementación
+fije su límite. Nuestra aplicación como Proxy, no podía setearse un valor estipulado.
+\subsubsection{Decisión}
+\textit{AaltoXML} solucionó este problema, entonces se dejó la posibilidad de configurar los tamaños de buffers de lectura, para que el usuario del
+proxy pueda seleccionar el que convenga según la situación.
+
+\subsection{Modificación y edición de mensajes XMPP}
+\subsubsection{Problema}
+Una vez parseados sin problemas los mensajes, el proxy necesitaba en varios casos editar el contenido de los mismos, para realizar distintas
+acciones (filtros, hash de archivos, etc). En una primera ocasión se decidió tener un \textit{StringBuffer} marcando con punteros, las distintas
+secciones, pero esto resultó ser un problema ya que notamos que las ediciones de los mensajes iban a ser muchas.
+\subsubsection{Descisión}
+Para lograr la edición de distintas partes de los mensajes del protocolo, se decidió mapear los tipos de mensajes mediante una estructura recursiva.
+De esta manera se pudieron realizar las ediciones que se necesitaban, y quedó un método cómodo y escalable para realizarlo.
+
+\subsection{Transferencia de archivos}
+\subsubsection{Problema}
+El requerimiento de calcular/validar el hash de los archivos que se envían resultó totalmente un problema, ya que, entre los dos participantes
+de la transmisión arreglan para comunicarse entre ellos fuera de banda. De esta manera, el proxy para interceptar esa comunicación y recibir
+el archivo debía modificar los mensajes de ese \textit{handshaking} para la comunicación se haga hacia él, recibir el archivo, calcular el hash, para luego
+enviarlo al destinatario original.
+\subsubsection{Decisión}
+Por la complejidad del requerimiento, la transferencia del archivo, se realiza en un Thread aparte de toda la aplicación, manteniendo los Threads en un
+CachedThreadPool, para que, en medida de lo posible, poder reutilizar la Threads que se crean. Se admite que esta decisión, va en contra del modelo
+no bloqueante que se tomó para todo el resto de la aplicación, aunque como el envío de archivos no tiene la misma frecuencia que los mensajes de XMPP
+que se transmiten constantemente, no creemos que esta decisión afecte mucho a la performance de la aplicación en general.
+
 \section{Limitaciones de la aplicación}
 
 \section{Posibles extensiones}
@@ -403,9 +472,68 @@ Para la ejecución de los casos de prueba, se va a contar con los siguientes usu
 
 \section{Guía de instalación detallada y precisa}
 
+\begin{verbatim}
+ Dependencias:
+
+ - Para la compilación del proyecto es necesario que el sistema cuente con Maven2. El cual 
+en el caso de Ubuntu puede instalarse
+con el siguiente comando:
+
+  > sudo apt-get install maven2
+
+ - Una vez que el sistema cuenta con Maven, se procede a generar el ejecutable con el siguiente
+ comando (desde la carpeta raíz del proyecto):
+
+  > mvn clean package
+\end{verbatim}
+
+
 \section{Instrucciones para la configuración}
+Para configurar la aplicación, el proxy cuenta con un archivo de parámetros iniciales llamado \textit{init.properties}, el cual puede
+encontrarse en la raíz.
+
+Los valores que deben setease son:
+\begin{description}
+ \item [proxy] Ip donde bindear el servicio de proxy.
+ \item [proxyPort] Puerto donde bindear el servicio de proxy.
+ \item [config] Ip donde bindear el servicio de configuración.
+ \item [configPort] Puerto donde bindear el servicio de configuración.
+ \item [origin] Ip del origin server.
+ \item [originPort] Puerto del servicio XMPP del origin server.
+ \item [bufferSize] Tamaño de buffers de lectura a utilizar.
+ \item [fileTransferBufferSize] Tamaño de buffer utilizado para el envío de archivos.
+ \item [adminUsername] Usuario de administración.
+ \item [adminPassword] Contraseña del usuario de administración.
+
+\end{description}
 
 \section{Ejemplos de configuración}
+A continuación se presenta una posible configuración de la aplicación
+
+\begin{verbatim}
+ #Interfaz y puerto del servicio proxy
+proxy=0.0.0.0
+proxyPort=9999
+
+#Interfaz y puerto del servicio de configuración
+config=127.0.0.1
+configPort=9998
+
+#Origin server default
+origin=127.0.0.1
+originPort=5222
+
+#Buffer size
+bufferSize=256
+
+#File transfer buffer size
+fileTrasferBufferSize=100
+
+#Admin username and password
+adminUsername=admin
+adminPassword=admin
+\end{verbatim}
+
 
 \section{Documento de diseño del proyecto}
 
