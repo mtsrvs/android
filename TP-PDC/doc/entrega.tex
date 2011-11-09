@@ -65,18 +65,8 @@ inconveniente, en caso de que el proxy deba reiniciarse, este inicia con la últ
 Con el objetivo de facilitar la configuración del proxy, se decidió no solo ofrecer comandos para modificar la misma,
 si no también comandos para consultarla.\\
 Debido a que el protocolo es sin estado, se debe enviar una autenticación en cada comando. Se decidió desarrollar
-un protocolo sin estados ya que de esta manera es mucho más fácil el manejo de comandos para una máquina.
-
-\subsection{UML}
-El siguiente es el diagrama UML de las partes mas importantes del parser de configuración.
-% \ref{figure:ConfigUML}
-
-\begin{figure}[h]
-	\centering
-	\includegraphics[width=400px]{ConfigUML}  
-	\caption{Diagrama UML del protocolo de configuración}
-	\label{figure:ConfigUML}
-\end{figure}
+un protocolo sin estados ya que de esta manera es mucho más fácil el manejo de comandos para una máquina.\\
+En cuanto a la estructura, se puede encontrar el diagrama UML en la figura \ref{figure:ConfigUML}
 
 \section{Problemas encontrados durante el diseño y la implementación}
 
@@ -577,5 +567,22 @@ adminPassword=admin
 
 
 \section{Documento de diseño del proyecto}
+
+\subsection{Diagramas UML}
+\subsubsection{Handlers}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=400px]{Handlers}  
+	\caption{Diagrama UML de los handlers}
+	\label{figure:Handlers}
+\end{figure}
+
+\subsubsection{Configuración}
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=400px]{ConfigUML}  
+	\caption{Diagrama UML del protocolo de configuración}
+	\label{figure:ConfigUML}
+\end{figure}
 
 \end{document}
