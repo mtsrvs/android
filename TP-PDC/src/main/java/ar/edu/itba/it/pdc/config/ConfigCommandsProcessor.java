@@ -154,16 +154,22 @@ public class ConfigCommandsProcessor {
 
 	@SuppressWarnings("unchecked")
 	private boolean multiplexCommand(SelectionKey key, ByteBuffer buf, Map<String, Object> request) {
-//		{"auth":["admin","admin"],"type":"assignation", "multiplex":["jid","serverto"]}
+//		{"auth":["admin","admin"],"type":"assignation", "multiplex":["jid","serverto","port"]}
 		validator.validateMultiplexCommand(request);
 		
-		Map<String, InetAddress> currentMultiplex = new HashMap<String, InetAddress>();
-
+		Map<String, List<String>> currentMultiplex = new HashMap<String, List<String>>();
+		
 		try {
-			currentMultiplex = configLoader.getMultiplex();
+			String prop = configLoader.getProperty("multiplex");
+			if(prop != null) {
+				currentMultiplex = mapper.readValue(prop, new TypeReference<Map<String, List<String>>>() {});
+			}
 			if(request.get("type").equals("assignation")) {
 				List<String> multiplex = (List<String>) request.get("multiplex");
-				currentMultiplex.put(multiplex.get(0), InetAddress.getByName(multiplex.get(1)));
+				List<String> newMultiplex = new ArrayList<String>();
+				newMultiplex.add(multiplex.get(1));
+				newMultiplex.add(multiplex.get(2));
+				currentMultiplex.put(multiplex.get(0), newMultiplex);
 			} else if(request.get("type").equals("delete")) {
 				currentMultiplex.remove((String) request.get("multiplex"));
 			}

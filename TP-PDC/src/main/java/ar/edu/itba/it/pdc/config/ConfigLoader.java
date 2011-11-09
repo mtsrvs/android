@@ -197,7 +197,7 @@ public class ConfigLoader {
 	 * Multiplexador de cuentas
 	 * @return Map<String, InetAddress>
 	 */
-	public Map<String, InetAddress> getMultiplex(){
+	public Map<String, InetSocketAddress> getMultiplex(){
 		return configLoaderUtils.getStringInetMap(config.getProperty("multiplex"));
 	}
 	

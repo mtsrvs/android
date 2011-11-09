@@ -1,6 +1,7 @@
 package ar.edu.itba.it.pdc.config;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,15 +82,16 @@ public class ConfigLoaderUtils {
 		return map;
 	}
 	
-	public Map<String, InetAddress> getStringInetMap(String property) {
+	public Map<String, InetSocketAddress> getStringInetMap(String property) {
 //		{"jid"\:"server","foo"\:"localhost"}
-		Map<String, InetAddress> multiplex = new HashMap<String, InetAddress>();
+		Map<String, InetSocketAddress> multiplex = new HashMap<String, InetSocketAddress>();
 		if(property != null) {
-			Map<String, String> map = new HashMap<String, String>();
+			Map<String, List<String>> map = new HashMap<String, List<String>>();
 			try {
-				map =  mapper.readValue(property, new TypeReference<Map<String, String>>() {});
-				for(Entry<String, String> entry : map.entrySet()) {
-					InetAddress address = InetAddress.getByName(entry.getValue());
+				map =  mapper.readValue(property, new TypeReference<Map<String, List<String>>>() {});
+				for(Entry<String, List<String>> entry : map.entrySet()) {
+					int port = Integer.valueOf(entry.getValue().get(1));
+					InetSocketAddress address = new InetSocketAddress(entry.getValue().get(0), port);
 					multiplex.put(entry.getKey(), address);
 				}
 			} catch (Exception e) {

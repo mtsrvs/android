@@ -9,6 +9,7 @@ import java.nio.channels.SocketChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import sun.misc.Signal;
 import ar.edu.itba.it.pdc.exception.CommandValidationException;
 import ar.edu.itba.it.pdc.proxy.handlers.TCPHandler;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
