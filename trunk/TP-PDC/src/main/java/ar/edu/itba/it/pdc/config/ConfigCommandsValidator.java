@@ -71,9 +71,10 @@ public class ConfigCommandsValidator {
 	@SuppressWarnings("unchecked")
 	public void validateMultiplexCommand(Map<String, Object> command) {
 		if(command.get("type").equals("assignation")) {
-//		{"auth":["admin","admin"],"type":"assignation", "multiplex":["jid","serverto"]}
+//		{"auth":["admin","admin"],"type":"assignation", "multiplex":["jid","serverto","port"]}
 			List<String> multiplex = (List<String>)command.get("multiplex");
-			if(multiplex.size() != 2 || jidIsWrong(multiplex.get(0))) {
+			validatePort(multiplex.get(2));
+			if(multiplex.size() != 3 || jidIsWrong(multiplex.get(0))) {
 				throw new CommandValidationException();
 			}
 		} else if(command.get("type").equals("delete")) {
@@ -85,6 +86,16 @@ public class ConfigCommandsValidator {
 		}
 	}
 	
+	private void validatePort(String portStr) {
+		try {
+			int port = Integer.valueOf(portStr);
+			if(port < 0 || port > 65535) {
+				throw new CommandValidationException();
+			}
+		} catch (NumberFormatException e) {
+			throw new CommandValidationException();
+		}
+	}
 	
 	public void validateSilenceCommand(Map<String, Object> command) {
 		if(command.get("type").equals("assignation")) {
