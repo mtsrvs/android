@@ -4,6 +4,8 @@
 \usepackage[utf8x]{inputenc}
 \usepackage{verbatim}
 \usepackage{hyperref}
+\usepackage[pdftex]{graphicx}
+\usepackage{wrapfig}
 
 \usepackage{anysize}
 \marginsize{1.5cm}{1.5cm}{1cm}{1cm}
@@ -46,10 +48,35 @@
 \newpage
 
 \section{Descripción detallada del protocolo desarrollado}
+
+\subsection{RFC}
 A continuación se presenta el RFC del protocolo \textit{configurotocol 1.0}, diseñado para manejar la configuración
 del servidor proxy.
 
 \verbatiminput{configurotocol2.txt}
+
+\subsection{Consideraciones}
+Se decidió basar el formato del protocolo en JSON, ya que este es fácil de leer y escribir para los usuarios y es
+fácil de parsear y generar para las máquinas. Por otro lado, facilita mucho el parseo del archivo de configuración,
+ya que el mismo también se guarda en formato JSON. Por lo tanto, al momento de configurar el proxy, la generación 
+e interpretación de comandos no debería ser ningún problema, tanto para un usuario como para una máquina.\\
+Es importante destacar que todos los cambios exitosos de configuración son persistidos. Por lo que ante cualquier
+inconveniente, en caso de que el proxy deba reiniciarse, este inicia con la última configuración persistida\\
+Con el objetivo de facilitar la configuración del proxy, se decidió no solo ofrecer comandos para modificar la misma,
+si no también comandos para consultarla.\\
+Debido a que el protocolo es sin estado, se debe enviar una autenticación en cada comando. Se decidió desarrollar
+un protocolo sin estados ya que de esta manera es mucho más fácil el manejo de comandos para una máquina.
+
+\subsection{UML}
+El siguiente es el diagrama UML de las partes mas importantes del parser de configuración.
+% \ref{figure:ConfigUML}
+
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=400px]{ConfigUML}  
+	\caption{Diagrama UML del protocolo de configuración}
+	\label{figure:ConfigUML}
+\end{figure}
 
 \section{Problemas encontrados durante el diseño y la implementación}
 
