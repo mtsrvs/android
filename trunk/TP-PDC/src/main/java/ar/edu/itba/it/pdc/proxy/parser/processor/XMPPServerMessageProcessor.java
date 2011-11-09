@@ -1,6 +1,5 @@
 package ar.edu.itba.it.pdc.proxy.parser.processor;
 
-import java.net.ServerSocket;
 import java.nio.channels.ServerSocketChannel;
 import java.util.Iterator;
 import java.util.List;
@@ -11,7 +10,6 @@ import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
-import ar.edu.itba.it.pdc.proxy.filetransfer.XMPPFileInfo;
 import ar.edu.itba.it.pdc.proxy.filters.FilterControls;
 import ar.edu.itba.it.pdc.proxy.info.ConnectionMap;
 import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
@@ -20,9 +18,7 @@ import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
-import ar.edu.itba.it.pdc.proxy.parser.element.XMPPElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
-import ar.edu.itba.it.pdc.proxy.parser.element.util.PredefinedMessages;
 
 
 public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
@@ -102,29 +98,28 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	}
 
 	private void handleBytestreamAck(SimpleElement query, String id, String type, String to) {
-		if(ElemUtils.hasNullValues(query, id, type, to)) {
-			Isecu.log.debug("ByteStreams algo está respondiendo: Query:" + query + " id:" + id + " type:" + type + " to:" + to);
-			return;
-		}
-		Isecu.log.debug("Debe transmitir el archivo");
+//		if(ElemUtils.hasNullValues(query, id, type, to)) {
+//			return;
+//		}
+//		Isecu.log.debug("Debe transmitir el archivo");
 	}
 
 	private void handleSiResult(SimpleElement si, String id, String type, String to) {
-		if(ElemUtils.hasNullValues(si, id, type, to)) {
-			return;
-		}
-		if(type.equalsIgnoreCase("result")) {
-			this.forceWrite = false;
-			XMPPFileInfo fileInfo = ((XMPPClientMessageProcessor) this.endpoint).getFileInfoByIdOffer(id);
-			ServerSocket soffer = this.fileManager.startSocks5offer(10000);
-			if(soffer != null) {
-				Isecu.log.debug("Manda bytestream initiation al server");
-				XMPPElement e = PredefinedMessages.createByteStreamOffer(fileInfo, soffer.getLocalPort());
-				Isecu.log.debug(e.getData());
-				this.buffer.add(e);
-				fileManager.socks5Server(soffer);
-			}
-		}
+//		if(ElemUtils.hasNullValues(si, id, type, to)) {
+//			return;
+//		}
+//		if(type.equalsIgnoreCase("result")) {
+//			this.forceWrite = false;
+//			XMPPFileInfo fileInfo = ((XMPPClientMessageProcessor) this.endpoint).getFileInfoByIdOffer(id);
+//			ServerSocket soffer = this.fileManager.startSocks5offer(10000);
+//			if(soffer != null) {
+//				Isecu.log.debug("Manda bytestream initiation al server");
+//				XMPPElement e = PredefinedMessages.createByteStreamOffer(fileInfo, soffer.getLocalPort());
+//				Isecu.log.debug(e.getData());
+//				this.buffer.add(e);
+//				fileManager.socks5Server(soffer);
+//			}
+//		}
 	}
 	
 	public void handleOtherElement(SimpleElement simpleElement) {
