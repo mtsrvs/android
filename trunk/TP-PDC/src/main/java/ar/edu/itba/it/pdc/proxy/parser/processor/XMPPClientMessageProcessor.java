@@ -238,8 +238,8 @@ public class XMPPClientMessageProcessor extends XMPPMessageProcessor {
 		updateLastStanzaTime();	
 		JID to = new JID(messageStanza.getTo());
 		try {
-			this.accessControls.silencerFrom(this.jid.getUsername());
-			this.accessControls.silencerTo(to.getUsername());
+			this.accessControls.silencerFrom(this.jid.getUserInfo());
+			this.accessControls.silencerTo(to.getUserInfo());
 		} catch (UserSilencedException e) {
 			clearEndpointBuffer();
 			appendOnEndpointBuffer(sc.handleUserSilencedException(this.jid.toString(), e.getMessage()));
