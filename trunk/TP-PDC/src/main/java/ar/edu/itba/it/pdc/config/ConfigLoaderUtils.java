@@ -83,7 +83,7 @@ public class ConfigLoaderUtils {
 	}
 	
 	public Map<String, InetSocketAddress> getStringInetMap(String property) {
-//		{"jid"\:"server","foo"\:"localhost"}
+//		{"jid":["server","port"],"foo":["localhost","9898"]}
 		Map<String, InetSocketAddress> multiplex = new HashMap<String, InetSocketAddress>();
 		if(property != null) {
 			Map<String, List<String>> map = new HashMap<String, List<String>>();
