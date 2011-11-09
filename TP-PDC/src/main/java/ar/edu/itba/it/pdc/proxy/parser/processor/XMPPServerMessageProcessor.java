@@ -5,6 +5,7 @@ import java.util.List;
 
 import ar.edu.itba.it.pdc.Isecu;
 import ar.edu.itba.it.pdc.config.ConfigLoader;
+import ar.edu.itba.it.pdc.exception.InvalidRangeException;
 import ar.edu.itba.it.pdc.exception.MaxLoginsAllowedException;
 import ar.edu.itba.it.pdc.proxy.controls.AccessControls;
 import ar.edu.itba.it.pdc.proxy.filetransfer.FileTransferManager;
@@ -13,12 +14,9 @@ import ar.edu.itba.it.pdc.proxy.parser.ReaderFactory;
 import ar.edu.itba.it.pdc.proxy.parser.element.IQStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.MessageStanza;
 import ar.edu.itba.it.pdc.proxy.parser.element.PresenceStanza;
-import ar.edu.itba.it.pdc.proxy.parser.element.PresenceUnavailable;
 import ar.edu.itba.it.pdc.proxy.parser.element.SimpleElement;
 import ar.edu.itba.it.pdc.proxy.parser.element.StartElement;
-import ar.edu.itba.it.pdc.proxy.parser.element.StreamError;
 import ar.edu.itba.it.pdc.proxy.parser.element.util.ElemUtils;
-import ar.edu.itba.it.pdc.proxy.protocol.JID;
 
 
 public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
@@ -31,11 +29,7 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			AccessControls accessControls, FileTransferManager fileManager) {
 		super(configLoader, readerFactory, filterControls, accessControls, fileManager);
 	}
-
-	@Override
-	protected void processXMPPElement(StartElement e) {
-	}
-
+	
 	private XMPPClientMessageProcessor getEndpoint(){
 		return (XMPPClientMessageProcessor)this.endpoint;
 	}
@@ -67,28 +61,6 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			handleIqBind(iqStanza.getFirstElementWithNamespace("urn:ietf:params:xml:ns:xmpp-bind"));
 		}
 		handleSiResult(iqStanza.getFirstElementWithNamespace("http://jabber.org/protocol/si"), iqStanza.getAttribute("id"), iqStanza.getAttribute("type"));
-	}
-	
-	private void handleIqBind(SimpleElement bind){
-		if (bind != null){
-			SimpleElement j = bind.getFirstChild("jid");
-			if (j != null){
-				this.jid.setResource(getEndpoint().getResource());
-				Isecu.log.debug("Resource binded for " + this.jid.getUsername() + ": " + this.jid.getResource());
-				List<XMPPClientMessageProcessor> cmps = this.accessControls.concurrentSessions(getEndpoint());
-				if (cmps != null){					
-					for (XMPPClientMessageProcessor cmp : cmps){
-						String message = "Maximum amount of concurrent sessions for user '" + this.jid.getUsername() + "' reached. ";
-						message += "Thus, " + cmp.getResource() + " is now closed.";
-						PresenceUnavailable pu = sc.handlePresenceUnavailable(cmp.jid.toString(), message);
-						StreamError se = sc.handleStreamError("conflict", message);
-						cmp.getEndpoint().buffer.add(pu);
-						cmp.getEndpoint().buffer.add(se);
-						Isecu.log.info("Max concurrent sessions: Resource: " + cmp.jid.getResource() + " closed.");
-					}
-				}
-			}
-		}
 	}	
 	
 	@Override
@@ -109,7 +81,7 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 			if (mechanisms.getChildren("mechanism").isEmpty()){
 				String message = "DIGEST-MD5 mechanism not supported by this server";
 				Isecu.log.info(message);
-				buffer.add(sc.handleUserControlException("temporary-auth-failure", message));
+				bufferAdd(sc.handleUserControlException("temporary-auth-failure", message));
 			}
 		}
 	}
@@ -126,22 +98,55 @@ public class XMPPServerMessageProcessor extends XMPPMessageProcessor {
 	
 	public void handleOtherElement(SimpleElement simpleElement) {
 		if(simpleElement.getName().equalsIgnoreCase("success")) {
+			
+			// Time range/Max Logins access controls
 			try {
 				this.accessControls.logins(getEndpoint().getUsername());
+				this.accessControls.range(getEndpoint().getUsername());				
 			} catch (MaxLoginsAllowedException exc){
 				Isecu.log.info("Access denied: " + exc.getMessage());
 				buffer.clear();
-				buffer.add(sc.handleUserControlException("not-authorized", exc.getMessage()));
+				bufferAdd(sc.handleUserControlException("not-authorized", exc.getMessage()));
+				simpleElement.notSend();
 				return;
-			} 
+			} catch (InvalidRangeException exc) {
+				Isecu.log.info("Access denied: " + exc.getMessage());
+				buffer.clear();
+				bufferAdd(sc.handleUserControlException("not-authorized", exc.getMessage()));
+				simpleElement.notSend();
+				return;
+			}
 						
-			JID jid = new JID(getEndpoint().getUsername(), getEndpoint().getServer());
-			this.jid = jid;
-			this.endpoint.jid = jid;
+			this.jid = this.endpoint.jid;
 			this.markToReset();
 			this.resetMessage = true;
-			
 			Isecu.log.info("User connection[" + this.jid + "]");
+		}
+	}
+
+	@Override
+	protected void processXMPPElement(StartElement e) {
+		
+	}
+	
+	private void handleIqBind(SimpleElement bind){
+		if (bind != null){
+			SimpleElement j = bind.getFirstChild("jid");
+			if (j != null){
+				this.jid.setResource(getEndpoint().getResource());
+				Isecu.log.debug("Resource binded for " + this.jid.getUsername() + ": " + this.jid.getResource());
+				
+				List<XMPPClientMessageProcessor> cmps = this.accessControls.concurrentSessions(getEndpoint());
+				if (cmps != null){					
+					for (XMPPClientMessageProcessor cmp : cmps){
+						String message = "Maximum amount of concurrent sessions for user '" + this.jid.getUsername() + "' reached. ";
+						message += "Closing most inactive resources for '" + this.jid.getUsername() + "'.";
+						cmp.getEndpoint().bufferAdd(sc.handleStreamError("conflict", message));
+						cmp.getEndpoint().stopAddingToBuffer();
+						Isecu.log.info("Max concurrent sessions for " + jid.getUsername() + ": Resource: " + cmp.jid.getResource() + " closed.");
+					}
+				}
+			}
 		}
 	}
 	

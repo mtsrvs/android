@@ -26,7 +26,7 @@ public abstract class XMPPHandler implements TCPHandler {
 		XMPPMessageProcessor processor = getProcessor(key, Opt.READ);
 		ByteBuffer buf = this.getReadBuffer(key);
 
-		int r = 0;		
+		int r = 0;
 		if(!processor.needToReset()) {
 			r =  sc.read(buf);
 		}

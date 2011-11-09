@@ -39,7 +39,8 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	protected FileTransferManager fileManager;
 	
 	protected JID jid = null;
-	private boolean reset = false;
+	private boolean reset = false;	
+	private boolean stopAddingToBuffer = false;
 
 	public XMPPMessageProcessor(ConfigLoader configLoader, ReaderFactory readerFactory, 
 			FilterControls filterControls, AccessControls accessControls, FileTransferManager fileManager) {
@@ -50,6 +51,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 		this.sc = new StreamConstructor(this.filterControls);
 		this.asyncReader = this.readerFactory.newAsyncReader();
 		this.fileManager = fileManager;
+		this.jid = new JID();
 	}
 	
 	public JID getJid(){
@@ -69,7 +71,7 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 	}
 	
 	public void appendOnEndpointBuffer(XMPPElement e){
-		this.endpoint.buffer.add(e);
+		this.endpoint.bufferAdd(e);
 	}
 	
 	public void clearEndpointBuffer(){
@@ -146,23 +148,23 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 				XMPPElement aux;
 				switch (event) {
 				case AsyncXMLStreamReader.START_DOCUMENT:
-					buffer.add(sc.handleStartDocument(asyncReader));
+					bufferAdd(sc.handleStartDocument(asyncReader));
 					break;
 				case AsyncXMLStreamReader.START_ELEMENT:
 					if ((aux = sc.handleStartElement(asyncReader)) != null) {
-						buffer.add(aux);
+						bufferAdd(aux);
 						processXMPPElement((StartElement) aux);
 					}
 					break;
 				case AsyncXMLStreamReader.END_ELEMENT:
 					if ((aux = sc.handleEndElement(asyncReader)) != null) {
 						processXMPPElement((SimpleElement) aux);
-						buffer.add(aux);
+						bufferAdd(aux);
 					}
 					break;
 				case AsyncXMLStreamReader.CHARACTERS:
 					if ((aux = sc.handleCharacters(jid, asyncReader, this.isClientProcessor())) != null) {
-						buffer.add(aux);
+						bufferAdd(aux);
 					}
 					break;
 				default:
@@ -173,6 +175,15 @@ public abstract class XMPPMessageProcessor implements XMPPFilter {
 			Isecu.log.debug("Invalid Protocol", e);
 			throw new InvalidProtocolException("Invalid protocol");
 		}
+	}
+	
+	protected void stopAddingToBuffer(){
+		this.stopAddingToBuffer = true;
+	}
+	
+	protected void bufferAdd(XMPPElement aux){
+		if (!stopAddingToBuffer)
+			buffer.add(aux);
 	}
 
 	/**
